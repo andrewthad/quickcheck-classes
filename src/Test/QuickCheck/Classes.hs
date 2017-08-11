@@ -17,6 +17,7 @@ import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
 import System.IO.Unsafe
 import Data.Semigroup (Semigroup)
+import GHC.Exts (fromList)
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
 
