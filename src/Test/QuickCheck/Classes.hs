@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -17,7 +18,7 @@ import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
 import System.IO.Unsafe
 import Data.Semigroup (Semigroup)
-import GHC.Exts (fromList)
+import GHC.Exts (fromList,toList)
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
 
@@ -35,10 +36,13 @@ monoidProps p =
 
 primProps :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 primProps p =
-  [ ("Set-Get ByteArray (you get back what you put in)", primSetGetByteArray p)
-  , ("Get-Set ByteArray (putting back what you got out has no effect)", primGetSet p)
-  , ("Set-Set ByteArray (setting twice is same as setting once)", primSetSet p)
-  , ("Set-Get Addr (you get back what you put in)", primSetGetAddr p)
+  [ ("ByteArray Set-Get (you get back what you put in)", primSetGetByteArray p)
+  , ("ByteArray Get-Set (putting back what you got out has no effect)", primGetSetByteArray p)
+  , ("ByteArray Set-Set (setting twice is same as setting once)", primSetSetByteArray p)
+  , ("ByteArray List Conversion Roundtrips", primListByteArray p)
+  , ("Addr Set-Get (you get back what you put in)", primSetGetAddr p)
+  , ("Addr Get-Set (putting back what you got out has no effect)", primGetSetAddr p)
+  , ("Addr List Conversion Roundtrips", primListAddr p)
   ]
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -53,6 +57,29 @@ monoidLeftIdentity _ = property $ \(a :: a) -> mappend mempty a == a
 monoidRightIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidRightIdentity _ = property $ \(a :: a) -> mappend a mempty == a
 
+primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primListByteArray _ = property $ \(as :: [a]) ->
+  as == toList (fromList as :: PrimArray a)
+
+primListAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primListAddr _ = property $ \(as :: [a]) -> unsafePerformIO $ do
+  let len = L.length as
+  ptr@(Ptr addr#) :: Ptr a <- mallocBytes (len * sizeOf (undefined :: a))
+  let addr = Addr addr#
+  let go :: Int -> [a] -> IO ()
+      go !ix xs = case xs of
+        [] -> return ()
+        (x : xsNext) -> do
+          writeOffAddr addr ix x
+          go (ix + 1) xsNext
+  go 0 as
+  let rebuild :: Int -> IO [a]
+      rebuild !ix = if ix < len
+        then (:) <$> readOffAddr addr ix <*> rebuild (ix + 1)
+        else return []
+  asNew <- rebuild 0
+  return (as == asNew)
+
 primSetGetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primSetGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
   ix <- choose (0,len - 1)
@@ -62,8 +89,8 @@ primSetGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
     a' <- readPrimArray arr ix
     return (a == a')
 
-primGetSet :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primGetSet _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
+primGetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primGetSetByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   let arr1 = fromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
@@ -75,8 +102,8 @@ primGetSet _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
     unsafeFreezePrimArray marr
   return (arr1 == arr2)
 
-primSetSet :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primSetSet _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==> do
+primSetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primSetSetByteArray _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==> do
   let arr1 = fromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
@@ -102,4 +129,22 @@ primSetGetAddr _ = property $ \(a :: a) len -> (len > 0) ==> do
     a' <- readOffAddr addr ix
     free ptr
     return (a == a')
+
+primGetSetAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primGetSetAddr _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
+  let arr1 = fromList as :: PrimArray a
+      len = L.length as
+  ix <- choose (0,len - 1)
+  arr2 <- return $ unsafePerformIO $ do
+    ptr@(Ptr addr#) :: Ptr a <- mallocBytes (len * sizeOf (undefined :: a))
+    let addr = Addr addr#
+    copyPrimArrayToPtr ptr arr1 0 len
+    a :: a <- readOffAddr addr ix
+    writeOffAddr addr ix a
+    marr <- newPrimArray len
+    copyPtrToMutablePrimArray marr 0 ptr len
+    free ptr
+    unsafeFreezePrimArray marr
+  return (arr1 == arr2)
+
 
