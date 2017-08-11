@@ -1,0 +1,8 @@
+resolver: lts-9.0
+packages:
+- '.'
+extra-deps:
+- 'prim-array-0.2.1'
+flags: {}
+extra-package-dbs: []
+
