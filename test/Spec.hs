@@ -9,6 +9,7 @@ import Control.Monad
 import Data.Primitive
 import Data.Foldable
 import Data.Monoid (Sum)
+import Foreign.Storable
 
 import Test.QuickCheck.Classes
 
@@ -46,9 +47,10 @@ allPropsApplied =
   , ("Int64",allProps (Proxy :: Proxy Int64))
   ]
 
-allProps :: forall a. (Num a, Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
+allProps :: forall a. (Num a, Prim a, Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 allProps p = concat
   [ primProps p
+  , storableProps p
   , monoidProps (Proxy :: Proxy (Sum a))
   ]
 
