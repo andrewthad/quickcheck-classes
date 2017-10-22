@@ -8,6 +8,8 @@ module Test.QuickCheck.Classes
   , storableProps
   , semigroupProps
   , monoidProps
+  , showReadProps
+  , jsonProps
   ) where
 
 import Test.QuickCheck
@@ -23,9 +25,23 @@ import Data.Semigroup (Semigroup)
 import GHC.Exts (fromList,toList)
 import Foreign.Marshal.Array
 import Foreign.Storable
+import Text.Read (readMaybe)
+import Data.Aeson (FromJSON(..),ToJSON(..))
+import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
+
+jsonProps :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> [(String,Property)]
+jsonProps p =
+  [ ("Encoding Equals Value", jsonEncodingEqualsValue p)
+  , ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)
+  ]
+
+showReadProps :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> [(String,Property)]
+showReadProps p =
+  [ ("Partial Isomorphism", showReadPartialIsomorphism p)
+  ]
 
 semigroupProps :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 semigroupProps p =
@@ -56,6 +72,22 @@ storableProps p =
   , ("Get-Set (putting back what you got out has no effect)", storableGetSet p)
   , ("List Conversion Roundtrips", storableList p)
   ]
+
+showReadPartialIsomorphism :: forall a. (Show a, Read a, Arbitrary a, Eq a) => Proxy a -> Property
+showReadPartialIsomorphism _ = property $ \(a :: a) ->
+  readMaybe (show a) == Just a
+
+-- TODO: improve the quality of the error message if
+-- something does not pass this test.
+jsonEncodingEqualsValue :: forall a. (ToJSON a, Show a, Arbitrary a) => Proxy a -> Property
+jsonEncodingEqualsValue _ = property $ \(a :: a) ->
+  case AE.decode (AE.encode a) of
+    Nothing -> False
+    Just (v :: AE.Value) -> v == toJSON a
+
+jsonEncodingPartialIsomorphism :: forall a. (ToJSON a, FromJSON a, Show a, Eq a, Arbitrary a) => Proxy a -> Property
+jsonEncodingPartialIsomorphism _ = property $ \(a :: a) ->
+  AE.decode (AE.encode a) == Just a
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupAssociative _ = property $ \(a :: a) b c -> a SG.<> (b SG.<> c) == (a SG.<> b) SG.<> c
