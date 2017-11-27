@@ -55,6 +55,7 @@ allProps p = concat
   , monoidProps (Proxy :: Proxy (Sum a))
   , showReadProps p
   , jsonProps p
+  , eqProps p
   ]
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b

@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes
   , monoidProps
   , showReadProps
   , jsonProps
+  , eqProps
   ) where
 
 import Test.QuickCheck
@@ -46,6 +47,15 @@ showReadProps p =
 semigroupProps :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 semigroupProps p =
   [ ("Associative", semigroupAssociative p)
+  ]
+
+-- | Test that equality is transitive and symmetric. This properties are
+--   defined to never retry, so they may not actually end up testing
+--   what you want them to.
+eqProps :: (Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
+eqProps p =
+  [ ("Transitive", eqTransitive p)
+  , ("Symmetric", eqSymmetric p)
   ]
 
 monoidProps :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
@@ -88,6 +98,20 @@ jsonEncodingEqualsValue _ = property $ \(a :: a) ->
 jsonEncodingPartialIsomorphism :: forall a. (ToJSON a, FromJSON a, Show a, Eq a, Arbitrary a) => Proxy a -> Property
 jsonEncodingPartialIsomorphism _ = property $ \(a :: a) ->
   AE.decode (AE.encode a) == Just a
+
+eqTransitive :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
+eqTransitive _ = property $ \(a :: a) b c -> case a == b of
+  True -> case b == c of
+    True -> a == c
+    False -> a /= c
+  False -> case b == c of
+    True -> a /= c
+    False -> True
+
+eqSymmetric :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
+eqSymmetric _ = property $ \(a :: a) b -> case a == b of
+  True -> b == a
+  False -> b /= a
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupAssociative _ = property $ \(a :: a) b c -> a SG.<> (b SG.<> c) == (a SG.<> b) SG.<> c
