@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -11,6 +13,11 @@ module Test.QuickCheck.Classes
   , showReadProps
   , jsonProps
   , eqProps
+#if MIN_VERSION_QuickCheck(2,10,0)
+  , functorProps
+  , applicativeProps
+  , monadProps
+#endif
   ) where
 
 import Test.QuickCheck
@@ -18,6 +25,8 @@ import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.PrimArray
 import Data.Proxy
 import Control.Monad.ST
+import Control.Monad
+import Data.Monoid (Endo(..))
 import GHC.Ptr (Ptr(..))
 import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
@@ -28,10 +37,16 @@ import Foreign.Marshal.Array
 import Foreign.Storable
 import Text.Read (readMaybe)
 import Data.Aeson (FromJSON(..),ToJSON(..))
+import Data.Functor.Classes
+import Control.Applicative
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
+
+#if MIN_VERSION_QuickCheck(2,10,0)
+import Test.QuickCheck.Arbitrary (Arbitrary1(..))
+#endif
 
 jsonProps :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> [(String,Property)]
 jsonProps p =
@@ -44,20 +59,40 @@ showReadProps p =
   [ ("Partial Isomorphism", showReadPartialIsomorphism p)
   ]
 
+-- | Tests the following properties:
+--
+-- [/Associative/]
+--   @a <> (b <> c) ≡ (a <> b) <> c@
 semigroupProps :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 semigroupProps p =
   [ ("Associative", semigroupAssociative p)
   ]
 
--- | Test that equality is transitive and symmetric. This properties are
---   defined to never retry, so they may not actually end up testing
---   what you want them to.
+-- | Tests the following properties:
+--
+-- [/Transitive/]
+--   @a == b ∧ b == c ⇒ a == c@
+-- [/Symmetric/]
+--   @a == b ⇒ b == a@
+--
+-- Some of these properties involve implication. In the case that
+-- the left hand side of the implication arrow does not hold, we
+-- do not retry. Consequently, these properties only end up being
+-- useful when the data type has a small number of inhabitants.
 eqProps :: (Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 eqProps p =
   [ ("Transitive", eqTransitive p)
   , ("Symmetric", eqSymmetric p)
   ]
 
+-- | Tests the following properties:
+--
+-- [/Associative/]
+--   @mappend a (mappend b c) ≡ mappend (mappend a b) c@
+-- [/Left Identity/]
+--   @mappend mempty a ≡ a@
+-- [/Right Identity/]
+--   @mappend a mempty ≡ a@
 monoidProps :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 monoidProps p =
   [ ("Associative", monoidAssociative p)
@@ -264,3 +299,214 @@ arrayEq ptrA ptrB len = go 0 where
         else return False
     else return True
 
+#if MIN_VERSION_QuickCheck(2,10,0)
+-- | Tests the following applicative properties:
+--
+-- [/Identity/]
+--   @'fmap' 'id' ≡ 'id'@
+-- [/Composition/]
+--   @fmap (f . g) ≡ 'fmap' f . 'fmap' g@
+-- [/Const/]
+--   @(<$) ≡ 'fmap' 'const'@
+functorProps :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
+functorProps p =
+  [ ("Identity", functorIdentity p)
+  , ("Composition", functorComposition p)
+  , ("Const", functorConst p)
+  ]
+
+-- | Tests the following applicative properties:
+--
+-- [/Identity/]
+--   @'pure' 'id' '<*>' v ≡ v@
+-- [/Composition/]
+--   @'pure' (.) '<*>' u '<*>' v '<*>' w ≡ u '<*>' (v '<*>' w)@
+-- [/Homomorphism/]
+--   @'pure' f '<*>' 'pure' x ≡ 'pure' (f x)@
+-- [/Interchange/]
+--   @u '<*>' 'pure' y ≡ 'pure' ('$' y) '<*>' u@
+-- [/LiftA2 (1)/]
+--   @('<*>') ≡ 'liftA2' 'id'@
+applicativeProps :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
+applicativeProps p =
+  [ ("Identity", applicativeIdentity p)
+  , ("Composition", applicativeComposition p)
+  , ("Homomorphism", applicativeHomomorphism p)
+  , ("Interchange", applicativeInterchange p)
+  , ("LiftA2 Part 1", applicativeLiftA2_1 p)
+    -- todo: liftA2 part 2, we need an equation of two variables for this
+  ]
+
+
+-- | Tests the following monadic properties:
+--
+-- [/Left Identity/]
+--   @'return' a '>>=' k ≡ k a@
+-- [/Right Identity/]
+--   @m '>>=' 'return' ≡ m@
+-- [/Associativity/]
+--   @m '>>=' (\\x -> k x '>>=' h) ≡ (m '>>=' k) '>>=' h@
+-- [/Return/]
+--   @'pure' ≡ 'return'@
+-- [/Ap/]
+--   @('<*>') ≡ 'ap'@
+monadProps :: (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
+monadProps p =
+  [ ("Left Identity", monadLeftIdentity p)
+  , ("Right Identity", monadRightIdentity p)
+  , ("Associativity", monadAssociativity p)
+  , ("Return", monadReturn p)
+  , ("Ap", monadAp p)
+  ]
+
+data Apply f a = Apply { getApply :: f a }
+
+instance (Eq1 f, Eq a) => Eq (Apply f a) where
+  Apply a == Apply b = eq1 a b
+
+data LinearEquation = LinearEquation
+  { linearEquationLinear :: Integer
+  , linearEquationConstant :: Integer
+  } deriving (Eq)
+
+data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
+
+runLinearEquation :: Integer -> LinearEquation -> Integer
+runLinearEquation x (LinearEquation a b) = a * x + b
+
+runLinearEquationM :: Functor m => LinearEquationM m -> Integer -> m Integer
+runLinearEquationM (LinearEquationM e1 e2) i = if odd i
+  then fmap (runLinearEquation i) e1
+  else fmap (runLinearEquation i) e2
+
+instance Eq1 m => Eq (LinearEquationM m) where
+  LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
+
+showLinear :: Int -> LinearEquation -> ShowS
+showLinear _ (LinearEquation a b) = shows a . showString " * x + " . shows b
+
+showLinearList :: [LinearEquation] -> ShowS
+showLinearList xs = appEndo $ mconcat
+   $ [Endo (showChar '[')]
+  ++ L.intersperse (Endo (showChar ',')) (map (Endo . showLinear 0) xs)
+  ++ [Endo (showChar ']')]
+
+instance Show1 m => Show (LinearEquationM m) where
+  show (LinearEquationM a b) = (\f -> f "")
+    $ showString "\\x -> if odd x then "
+    . liftShowsPrec showLinear showLinearList 0 a
+    . showString " else "
+    . liftShowsPrec showLinear showLinearList 0 b
+
+instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
+  arbitrary = liftA2 LinearEquationM arbitrary1 arbitrary1
+  shrink (LinearEquationM a b) = concat
+    [ map (\x -> LinearEquationM x b) (shrink1 a)
+    , map (\x -> LinearEquationM a x) (shrink1 b)
+    ]
+
+instance Arbitrary LinearEquation where
+  arbitrary = do
+    (a,b) <- arbitrary
+    return (LinearEquation (abs a) (abs b))
+  shrink (LinearEquation a b) =
+    let xs = shrink (a,b)
+     in map (\(x,y) -> LinearEquation (abs x) (abs y)) xs
+
+-- this is a quadratic equation
+data Equation = Equation Integer Integer Integer
+  deriving (Eq)
+
+-- This show instance is does not actually provide a
+-- way to create an equation. Instead, it makes it look
+-- like a lambda.
+instance Show Equation where
+  show (Equation a b c) = "\\x -> " ++ show a ++ " * x ^ 2 + " ++ show b ++ " * x + " ++ show c
+
+instance Arbitrary Equation where
+  arbitrary = do
+    (a,b,c) <- arbitrary
+    return (Equation (abs a) (abs b) (abs c))
+  shrink (Equation a b c) =
+    let xs = shrink (a,b,c)
+     in map (\(x,y,z) -> Equation (abs x) (abs y) (abs z)) xs
+
+runEquation :: Equation -> Integer -> Integer
+runEquation (Equation a b c) x = a * x ^ 2 + b * x + c
+
+-- This show instance is intentionally a little bit wrong.
+-- We don't wrap the result in Apply since the end user
+-- should not be made aware of the Apply wrapper anyway.
+instance (Show1 f, Show a) => Show (Apply f a) where
+  showsPrec p = showsPrec1 p . getApply
+
+instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
+  arbitrary = fmap Apply arbitrary1
+  shrink = map Apply . shrink1 . getApply
+
+functorIdentity :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (fmap id a) a
+
+func1 :: Integer -> (Integer,Integer)
+func1 i = (div (i + 5) 3, i * i - 2 * i + 1)
+
+func2 :: (Integer,Integer) -> (Bool,Either Ordering Integer)
+func2 (a,b) = (odd a, if even a then Left (compare a b) else Right (b + 2))
+
+functorComposition :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorComposition _ = property $ \(Apply (a :: f Integer)) ->
+  eq1 (fmap func2 (fmap func1 a)) (fmap (func2 . func1) a)
+
+functorConst :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorConst _ = property $ \(Apply (a :: f Integer)) ->
+  eq1 (fmap (const 'X') a) ('X' <$ a)
+
+applicativeIdentity :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
+
+applicativeComposition :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeComposition _ = property $ \(Apply (u' :: f Equation)) (Apply (v' :: f Equation)) (Apply (w :: f Integer)) ->
+  let u = fmap runEquation u'
+      v = fmap runEquation v'
+   in eq1 (pure (.) <*> u <*> v <*> w) (u <*> (v <*> w))
+
+applicativeHomomorphism :: forall f. (Applicative f, Eq1 f, Show1 f) => Proxy f -> Property
+applicativeHomomorphism _ = property $ \(e :: Equation) (a :: Integer) ->
+  let f = runEquation e
+   in eq1 (pure f <*> pure a) (pure (f a) :: f Integer)
+
+applicativeInterchange :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeInterchange _ = property $ \(Apply (u' :: f Equation)) (y :: Integer) ->
+  let u = fmap runEquation u'
+   in eq1 (u <*> pure y) (pure ($ y) <*> u)
+
+applicativeLiftA2_1 :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeLiftA2_1 _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
+  let f = fmap runEquation f'
+   in eq1 (liftA2 id f x) (f <*> x)
+
+monadLeftIdentity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadLeftIdentity _ = property $ \(k' :: LinearEquationM f) (a :: Integer) -> 
+  let k = runLinearEquationM k'
+   in eq1 (return a >>= k) (k a)
+
+monadRightIdentity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadRightIdentity _ = property $ \(Apply (m :: f Integer)) -> 
+  eq1 (m >>= return) m
+
+monadAssociativity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadAssociativity _ = property $ \(Apply (m :: f Integer)) (k' :: LinearEquationM f) (h' :: LinearEquationM f) -> 
+  let k = runLinearEquationM k'
+      h = runLinearEquationM h'
+   in eq1 (m >>= (\x -> k x >>= h)) ((m >>= k) >>= h)
+
+monadReturn :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadReturn _ = property $ \(x :: Integer) ->
+  eq1 (return x) (pure x :: f Integer)
+
+monadAp :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
+  let f = fmap runEquation f'
+   in eq1 (ap f x) (f <*> x)
+
+#endif

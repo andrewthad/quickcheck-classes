@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -10,6 +11,7 @@ import Data.Primitive
 import Data.Foldable
 import Data.Monoid (Sum)
 import Foreign.Storable
+import Data.Functor.Classes
 import Data.Aeson (ToJSON,FromJSON)
 
 import Test.QuickCheck.Classes
@@ -41,11 +43,11 @@ instance Monoid Status where
 
 allPropsApplied :: [(String,[(String,Property)])]
 allPropsApplied = 
-  [ ("Word8",allProps (Proxy :: Proxy Word8))
-  , ("Int16",allProps (Proxy :: Proxy Int16))
-  , ("Int",allProps (Proxy :: Proxy Int))
-  , ("Word",allProps (Proxy :: Proxy Word))
+  [ ("Int",allProps (Proxy :: Proxy Int))
   , ("Int64",allProps (Proxy :: Proxy Int64))
+  , ("Word",allProps (Proxy :: Proxy Word))
+  , ("Maybe",allHigherProps (Proxy :: Proxy Maybe))
+  , ("List",allHigherProps (Proxy :: Proxy []))
   ]
 
 allProps :: forall a. (Num a, Prim a, Storable a, Eq a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [(String,Property)]
@@ -60,4 +62,13 @@ allProps p = concat
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+
+#if MIN_VERSION_QuickCheck(2,10,0)
+allHigherProps :: (Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [(String,Property)]
+allHigherProps p = concat
+  [ functorProps p
+  , applicativeProps p
+  , monadProps p
+  ]
+#endif
 

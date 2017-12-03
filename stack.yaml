@@ -1,8 +1,9 @@
-resolver: lts-9.0
+resolver: 'nightly-2017-12-01'
 packages:
 - '.'
 extra-deps:
 - 'prim-array-0.2.1'
+- 'QuickCheck-2.10.1'
 flags: {}
 extra-package-dbs: []
 
