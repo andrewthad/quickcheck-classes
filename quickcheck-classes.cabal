@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.1
+version: 0.2
 synopsis: QuickCheck common typeclasses
 description: QuickCheck common typeclasses
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
