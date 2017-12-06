@@ -13,22 +13,26 @@ import Data.Monoid (Sum)
 import Foreign.Storable
 import Data.Functor.Classes
 import Data.Aeson (ToJSON,FromJSON)
+import Data.Vector (Vector)
+
+import qualified Data.Vector as V
 
 import Test.QuickCheck.Classes
 
 main :: IO ()
 main = do
   putStrLn "Testing properties for common typeclasses"
-  r <- flip foldlMapM allPropsApplied $ \(typeName,properties) -> do
+  r <- flip foldlMapM allPropsApplied $ \(typeName,laws) -> do
     putStrLn $ "------------"
     putStrLn $ "-- " ++ typeName
     putStrLn $ "------------"
-    flip foldlMapM properties $ \(name,p) -> do
-      putStrLn name
-      r <- quickCheckResult p
-      return $ case r of
-        Success _ _ _ -> Good
-        _ -> Bad
+    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
+      flip foldlMapM properties $ \(name,p) -> do
+        putStr (typeClassName ++ ": " ++ name ++ " ")
+        r <- quickCheckResult p
+        return $ case r of
+          Success _ _ _ -> Good
+          _ -> Bad
   putStrLn ""
   case r of
     Good -> putStrLn "All tests succeeded"
@@ -41,36 +45,46 @@ instance Monoid Status where
   mappend Good x = x
   mappend Bad _ = Bad
 
-allPropsApplied :: [(String,[(String,Property)])]
+allPropsApplied :: [(String,[Laws])]
 allPropsApplied = 
-  [ ("Int",allProps (Proxy :: Proxy Int))
-  , ("Int64",allProps (Proxy :: Proxy Int64))
-  , ("Word",allProps (Proxy :: Proxy Word))
+  [ ("Int",allLaws (Proxy :: Proxy Int))
+  , ("Int64",allLaws (Proxy :: Proxy Int64))
+  , ("Word",allLaws (Proxy :: Proxy Word))
 #if MIN_VERSION_QuickCheck(2,10,0)
-  , ("Maybe",allHigherProps (Proxy :: Proxy Maybe))
-  , ("List",allHigherProps (Proxy :: Proxy []))
+  , ("Maybe",allHigherLaws (Proxy :: Proxy Maybe))
+  , ("List",allHigherLaws (Proxy :: Proxy []))
 #endif
+  , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
   ]
 
-allProps :: forall a. (Num a, Prim a, Storable a, Eq a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [(String,Property)]
-allProps p = concat
-  [ primProps p
-  , storableProps p
-  , monoidProps (Proxy :: Proxy (Sum a))
-  , showReadProps p
-  , jsonProps p
-  , eqProps p
+allLaws :: forall a. (Num a, Prim a, Storable a, Ord a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [Laws]
+allLaws p = 
+  [ primLaws p
+  , storableLaws p
+  , monoidLaws (Proxy :: Proxy (Sum a))
+  , showReadLaws p
+  , jsonLaws p
+  , eqLaws p
+  , ordLaws p
   ]
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
-allHigherProps :: (Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [(String,Property)]
-allHigherProps p = concat
-  [ functorProps p
-  , applicativeProps p
-  , monadProps p
+allHigherLaws :: (Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [Laws]
+allHigherLaws p = 
+  [ functorLaws p
+  , applicativeLaws p
+  , monadLaws p
   ]
 #endif
+
+-------------------
+-- Orphan Instances
+-------------------
+
+instance Arbitrary a => Arbitrary (Vector a) where
+  arbitrary = V.fromList <$> arbitrary
+  shrink v = map V.fromList (shrink (V.toList v))
 

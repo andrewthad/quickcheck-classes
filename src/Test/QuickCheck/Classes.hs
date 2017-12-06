@@ -1,24 +1,57 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+{-# OPTIONS_GHC -Wall #-}
+
+{-|
+
+This library provides lists of properties that should hold for common typeclasses.
+All of these take a 'Proxy' argument that is used to nail down the type for which
+the typeclass dictionaries should be tested. For example, at GHCi:
+
+>>> lawsCheck (monoidLaws (Proxy :: Proxy Ordering))
+Monoid: Associative +++ OK, passed 100 tests.
+Monoid: Left Identity +++ OK, passed 100 tests.
+Monoid: Right Identity +++ OK, passed 100 tests.
+
+Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
+have confidence that the 'Monoid' instance for 'Ordering' satisfies
+the monoid laws. We can check multiple typeclasses with:
+
+>>> foldMap (lawsCheck . ($ (Proxy :: Proxy Word))) [jsonLaws,showReadLaws]
+ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
+ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
+Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+
+-}
 module Test.QuickCheck.Classes
-  ( primProps
-  , storableProps
-  , semigroupProps
-  , monoidProps
-  , communativeMonoidProps
-  , showReadProps
-  , jsonProps
-  , eqProps
+  ( -- * Running
+    lawsCheck
+    -- * Properties
+    -- ** Ground Types
+  , semigroupLaws
+  , monoidLaws
+  , commutativeMonoidLaws
+  , eqLaws
+  , ordLaws
+  , showReadLaws
+  , jsonLaws
+  , isListLaws
+  , primLaws
+  , storableLaws
 #if MIN_VERSION_QuickCheck(2,10,0)
-  , functorProps
-  , applicativeProps
-  , monadProps
+    -- ** Higher-Kinded Types
+  , functorLaws
+  , applicativeLaws
+  , monadLaws
 #endif
+    -- * Types
+  , Laws(..)
   ) where
 
 import Test.QuickCheck
@@ -33,13 +66,14 @@ import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
 import System.IO.Unsafe
 import Data.Semigroup (Semigroup)
-import GHC.Exts (fromList,toList)
+import GHC.Exts (IsList(fromList,toList,fromListN),Item)
 import Foreign.Marshal.Array
 import Foreign.Storable
 import Text.Read (readMaybe)
 import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Functor.Classes
 import Control.Applicative
+import Data.Foldable (foldlM)
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
@@ -49,14 +83,46 @@ import qualified GHC.OldList as L
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 #endif
 
-jsonProps :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> [(String,Property)]
-jsonProps p =
+-- | A set of laws associated with a typeclass.
+data Laws = Laws
+  { lawsTypeclass :: String
+    -- ^ Name of the typeclass whose laws are tested
+  , lawsProperties :: [(String,Property)]
+    -- ^ Pairs of law name and property
+  }
+
+-- | A convenience for working testing properties in GHCi.
+--   See the test suite of this library for an example of how to
+--   integrate multiple properties into larger test suite.
+lawsCheck :: Laws -> IO ()
+lawsCheck (Laws className properties) = do
+  flip foldlMapM properties $ \(name,p) -> do
+    putStr (className ++ ": " ++ name ++ " ")
+    quickCheck p
+
+foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
+foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+
+jsonLaws :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> Laws
+jsonLaws p = Laws "ToJSON/FromJSON"
   [ ("Encoding Equals Value", jsonEncodingEqualsValue p)
   , ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)
   ]
 
-showReadProps :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> [(String,Property)]
-showReadProps p =
+-- | Tests the following properties:
+--
+-- [/Partial Isomorphism/]
+--   @fromList . toList ≡ id@
+-- [/Length Preservation/]
+--   @fromList xs ≡ fromListN (length xs) xs@
+isListLaws :: (IsList a, Show a, Show (Item a), Arbitrary a, Arbitrary (Item a), Eq a) => Proxy a -> Laws
+isListLaws p = Laws "IsList"
+  [ ("Partial Isomorphism", isListPartialIsomorphism p)
+  , ("Length Preservation", isListLengthPreservation p)
+  ]
+
+showReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> Laws
+showReadLaws p = Laws "Show/Read"
   [ ("Partial Isomorphism", showReadPartialIsomorphism p)
   ]
 
@@ -64,8 +130,8 @@ showReadProps p =
 --
 -- [/Associative/]
 --   @a <> (b <> c) ≡ (a <> b) <> c@
-semigroupProps :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-semigroupProps p =
+semigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+semigroupLaws p = Laws "Semigroup"
   [ ("Associative", semigroupAssociative p)
   ]
 
@@ -82,11 +148,23 @@ semigroupProps p =
 -- the left hand side of the implication arrow does not hold, we
 -- do not retry. Consequently, these properties only end up being
 -- useful when the data type has a small number of inhabitants.
-eqProps :: (Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-eqProps p =
+eqLaws :: (Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+eqLaws p = Laws "Eq"
   [ ("Transitive", eqTransitive p)
   , ("Symmetric", eqSymmetric p)
   , ("Reflexive", eqReflexive p)
+  ]
+
+-- | Tests the following properties:
+--
+-- [/Transitive/]
+--   @a ≤ b ∧ b ≤ c ⇒ a ≤ c@
+-- [/Comparable/]
+--   @a ≤ b ∨ a > b@
+ordLaws :: (Ord a, Arbitrary a, Show a) => Proxy a -> Laws
+ordLaws p = Laws "Ord"
+  [ ("Transitive", ordTransitive p)
+  , ("Comparable", ordComparable p)
   ]
 
 -- | Tests the following properties:
@@ -97,8 +175,8 @@ eqProps p =
 --   @mappend mempty a ≡ a@
 -- [/Right Identity/]
 --   @mappend a mempty ≡ a@
-monoidProps :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-monoidProps p =
+monoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+monoidLaws p = Laws "Monoid"
   [ ("Associative", monoidAssociative p)
   , ("Left Identity", monoidLeftIdentity p)
   , ("Right Identity", monoidRightIdentity p)
@@ -108,13 +186,14 @@ monoidProps p =
 --
 -- [/Commutative/]
 --   @mappend a b ≡ mappend b a@
-communativeMonoidProps :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-communativeMonoidProps p = monoidProps p ++
+commutativeMonoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws p) ++
   [ ("Commutative", monoidCommutative p)
   ]
 
-primProps :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-primProps p =
+-- | Test that a 'Prim' instance obey the several laws.
+primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+primLaws p = Laws "Prim"
   [ ("ByteArray Set-Get (you get back what you put in)", primSetGetByteArray p)
   , ("ByteArray Get-Set (putting back what you got out has no effect)", primGetSetByteArray p)
   , ("ByteArray Set-Set (setting twice is same as setting once)", primSetSetByteArray p)
@@ -124,12 +203,20 @@ primProps p =
   , ("Addr List Conversion Roundtrips", primListAddr p)
   ]
 
-storableProps :: (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
-storableProps p =
+storableLaws :: (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+storableLaws p = Laws "Storable"
   [ ("Set-Get (you get back what you put in)", storableSetGet p)
   , ("Get-Set (putting back what you got out has no effect)", storableGetSet p)
   , ("List Conversion Roundtrips", storableList p)
   ]
+
+isListPartialIsomorphism :: forall a. (IsList a, Show a, Arbitrary a, Eq a) => Proxy a -> Property
+isListPartialIsomorphism _ = property $ \(a :: a) ->
+  fromList (toList a) == a
+
+isListLengthPreservation :: forall a. (IsList a, Show (Item a), Arbitrary (Item a), Eq a) => Proxy a -> Property
+isListLengthPreservation _ = property $ \(xs :: [Item a]) ->
+  (fromList xs :: a) == fromListN (length xs) xs
 
 showReadPartialIsomorphism :: forall a. (Show a, Read a, Arbitrary a, Eq a) => Proxy a -> Property
 showReadPartialIsomorphism _ = property $ \(a :: a) ->
@@ -155,6 +242,24 @@ eqTransitive _ = property $ \(a :: a) b c -> case a == b of
   False -> case b == c of
     True -> a /= c
     False -> True
+
+-- Technically, this tests something a little stronger than it is supposed to.
+-- But that should be alright since this additional strength is implied by
+-- the rest of the Ord laws.
+ordTransitive :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+ordTransitive _ = property $ \(a :: a) b c -> case (compare a b, compare b c) of
+  (LT,LT) -> a < c
+  (LT,EQ) -> a < c
+  (LT,GT) -> True
+  (EQ,LT) -> a < c
+  (EQ,EQ) -> a == c
+  (EQ,GT) -> a > c
+  (GT,LT) -> True
+  (GT,EQ) -> a > c
+  (GT,GT) -> a > c
+
+ordComparable :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+ordComparable _ = property $ \(a :: a) b -> a > b || b >= a
 
 eqSymmetric :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
 eqSymmetric _ = property $ \(a :: a) b -> case a == b of
@@ -327,8 +432,8 @@ arrayEq ptrA ptrB len = go 0 where
 --   @fmap (f . g) ≡ 'fmap' f . 'fmap' g@
 -- [/Const/]
 --   @(<$) ≡ 'fmap' 'const'@
-functorProps :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
-functorProps p =
+functorLaws :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+functorLaws p = Laws "Functor"
   [ ("Identity", functorIdentity p)
   , ("Composition", functorComposition p)
   , ("Const", functorConst p)
@@ -346,8 +451,8 @@ functorProps p =
 --   @u '<*>' 'pure' y ≡ 'pure' ('$' y) '<*>' u@
 -- [/LiftA2 (1)/]
 --   @('<*>') ≡ 'liftA2' 'id'@
-applicativeProps :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
-applicativeProps p =
+applicativeLaws :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+applicativeLaws p = Laws "Applicative"
   [ ("Identity", applicativeIdentity p)
   , ("Composition", applicativeComposition p)
   , ("Homomorphism", applicativeHomomorphism p)
@@ -369,8 +474,8 @@ applicativeProps p =
 --   @'pure' ≡ 'return'@
 -- [/Ap/]
 --   @('<*>') ≡ 'ap'@
-monadProps :: (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> [(String,Property)]
-monadProps p =
+monadLaws :: (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+monadLaws p = Laws "Monad"
   [ ("Left Identity", monadLeftIdentity p)
   , ("Right Identity", monadRightIdentity p)
   , ("Associativity", monadAssociativity p)
@@ -384,8 +489,8 @@ instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
 
 data LinearEquation = LinearEquation
-  { linearEquationLinear :: Integer
-  , linearEquationConstant :: Integer
+  { _linearEquationLinear :: Integer
+  , _linearEquationConstant :: Integer
   } deriving (Eq)
 
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
@@ -451,7 +556,7 @@ instance Arbitrary Equation where
      in map (\(x,y,z) -> Equation (abs x) (abs y) (abs z)) xs
 
 runEquation :: Equation -> Integer -> Integer
-runEquation (Equation a b c) x = a * x ^ 2 + b * x + c
+runEquation (Equation a b c) x = a * x ^ (2 :: Integer) + b * x + c
 
 -- This show instance is intentionally a little bit wrong.
 -- We don't wrap the result in Apply since the end user
