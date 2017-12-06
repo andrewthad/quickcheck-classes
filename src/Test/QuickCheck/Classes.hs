@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes
   , storableProps
   , semigroupProps
   , monoidProps
+  , communativeMonoidProps
   , showReadProps
   , jsonProps
   , eqProps
@@ -74,6 +75,8 @@ semigroupProps p =
 --   @a == b ∧ b == c ⇒ a == c@
 -- [/Symmetric/]
 --   @a == b ⇒ b == a@
+-- [/Reflexive/]
+--   @a == a@
 --
 -- Some of these properties involve implication. In the case that
 -- the left hand side of the implication arrow does not hold, we
@@ -83,6 +86,7 @@ eqProps :: (Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
 eqProps p =
   [ ("Transitive", eqTransitive p)
   , ("Symmetric", eqSymmetric p)
+  , ("Reflexive", eqReflexive p)
   ]
 
 -- | Tests the following properties:
@@ -98,6 +102,15 @@ monoidProps p =
   [ ("Associative", monoidAssociative p)
   , ("Left Identity", monoidLeftIdentity p)
   , ("Right Identity", monoidRightIdentity p)
+  ]
+
+-- | Tests everything from 'monoidProps' plus the following:
+--
+-- [/Commutative/]
+--   @mappend a b ≡ mappend b a@
+communativeMonoidProps :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
+communativeMonoidProps p = monoidProps p ++
+  [ ("Commutative", monoidCommutative p)
   ]
 
 primProps :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> [(String,Property)]
@@ -148,6 +161,9 @@ eqSymmetric _ = property $ \(a :: a) b -> case a == b of
   True -> b == a
   False -> b /= a
 
+eqReflexive :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
+eqReflexive _ = property $ \(a :: a) -> a == a
+
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupAssociative _ = property $ \(a :: a) b c -> a SG.<> (b SG.<> c) == (a SG.<> b) SG.<> c
 
@@ -159,6 +175,9 @@ monoidLeftIdentity _ = property $ \(a :: a) -> mappend mempty a == a
 
 monoidRightIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidRightIdentity _ = property $ \(a :: a) -> mappend a mempty == a
+
+monoidCommutative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+monoidCommutative _ = property $ \(a :: a) b -> mappend a b == mappend b a
 
 primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListByteArray _ = property $ \(as :: [a]) ->
