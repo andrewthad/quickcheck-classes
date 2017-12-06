@@ -46,8 +46,10 @@ allPropsApplied =
   [ ("Int",allProps (Proxy :: Proxy Int))
   , ("Int64",allProps (Proxy :: Proxy Int64))
   , ("Word",allProps (Proxy :: Proxy Word))
+#if MIN_VERSION_QuickCheck(2,10,0)
   , ("Maybe",allHigherProps (Proxy :: Proxy Maybe))
   , ("List",allHigherProps (Proxy :: Proxy []))
+#endif
   ]
 
 allProps :: forall a. (Num a, Prim a, Storable a, Eq a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [(String,Property)]
