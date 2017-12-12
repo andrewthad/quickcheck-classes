@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -72,13 +73,26 @@ foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
-allHigherLaws :: (Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [Laws]
+allHigherLaws :: (Foldable f, Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
+  , foldableLaws p
   ]
 #endif
+
+-- This type is fails the laws for the strict functions
+-- in Foldable. It is used just to confirm that
+-- those property tests actually work.
+newtype Rouge a = Rouge [a]
+  deriving (Eq,Show,Arbitrary,Arbitrary1,Eq1,Show1)
+
+instance Foldable Rouge where
+  foldMap f (Rouge xs) = foldMap f xs
+  foldl f x (Rouge xs) = foldl f x xs
+  foldl' f x (Rouge xs) = foldl f x xs
+  foldr' f x (Rouge xs) = foldr f x xs
 
 -------------------
 -- Orphan Instances

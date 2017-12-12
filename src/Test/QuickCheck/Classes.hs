@@ -49,18 +49,20 @@ module Test.QuickCheck.Classes
   , functorLaws
   , applicativeLaws
   , monadLaws
+  , foldableLaws
 #endif
     -- * Types
   , Laws(..)
   ) where
 
 import Test.QuickCheck
+import Test.QuickCheck.Monadic (monadicIO)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.PrimArray
 import Data.Proxy
 import Control.Monad.ST
 import Control.Monad
-import Data.Monoid (Endo(..))
+import Data.Monoid (Endo(..),Sum(..),Dual(..))
 import GHC.Ptr (Ptr(..))
 import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
@@ -73,7 +75,10 @@ import Text.Read (readMaybe)
 import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Functor.Classes
 import Control.Applicative
-import Data.Foldable (foldlM)
+import Data.Foldable (foldlM,fold,foldMap,foldl',foldr')
+import Control.Exception (ErrorCall,evaluate,try)
+import Control.Monad.Trans.Class (lift)
+import qualified Data.Foldable as F
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
@@ -483,6 +488,148 @@ monadLaws p = Laws "Monad"
   , ("Ap", monadAp p)
   ]
 
+-- | Tests the following 'Foldable' properties:
+--
+-- [/fold/]
+--   @'fold' ≡ 'foldMap' 'id'@
+-- [/foldMap/]
+--   @'foldMap' f ≡ 'foldr' ('mappend' . f) 'mempty'@
+-- [/foldr/]
+--   @'foldr' f z t ≡ 'appEndo' ('foldMap' ('Endo' . f) t ) z@
+-- [/foldr'/]
+--   @'foldr'' f z0 xs = let f\' k x z = k '$!' f x z in 'foldl' f\' 'id' xs z0@
+-- [/foldl/]
+--   @'foldl' f z t ≡ 'appEndo' ('getDual' ('foldMap' ('Dual' . 'Endo' . 'flip' f) t)) z@
+-- [/foldl'/]
+--   @'foldl'' f z0 xs = let f' x k z = k '$!' f z x in 'foldr' f\' 'id' xs z0@
+-- [/toList/]
+--   @'F.toList' ≡ 'foldr' (:) []@
+-- [/null/]
+--   @'null' ≡ 'foldr' ('const' ('const' 'False')) 'True'@
+-- [/length/]
+--   @'length' ≡ getSum . foldMap ('const' ('Sum' 1))@
+--
+-- Note that this checks to ensure that @foldl\'@ and @foldr\'@
+-- are suitably strict.
+foldableLaws :: (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+foldableLaws = foldableLawsInternal
+
+foldableLawsInternal :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+foldableLawsInternal p = Laws "Foldable"
+  [ (,) "fold" $ property $ \(Apply (a :: f (Sum Integer))) ->
+      fold a == foldMap id a
+  , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: Equation) ->
+      let f = Sum . runEquation e
+       in foldMap f a == foldr (mappend . f) mempty a
+  , (,) "foldr" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
+      let f = runEquationTwo e
+       in foldr f z t == appEndo (foldMap (Endo . f) t) z
+  , (,) "foldr'" (foldableFoldr' p)
+  , (,) "foldl" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
+      let f = runEquationTwo e
+       in foldl f z t == appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
+  , (,) "foldl'" (foldableFoldl' p)
+  , (,) "toList" $ property $ \(Apply (t :: f Integer)) ->
+      eq1 (F.toList t) (foldr (:) [] t)
+  , (,) "null" $ property $ \(Apply (t :: f Integer)) ->
+      null t == foldr (const (const False)) True t
+  , (,) "length" $ property $ \(Apply (t :: f Integer)) ->
+      length t == getSum (foldMap (const (Sum 1)) t)
+  ]
+
+foldableFoldl' :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
+  monadicIO $ do
+    let f :: Integer -> Bottom Integer -> Integer
+        f a b = case b of
+          BottomUndefined -> error "foldableFoldl' example"
+          BottomValue v -> if even v
+            then a
+            else v
+        z0 = 0
+    r1 <- lift $ do
+      let f' x k z = k $! f z x
+      e <- try (evaluate (foldr f' id xs z0))
+      case e of
+        Left (_ :: ErrorCall) -> return Nothing
+        Right i -> return (Just i)
+    r2 <- lift $ do
+      e <- try (evaluate (foldl' f z0 xs))
+      case e of
+        Left (_ :: ErrorCall) -> return Nothing
+        Right i -> return (Just i)
+    return (r1 == r2)
+
+foldableFoldr' :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
+  monadicIO $ do
+    let f :: Bottom Integer -> Integer -> Integer
+        f a b = case a of
+          BottomUndefined -> error "foldableFoldl' example"
+          BottomValue v -> if even v
+            then v
+            else b
+        z0 = 0
+    r1 <- lift $ do
+      let f' k x z = k $! f x z
+      e <- try (evaluate (foldl f' id xs z0))
+      case e of
+        Left (_ :: ErrorCall) -> return Nothing
+        Right i -> return (Just i)
+    r2 <- lift $ do
+      e <- try (evaluate (foldr' f z0 xs))
+      case e of
+        Left (_ :: ErrorCall) -> return Nothing
+        Right i -> return (Just i)
+    return (r1 == r2)
+
+data ChooseSecond = ChooseSecond
+  deriving (Eq)
+
+data ChooseFirst = ChooseFirst
+  deriving (Eq)
+
+data LastNothing = LastNothing
+  deriving (Eq)
+
+data Bottom a = BottomUndefined | BottomValue a
+  deriving (Eq)
+
+instance Show ChooseFirst where
+  show ChooseFirst = "\\a b -> if even a then a else b"
+
+instance Show ChooseSecond where
+  show ChooseSecond = "\\a b -> if even b then a else b"
+
+instance Show LastNothing where
+  show LastNothing = "0"
+
+instance Show a => Show (Bottom a) where
+  show x = case x of
+    BottomUndefined -> "undefined"
+    BottomValue a -> show a
+
+instance Arbitrary ChooseSecond where
+  arbitrary = pure ChooseSecond
+
+instance Arbitrary ChooseFirst where
+  arbitrary = pure ChooseFirst
+
+instance Arbitrary LastNothing where
+  arbitrary = pure LastNothing
+
+instance Arbitrary a => Arbitrary (Bottom a) where
+  arbitrary = fmap maybeToBottom arbitrary
+  shrink x = map maybeToBottom (shrink (bottomToMaybe x))
+
+bottomToMaybe :: Bottom a -> Maybe a
+bottomToMaybe BottomUndefined = Nothing
+bottomToMaybe (BottomValue a) = Just a
+
+maybeToBottom :: Maybe a -> Bottom a
+maybeToBottom Nothing = BottomUndefined
+maybeToBottom (Just a) = BottomValue a
+
 data Apply f a = Apply { getApply :: f a }
 
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
@@ -557,6 +704,27 @@ instance Arbitrary Equation where
 
 runEquation :: Equation -> Integer -> Integer
 runEquation (Equation a b c) x = a * x ^ (2 :: Integer) + b * x + c
+
+-- linear equation of two variables
+data EquationTwo = EquationTwo Integer Integer
+  deriving (Eq)
+
+-- This show instance is does not actually provide a
+-- way to create an EquationTwo. Instead, it makes it look
+-- like a lambda that takes two variables.
+instance Show EquationTwo where
+  show (EquationTwo a b) = "\\x y -> " ++ show a ++ " * x + " ++ show b ++ " * y"
+
+instance Arbitrary EquationTwo where
+  arbitrary = do
+    (a,b) <- arbitrary
+    return (EquationTwo (abs a) (abs b))
+  shrink (EquationTwo a b) =
+    let xs = shrink (a,b)
+     in map (\(x,y) -> EquationTwo (abs x) (abs y)) xs
+
+runEquationTwo :: EquationTwo -> Integer -> Integer -> Integer
+runEquationTwo (EquationTwo a b) x y = a * x + b * y
 
 -- This show instance is intentionally a little bit wrong.
 -- We don't wrap the result in Apply since the end user
