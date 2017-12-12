@@ -32,6 +32,7 @@ Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
 module Test.QuickCheck.Classes
   ( -- * Running
     lawsCheck
+  , lawsCheckMany
     -- * Properties
     -- ** Ground Types
   , semigroupLaws
@@ -57,6 +58,7 @@ module Test.QuickCheck.Classes
 
 import Test.QuickCheck
 import Test.QuickCheck.Monadic (monadicIO)
+import Test.QuickCheck.Property (Property(..))
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.PrimArray
 import Data.Proxy
@@ -96,7 +98,7 @@ data Laws = Laws
     -- ^ Pairs of law name and property
   }
 
--- | A convenience for working testing properties in GHCi.
+-- | A convenience function for working testing properties in GHCi.
 --   See the test suite of this library for an example of how to
 --   integrate multiple properties into larger test suite.
 lawsCheck :: Laws -> IO ()
@@ -104,6 +106,36 @@ lawsCheck (Laws className properties) = do
   flip foldlMapM properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
+
+-- | A convenience function for checking multiple typeclass instances
+--   of multiple types.
+lawsCheckMany ::
+     [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
+  -> IO ()
+lawsCheckMany xs = do
+  putStrLn "Testing properties for common typeclasses"
+  r <- flip foldlMapM xs $ \(typeName,laws) -> do
+    putStrLn $ "------------"
+    putStrLn $ "-- " ++ typeName
+    putStrLn $ "------------"
+    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
+      flip foldlMapM properties $ \(name,p) -> do
+        putStr (typeClassName ++ ": " ++ name ++ " ")
+        r <- quickCheckResult p
+        return $ case r of
+          Success _ _ _ -> Good
+          _ -> Bad
+  putStrLn ""
+  case r of
+    Good -> putStrLn "All tests succeeded"
+    Bad -> putStrLn "One or more tests failed"
+
+data Status = Bad | Good
+
+instance Monoid Status where
+  mempty = Good
+  mappend Good x = x
+  mappend Bad _ = Bad
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
@@ -216,8 +248,12 @@ storableLaws p = Laws "Storable"
   ]
 
 isListPartialIsomorphism :: forall a. (IsList a, Show a, Arbitrary a, Eq a) => Proxy a -> Property
-isListPartialIsomorphism _ = property $ \(a :: a) ->
-  fromList (toList a) == a
+isListPartialIsomorphism _ = myForAllShrink False
+  (\(a :: a) -> ["a = " ++ show a])
+  "fromList (toList a)"
+  (\a -> fromList (toList a))
+  "a"
+  (\a -> a)
 
 isListLengthPreservation :: forall a. (IsList a, Show (Item a), Arbitrary (Item a), Eq a) => Proxy a -> Property
 isListLengthPreservation _ = property $ \(xs :: [Item a]) ->
@@ -278,13 +314,28 @@ semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Pr
 semigroupAssociative _ = property $ \(a :: a) b c -> a SG.<> (b SG.<> c) == (a SG.<> b) SG.<> c
 
 monoidAssociative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidAssociative _ = property $ \(a :: a) b c -> mappend a (mappend b c) == mappend (mappend a b) c
+monoidAssociative _ = myForAllShrink True
+  (\(a :: a,b,c) -> ["a = " ++ show a, "b = " ++ show b, "c = " ++ show c])
+  "mappend a (mappend b c)"
+  (\(a,b,c) -> mappend a (mappend b c))
+  "mappend (mappend a b) c"
+  (\(a,b,c) -> mappend (mappend a b) c)
 
 monoidLeftIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidLeftIdentity _ = property $ \(a :: a) -> mappend mempty a == a
+monoidLeftIdentity _ = myForAllShrink False
+  (\(a :: a) -> ["a = " ++ show a])
+  "mappend mempty a"
+  (\a -> mappend mempty a)
+  "a"
+  (\a -> a)
 
 monoidRightIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidRightIdentity _ = property $ \(a :: a) -> mappend a mempty == a
+monoidRightIdentity _ = myForAllShrink False
+  (\(a :: a) -> ["a = " ++ show a])
+  "mappend a mempty"
+  (\a -> mappend a mempty)
+  "a"
+  (\a -> a)
 
 monoidCommutative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidCommutative _ = property $ \(a :: a) b -> mappend a b == mappend b a
@@ -802,3 +853,19 @@ monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) ->
    in eq1 (ap f x) (f <*> x)
 
 #endif
+
+myForAllShrink :: (Arbitrary a, Show b, Eq b) => Bool -> (a -> [String]) -> String -> (a -> b) -> String -> (a -> b) -> Property
+myForAllShrink displayRhs showInputs name1 calc1 name2 calc2 =
+  again $
+  MkProperty $
+  arbitrary >>= \x ->
+    unProperty $
+    shrinking shrink x $ \x' ->
+      let b1 = calc1 x'
+          b2 = calc2 x'
+          sb1 = show b1
+          sb2 = show b2
+          description = "  Description: " ++ name1 ++ " = " ++ name2
+          err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x)) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
+       in counterexample err (b1 == b2)
+

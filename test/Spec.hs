@@ -21,30 +21,7 @@ import qualified Data.Vector as V
 import Test.QuickCheck.Classes
 
 main :: IO ()
-main = do
-  putStrLn "Testing properties for common typeclasses"
-  r <- flip foldlMapM allPropsApplied $ \(typeName,laws) -> do
-    putStrLn $ "------------"
-    putStrLn $ "-- " ++ typeName
-    putStrLn $ "------------"
-    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
-      flip foldlMapM properties $ \(name,p) -> do
-        putStr (typeClassName ++ ": " ++ name ++ " ")
-        r <- quickCheckResult p
-        return $ case r of
-          Success _ _ _ -> Good
-          _ -> Bad
-  putStrLn ""
-  case r of
-    Good -> putStrLn "All tests succeeded"
-    Bad -> putStrLn "One or more tests failed"
-
-data Status = Bad | Good
-
-instance Monoid Status where
-  mempty = Good
-  mappend Good x = x
-  mappend Bad _ = Bad
+main = lawsCheckMany allPropsApplied
 
 allPropsApplied :: [(String,[Laws])]
 allPropsApplied = 
