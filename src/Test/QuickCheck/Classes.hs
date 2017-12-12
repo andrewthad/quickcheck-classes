@@ -140,10 +140,19 @@ instance Monoid Status where
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
 
+-- | Tests the following properties:
+--
+-- [/Partial Isomorphism/]
+--   @decode . encode ≡ Just@
+-- [/Encoding Equals Value/]
+--   @decode . encode ≡ Just . toJSON@
+--
+-- Note that in the second propertiy, the type of decode is @ByteString -> Value@,
+-- not @ByteString -> a@
 jsonLaws :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> Laws
 jsonLaws p = Laws "ToJSON/FromJSON"
-  [ ("Encoding Equals Value", jsonEncodingEqualsValue p)
-  , ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)
+  [ ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)
+  , ("Encoding Equals Value", jsonEncodingEqualsValue p)
   ]
 
 -- | Tests the following properties:
