@@ -347,7 +347,12 @@ monoidRightIdentity _ = myForAllShrink False
   (\a -> a)
 
 monoidCommutative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidCommutative _ = property $ \(a :: a) b -> mappend a b == mappend b a
+monoidCommutative _ = myForAllShrink True
+  (\(a :: a,b) -> ["a = " ++ show a, "b = " ++ show b])
+  "mappend a b"
+  (\(a,b) -> mappend a b)
+  "mappend b a"
+  (\(a,b) -> mappend b a)
 
 primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListByteArray _ = property $ \(as :: [a]) ->
