@@ -880,6 +880,6 @@ myForAllShrink displayRhs showInputs name1 calc1 name2 calc2 =
           sb1 = show b1
           sb2 = show b2
           description = "  Description: " ++ name1 ++ " = " ++ name2
-          err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x)) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
+          err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in counterexample err (b1 == b2)
 
