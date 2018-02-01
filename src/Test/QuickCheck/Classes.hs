@@ -387,7 +387,12 @@ integralIntegerRoundtrip _ = myForAllShrink False (const True)
   (\x -> x)
 
 monoidCommutative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidCommutative _ = property $ \(a :: a) b -> mappend a b == mappend b a
+monoidCommutative _ = myForAllShrink True (const True)
+  (\(a :: a,b) -> ["a = " ++ show a, "b = " ++ show b])
+  "mappend a b"
+  (\(a,b) -> mappend a b)
+  "mappend b a"
+  (\(a,b) -> mappend b a)
 
 primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListByteArray _ = property $ \(as :: [a]) ->
@@ -915,6 +920,6 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
           sb1 = show b1
           sb2 = show b2
           description = "  Description: " ++ name1 ++ " = " ++ name2
-          err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x)) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
+          err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in isValid x' ==> counterexample err (b1 == b2)
 
