@@ -45,6 +45,7 @@ module Test.QuickCheck.Classes
   , isListLaws
   , primLaws
   , storableLaws
+  , integralLaws
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
   , functorLaws
@@ -237,6 +238,21 @@ commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws
   [ ("Commutative", monoidCommutative p)
   ]
 
+-- | Tests the following properties:
+--
+-- [/Quotient Remainder/]
+--   @(quot x y) * y + (rem x y) ≡ x@
+-- [/Division Modulus/]
+--   @(div x y) * y + (mod x y) ≡ x@
+-- [/Integer Roundtrip/]
+--   @fromInteger (toInteger x) ≡ x@
+integralLaws :: (Integral a, Arbitrary a, Show a) => Proxy a -> Laws
+integralLaws p = Laws "Monoid"
+  [ ("Quotient Remainder", integralQuotientRemainder p)
+  , ("Division Modulus", integralDivisionModulus p)
+  , ("Integer Roundtrip", integralIntegerRoundtrip p)
+  ]
+
 -- | Test that a 'Prim' instance obey the several laws.
 primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 primLaws p = Laws "Prim"
@@ -257,7 +273,7 @@ storableLaws p = Laws "Storable"
   ]
 
 isListPartialIsomorphism :: forall a. (IsList a, Show a, Arbitrary a, Eq a) => Proxy a -> Property
-isListPartialIsomorphism _ = myForAllShrink False
+isListPartialIsomorphism _ = myForAllShrink False (const True)
   (\(a :: a) -> ["a = " ++ show a])
   "fromList (toList a)"
   (\a -> fromList (toList a))
@@ -323,7 +339,7 @@ semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Pr
 semigroupAssociative _ = property $ \(a :: a) b c -> a SG.<> (b SG.<> c) == (a SG.<> b) SG.<> c
 
 monoidAssociative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidAssociative _ = myForAllShrink True
+monoidAssociative _ = myForAllShrink True (const True)
   (\(a :: a,b,c) -> ["a = " ++ show a, "b = " ++ show b, "c = " ++ show c])
   "mappend a (mappend b c)"
   (\(a,b,c) -> mappend a (mappend b c))
@@ -331,7 +347,7 @@ monoidAssociative _ = myForAllShrink True
   (\(a,b,c) -> mappend (mappend a b) c)
 
 monoidLeftIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidLeftIdentity _ = myForAllShrink False
+monoidLeftIdentity _ = myForAllShrink False (const True)
   (\(a :: a) -> ["a = " ++ show a])
   "mappend mempty a"
   (\a -> mappend mempty a)
@@ -339,12 +355,36 @@ monoidLeftIdentity _ = myForAllShrink False
   (\a -> a)
 
 monoidRightIdentity :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-monoidRightIdentity _ = myForAllShrink False
+monoidRightIdentity _ = myForAllShrink False (const True)
   (\(a :: a) -> ["a = " ++ show a])
   "mappend a mempty"
   (\a -> mappend a mempty)
   "a"
   (\a -> a)
+
+integralQuotientRemainder :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
+integralQuotientRemainder _ = myForAllShrink False (\(_,y) -> y /= 0)
+  (\(x :: a, y) -> ["x = " ++ show x, "y = " ++ show y])
+  "(quot x y) * y + (rem x y)"
+  (\(x,y) -> (quot x y) * y + (rem x y))
+  "x"
+  (\(x,_) -> x)
+
+integralDivisionModulus :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
+integralDivisionModulus _ = myForAllShrink False (\(_,y) -> y /= 0)
+  (\(x :: a, y) -> ["x = " ++ show x, "y = " ++ show y])
+  "(div x y) * y + (mod x y)"
+  (\(x,y) -> (div x y) * y + (mod x y))
+  "x"
+  (\(x,_) -> x)
+
+integralIntegerRoundtrip :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
+integralIntegerRoundtrip _ = myForAllShrink False (const True)
+  (\(x :: a) -> ["x = " ++ show x])
+  "fromInteger (toInteger x)"
+  (\x -> fromInteger (toInteger x))
+  "x"
+  (\x -> x)
 
 monoidCommutative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidCommutative _ = property $ \(a :: a) b -> mappend a b == mappend b a
@@ -863,8 +903,8 @@ monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) ->
 
 #endif
 
-myForAllShrink :: (Arbitrary a, Show b, Eq b) => Bool -> (a -> [String]) -> String -> (a -> b) -> String -> (a -> b) -> Property
-myForAllShrink displayRhs showInputs name1 calc1 name2 calc2 =
+myForAllShrink :: (Arbitrary a, Show b, Eq b) => Bool -> (a -> Bool) -> (a -> [String]) -> String -> (a -> b) -> String -> (a -> b) -> Property
+myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
   again $
   MkProperty $
   arbitrary >>= \x ->
@@ -876,5 +916,5 @@ myForAllShrink displayRhs showInputs name1 calc1 name2 calc2 =
           sb2 = show b2
           description = "  Description: " ++ name1 ++ " = " ++ name2
           err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x)) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
-       in counterexample err (b1 == b2)
+       in isValid x' ==> counterexample err (b1 == b2)
 
