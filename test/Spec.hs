@@ -15,6 +15,7 @@ import Foreign.Storable
 import Data.Functor.Classes
 import Data.Aeson (ToJSON,FromJSON)
 import Data.Vector (Vector)
+import Data.Bits (FiniteBits)
 
 import qualified Data.Vector as V
 
@@ -35,7 +36,7 @@ allPropsApplied =
   , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
   ]
 
-allLaws :: forall a. (Integral a, Prim a, Storable a, Ord a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [Laws]
+allLaws :: forall a. (FiniteBits a, Integral a, Prim a, Storable a, Ord a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [Laws]
 allLaws p = 
   [ primLaws p
   , storableLaws p
@@ -45,6 +46,7 @@ allLaws p =
   , eqLaws p
   , ordLaws p
   , integralLaws p
+  , bitsLaws p
   ]
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b

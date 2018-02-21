@@ -46,6 +46,7 @@ module Test.QuickCheck.Classes
   , primLaws
   , storableLaws
   , integralLaws
+  , bitsLaws
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
   , functorLaws
@@ -57,7 +58,7 @@ module Test.QuickCheck.Classes
   , Laws(..)
   ) where
 
-import Test.QuickCheck
+import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Monadic (monadicIO)
 import Test.QuickCheck.Property (Property(..))
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
@@ -81,11 +82,13 @@ import Control.Applicative
 import Data.Foldable (foldlM,fold,foldMap,foldl',foldr')
 import Control.Exception (ErrorCall,evaluate,try)
 import Control.Monad.Trans.Class (lift)
+import Data.Bits
 import qualified Data.Foldable as F
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
+import qualified Data.Set as S
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
@@ -253,6 +256,46 @@ integralLaws p = Laws "Monoid"
   , ("Integer Roundtrip", integralIntegerRoundtrip p)
   ]
 
+-- | Tests the following properties:
+--
+-- [/Conjunction Idempotence/]
+--   @n .&. n ≡ n@
+-- [/Disjunction Idempotence/]
+--   @n .|. n ≡ n@
+-- [/Double Complement/]
+--   @complement (complement n) ≡ n@
+-- [/Set Bit/]
+--   @setBit n i ≡ n .|. bit i@
+-- [/Clear Bit/]
+--   @clearBit n i ≡ n .&. complement (bit i)@
+-- [/Complement Bit/]
+--   @complementBit n i ≡ xor n (bit i)@
+-- [/Clear Zero/]
+--   @clearBit zeroBits i ≡ zeroBits@
+-- [/Set Zero/]
+--   @setBit zeroBits i ≡ bit i@
+-- [/Test Zero/]
+--   @testBit zeroBits i ≡ False@
+-- [/Pop Zero/]
+--   @popCount zeroBits ≡ 0@
+--
+-- All of the useful instances of the 'Bits' typeclass
+-- also have 'FiniteBits' instances, so these property
+-- tests actually require that instance as well.
+bitsLaws :: (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Laws
+bitsLaws p = Laws "Bits"
+  [ ("Conjunction Idempotence", bitsConjunctionIdempotence p)
+  , ("Disjunction Idempotence", bitsDisjunctionIdempotence p)
+  , ("Double Complement", bitsDoubleComplement p)
+  , ("Set Bit", bitsSetBit p)
+  , ("Clear Bit", bitsClearBit p)
+  , ("Complement Bit", bitsComplementBit p)
+  , ("Clear Zero", bitsClearZero p)
+  , ("Set Zero", bitsSetZero p)
+  , ("Test Zero", bitsTestZero p)
+  , ("Pop Zero", bitsPopZero p)
+  ]
+
 -- | Test that a 'Prim' instance obey the several laws.
 primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 primLaws p = Laws "Prim"
@@ -361,6 +404,86 @@ monoidRightIdentity _ = myForAllShrink False (const True)
   (\a -> mappend a mempty)
   "a"
   (\a -> a)
+
+bitsConjunctionIdempotence :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsConjunctionIdempotence _ = myForAllShrink False (const True)
+  (\(n :: a) -> ["n = " ++ show n])
+  "n .&. n"
+  (\n -> n .&. n)
+  "n"
+  (\n -> n)
+
+bitsDisjunctionIdempotence :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsDisjunctionIdempotence _ = myForAllShrink False (const True)
+  (\(n :: a) -> ["n = " ++ show n])
+  "n .|. n"
+  (\n -> n .|. n)
+  "n"
+  (\n -> n)
+
+bitsDoubleComplement :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsDoubleComplement _ = myForAllShrink False (const True)
+  (\(n :: a) -> ["n = " ++ show n])
+  "complement (complement n)"
+  (\n -> complement (complement n))
+  "n"
+  (\n -> n)
+
+bitsSetBit :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsSetBit _ = myForAllShrink True (const True)
+  (\(n :: a, BitIndex i :: BitIndex a) -> ["n = " ++ show n, "i = " ++ show i])
+  "setBit n i"
+  (\(n,BitIndex i) -> setBit n i)
+  "n .|. bit i"
+  (\(n,BitIndex i) -> n .|. bit i)
+
+bitsClearBit :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsClearBit _ = myForAllShrink True (const True)
+  (\(n :: a, BitIndex i :: BitIndex a) -> ["n = " ++ show n, "i = " ++ show i])
+  "clearBit n i"
+  (\(n,BitIndex i) -> clearBit n i)
+  "n .&. complement (bit i)"
+  (\(n,BitIndex i) -> n .&. complement (bit i))
+
+bitsComplementBit :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsComplementBit _ = myForAllShrink True (const True)
+  (\(n :: a, BitIndex i :: BitIndex a) -> ["n = " ++ show n, "i = " ++ show i])
+  "complementBit n i"
+  (\(n,BitIndex i) -> complementBit n i)
+  "xor n (bit i)"
+  (\(n,BitIndex i) -> xor n (bit i))
+
+bitsClearZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsClearZero _ = myForAllShrink False (const True)
+  (\(n :: a) -> ["n = " ++ show n])
+  "complement (complement n)"
+  (\n -> complement (complement n))
+  "n"
+  (\n -> n)
+
+bitsSetZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsSetZero _ = myForAllShrink True (\i -> i >= 0)
+  (\(i :: Int) -> ["i = " ++ show i])
+  "setBit zeroBits i"
+  (\i -> setBit (zeroBits :: a) i)
+  "bit i"
+  (\i -> bit i)
+
+bitsTestZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsTestZero _ = myForAllShrink True (\i -> i >= 0)
+  (\(i :: Int) -> ["i = " ++ show i])
+  "testBit zeroBits i"
+  (\i -> testBit (zeroBits :: a) i)
+  "False"
+  (\_ -> False)
+
+bitsPopZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsPopZero _ = myForAllShrink True (const True)
+  (\() -> [])
+  "popCount zeroBits"
+  (\() -> popCount (zeroBits :: a))
+  "0"
+  (\() -> 0)
 
 integralQuotientRemainder :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
 integralQuotientRemainder _ = myForAllShrink False (\(_,y) -> y /= 0)
@@ -922,4 +1045,12 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
           description = "  Description: " ++ name1 ++ " = " ++ name2
           err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in isValid x' ==> counterexample err (b1 == b2)
+
+newtype BitIndex a = BitIndex Int
+
+instance FiniteBits a => Arbitrary (BitIndex a) where
+  arbitrary = let n = finiteBitSize (undefined :: a) in if n > 0
+    then fmap BitIndex (choose (0,n - 1))
+    else return (BitIndex 0)
+  shrink (BitIndex x) = if x > 0 then map BitIndex (S.toList (S.fromList [x - 1, div x 2, 0])) else []
 
