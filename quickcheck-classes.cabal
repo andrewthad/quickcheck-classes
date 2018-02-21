@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.3.2
+version: 0.3.3
 synopsis: QuickCheck common typeclasses
 description:
   This library provides quickcheck properties to
