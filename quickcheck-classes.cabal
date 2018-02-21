@@ -28,9 +28,9 @@ library
     Test.QuickCheck.Classes
   build-depends:
       base >= 4.7 && < 5
-    , QuickCheck
+    , QuickCheck >= 2.9
     , transformers
-    , primitive
+    , primitive >= 0.6.1
     , prim-array
     , aeson
     , containers

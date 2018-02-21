@@ -59,10 +59,7 @@ module Test.QuickCheck.Classes
   ) where
 
 import Control.Applicative (liftA2)
-import Control.Monad (ap)
-import Control.Exception (ErrorCall,try,evaluate)
 import Control.Monad.ST
-import Control.Monad.Trans.Class (lift)
 import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Bits
 import Data.Foldable (foldMap)
@@ -79,18 +76,21 @@ import GHC.Ptr (Ptr(..))
 import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
-import Test.QuickCheck.Monadic (monadicIO)
 import Text.Read (readMaybe)
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
 import qualified Data.Set as S
-import qualified Data.Foldable as F
 
 #if MIN_VERSION_QuickCheck(2,10,0)
-import Test.QuickCheck.Arbitrary (Arbitrary1(..))
+import Control.Exception (ErrorCall,try,evaluate)
+import Control.Monad (ap)
+import Control.Monad.Trans.Class (lift)
 import Data.Functor.Classes
+import Test.QuickCheck.Arbitrary (Arbitrary1(..))
+import Test.QuickCheck.Monadic (monadicIO)
+import qualified Data.Foldable as F
 #endif
 
 -- | A set of laws associated with a typeclass.
