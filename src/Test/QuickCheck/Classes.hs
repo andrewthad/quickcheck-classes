@@ -96,7 +96,7 @@ data Laws = Laws
 --   integrate multiple properties into larger test suite.
 lawsCheck :: Laws -> IO ()
 lawsCheck (Laws className properties) = do
-  flip foldlMapM properties $ \(name,p) -> do
+  flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
 
@@ -107,12 +107,12 @@ lawsCheckMany ::
   -> IO ()
 lawsCheckMany xs = do
   putStrLn "Testing properties for common typeclasses"
-  r <- flip foldlMapM xs $ \(typeName,laws) -> do
+  r <- flip foldMapA xs $ \(typeName,laws) -> do
     putStrLn $ "------------"
     putStrLn $ "-- " ++ typeName
     putStrLn $ "------------"
-    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
-      flip foldlMapM properties $ \(name,p) -> do
+    flip foldMapA laws $ \(Laws typeClassName properties) -> do
+      flip foldMapA properties $ \(name,p) -> do
         putStr (typeClassName ++ ": " ++ name ++ " ")
         r <- quickCheckResult p
         return $ case r of
@@ -130,8 +130,16 @@ instance Monoid Status where
   mappend Good x = x
   mappend Bad _ = Bad
 
-foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
-foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+newtype Ap f a = Ap { getAp :: f a }
+
+instance (Applicative f, Monoid a) => Monoid (Ap f a) where
+  {-# INLINE mempty #-}
+  mempty = Ap $ pure mempty
+  {-# INLINE mappend #-}
+  mappend (Ap x) (Ap y) = Ap $ liftA2 mappend x y
+
+foldMapA :: (Foldable t, Monoid m, Applicative f) => (a -> f m) -> t a -> f m
+foldMapA f = getAp . foldMap (Ap . f)
 
 -- | Tests the following properties:
 --
