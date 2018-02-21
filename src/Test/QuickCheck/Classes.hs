@@ -57,23 +57,24 @@ module Test.QuickCheck.Classes
   , Laws(..)
   ) where
 
-import Test.QuickCheck
-import Test.QuickCheck.Property (Property(..))
-import Data.Primitive hiding (sizeOf,newArray,copyArray)
-import Data.Primitive.PrimArray
-import Data.Proxy
+import Control.Applicative (liftA2)
 import Control.Monad.ST
-import GHC.Ptr (Ptr(..))
-import Data.Primitive.Addr (Addr(..))
-import Foreign.Marshal.Alloc
-import System.IO.Unsafe
-import Data.Semigroup (Semigroup)
-import GHC.Exts (IsList(fromList,toList,fromListN),Item)
-import Foreign.Marshal.Array
-import Foreign.Storable
-import Text.Read (readMaybe)
 import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Foldable (foldMap)
+import Data.Primitive hiding (sizeOf,newArray,copyArray)
+import Data.Primitive.Addr (Addr(..))
+import Data.Primitive.PrimArray
+import Data.Proxy
+import Data.Semigroup (Semigroup)
+import GHC.Exts (IsList(fromList,toList,fromListN),Item)
+import GHC.Ptr (Ptr(..))
+import Foreign.Marshal.Alloc
+import Foreign.Marshal.Array
+import Foreign.Storable
+import System.IO.Unsafe
+import Test.QuickCheck
+import Test.QuickCheck.Property (Property(..))
+import Text.Read (readMaybe)
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
