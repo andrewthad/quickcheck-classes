@@ -58,40 +58,39 @@ module Test.QuickCheck.Classes
   , Laws(..)
   ) where
 
-import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Monadic (monadicIO)
-import Test.QuickCheck.Property (Property(..))
+import Control.Applicative (liftA2)
+import Control.Monad (ap)
+import Control.Exception (ErrorCall,try,evaluate)
+import Control.Monad.ST
+import Control.Monad.Trans.Class (lift)
+import Data.Aeson (FromJSON(..),ToJSON(..))
+import Data.Bits
+import Data.Foldable (foldMap)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
+import Data.Primitive.Addr (Addr(..))
 import Data.Primitive.PrimArray
 import Data.Proxy
-import Control.Monad.ST
-import Control.Monad
-import Data.Monoid (Endo(..),Sum(..),Dual(..))
-import GHC.Ptr (Ptr(..))
-import Data.Primitive.Addr (Addr(..))
-import Foreign.Marshal.Alloc
-import System.IO.Unsafe
 import Data.Semigroup (Semigroup)
-import GHC.Exts (IsList(fromList,toList,fromListN),Item)
+import Foreign.Marshal.Alloc
 import Foreign.Marshal.Array
 import Foreign.Storable
+import GHC.Exts (IsList(fromList,toList,fromListN),Item)
+import GHC.Ptr (Ptr(..))
+import System.IO.Unsafe
+import Test.QuickCheck hiding ((.&.))
+import Test.QuickCheck.Property (Property(..))
+import Test.QuickCheck.Monadic (monadicIO)
 import Text.Read (readMaybe)
-import Data.Aeson (FromJSON(..),ToJSON(..))
-import Data.Functor.Classes
-import Control.Applicative
-import Data.Foldable (foldlM,fold,foldMap,foldl',foldr')
-import Control.Exception (ErrorCall,evaluate,try)
-import Control.Monad.Trans.Class (lift)
-import Data.Bits
-import qualified Data.Foldable as F
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified GHC.OldList as L
 import qualified Data.Set as S
+import qualified Data.Foldable as F
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
+import Data.Functor.Classes
 #endif
 
 -- | A set of laws associated with a typeclass.
@@ -107,7 +106,7 @@ data Laws = Laws
 --   integrate multiple properties into larger test suite.
 lawsCheck :: Laws -> IO ()
 lawsCheck (Laws className properties) = do
-  flip foldlMapM properties $ \(name,p) -> do
+  flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
 
@@ -118,12 +117,12 @@ lawsCheckMany ::
   -> IO ()
 lawsCheckMany xs = do
   putStrLn "Testing properties for common typeclasses"
-  r <- flip foldlMapM xs $ \(typeName,laws) -> do
+  r <- flip foldMapA xs $ \(typeName,laws) -> do
     putStrLn $ "------------"
     putStrLn $ "-- " ++ typeName
     putStrLn $ "------------"
-    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
-      flip foldlMapM properties $ \(name,p) -> do
+    flip foldMapA laws $ \(Laws typeClassName properties) -> do
+      flip foldMapA properties $ \(name,p) -> do
         putStr (typeClassName ++ ": " ++ name ++ " ")
         r <- quickCheckResult p
         return $ case r of
@@ -141,8 +140,16 @@ instance Monoid Status where
   mappend Good x = x
   mappend Bad _ = Bad
 
-foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
-foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+newtype Ap f a = Ap { getAp :: f a }
+
+instance (Applicative f, Monoid a) => Monoid (Ap f a) where
+  {-# INLINE mempty #-}
+  mempty = Ap $ pure mempty
+  {-# INLINE mappend #-}
+  mappend (Ap x) (Ap y) = Ap $ liftA2 mappend x y
+
+foldMapA :: (Foldable t, Monoid m, Applicative f) => (a -> f m) -> t a -> f m
+foldMapA f = getAp . foldMap (Ap . f)
 
 -- | Tests the following properties:
 --
@@ -461,19 +468,19 @@ bitsClearZero _ = myForAllShrink False (const True)
   "n"
   (\n -> n)
 
-bitsSetZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
-bitsSetZero _ = myForAllShrink True (\i -> i >= 0)
-  (\(i :: Int) -> ["i = " ++ show i])
+bitsSetZero :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsSetZero _ = myForAllShrink True (const True)
+  (\(BitIndex i :: BitIndex a) -> ["i = " ++ show i])
   "setBit zeroBits i"
-  (\i -> setBit (zeroBits :: a) i)
+  (\(BitIndex i) -> setBit (zeroBits :: a) i)
   "bit i"
-  (\i -> bit i)
+  (\(BitIndex i) -> bit i)
 
-bitsTestZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
-bitsTestZero _ = myForAllShrink True (\i -> i >= 0)
-  (\(i :: Int) -> ["i = " ++ show i])
+bitsTestZero :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsTestZero _ = myForAllShrink True (const True)
+  (\(BitIndex i :: BitIndex a) -> ["i = " ++ show i])
   "testBit zeroBits i"
-  (\i -> testBit (zeroBits :: a) i)
+  (\(BitIndex i) -> testBit (zeroBits :: a) i)
   "False"
   (\_ -> False)
 
@@ -744,25 +751,25 @@ foldableLaws = foldableLawsInternal
 
 foldableLawsInternal :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
 foldableLawsInternal p = Laws "Foldable"
-  [ (,) "fold" $ property $ \(Apply (a :: f (Sum Integer))) ->
-      fold a == foldMap id a
+  [ (,) "fold" $ property $ \(Apply (a :: f (SG.Sum Integer))) ->
+      F.fold a == F.foldMap id a
   , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: Equation) ->
-      let f = Sum . runEquation e
+      let f = SG.Sum . runEquation e
        in foldMap f a == foldr (mappend . f) mempty a
   , (,) "foldr" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runEquationTwo e
-       in foldr f z t == appEndo (foldMap (Endo . f) t) z
+       in foldr f z t == SG.appEndo (foldMap (SG.Endo . f) t) z
   , (,) "foldr'" (foldableFoldr' p)
   , (,) "foldl" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runEquationTwo e
-       in foldl f z t == appEndo (getDual (foldMap (Dual . Endo . flip f) t)) z
+       in foldl f z t == SG.appEndo (SG.getDual (foldMap (SG.Dual . SG.Endo . flip f) t)) z
   , (,) "foldl'" (foldableFoldl' p)
   , (,) "toList" $ property $ \(Apply (t :: f Integer)) ->
       eq1 (F.toList t) (foldr (:) [] t)
   , (,) "null" $ property $ \(Apply (t :: f Integer)) ->
       null t == foldr (const (const False)) True t
   , (,) "length" $ property $ \(Apply (t :: f Integer)) ->
-      length t == getSum (foldMap (const (Sum 1)) t)
+      length t == SG.getSum (foldMap (const (SG.Sum 1)) t)
   ]
 
 foldableFoldl' :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
@@ -777,12 +784,12 @@ foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs
         z0 = 0
     r1 <- lift $ do
       let f' x k z = k $! f z x
-      e <- try (evaluate (foldr f' id xs z0))
+      e <- try (evaluate (F.foldr f' id xs z0))
       case e of
         Left (_ :: ErrorCall) -> return Nothing
         Right i -> return (Just i)
     r2 <- lift $ do
-      e <- try (evaluate (foldl' f z0 xs))
+      e <- try (evaluate (F.foldl' f z0 xs))
       case e of
         Left (_ :: ErrorCall) -> return Nothing
         Right i -> return (Just i)
@@ -800,12 +807,12 @@ foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs 
         z0 = 0
     r1 <- lift $ do
       let f' k x z = k $! f x z
-      e <- try (evaluate (foldl f' id xs z0))
+      e <- try (evaluate (F.foldl f' id xs z0))
       case e of
         Left (_ :: ErrorCall) -> return Nothing
         Right i -> return (Just i)
     r2 <- lift $ do
-      e <- try (evaluate (foldr' f z0 xs))
+      e <- try (evaluate (F.foldr' f z0 xs))
       case e of
         Left (_ :: ErrorCall) -> return Nothing
         Right i -> return (Just i)
@@ -885,10 +892,10 @@ showLinear :: Int -> LinearEquation -> ShowS
 showLinear _ (LinearEquation a b) = shows a . showString " * x + " . shows b
 
 showLinearList :: [LinearEquation] -> ShowS
-showLinearList xs = appEndo $ mconcat
-   $ [Endo (showChar '[')]
-  ++ L.intersperse (Endo (showChar ',')) (map (Endo . showLinear 0) xs)
-  ++ [Endo (showChar ']')]
+showLinearList xs = SG.appEndo $ mconcat
+   $ [SG.Endo (showChar '[')]
+  ++ L.intersperse (SG.Endo (showChar ',')) (map (SG.Endo . showLinear 0) xs)
+  ++ [SG.Endo (showChar ']')]
 
 instance Show1 m => Show (LinearEquationM m) where
   show (LinearEquationM a b) = (\f -> f "")

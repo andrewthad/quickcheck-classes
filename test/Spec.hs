@@ -62,11 +62,15 @@ allHigherLaws p =
   ]
 #endif
 
--- This type is fails the laws for the strict functions
+-- This type fails the laws for the strict functions
 -- in Foldable. It is used just to confirm that
 -- those property tests actually work.
 newtype Rouge a = Rouge [a]
+#if MIN_VERSION_QuickCheck(2,10,0)
   deriving (Eq,Show,Arbitrary,Arbitrary1,Eq1,Show1)
+#else
+  deriving (Eq,Show,Arbitrary,Eq1,Show1)
+#endif
 
 instance Foldable Rouge where
   foldMap f (Rouge xs) = foldMap f xs
