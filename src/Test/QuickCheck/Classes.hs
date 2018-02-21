@@ -58,14 +58,11 @@ module Test.QuickCheck.Classes
   ) where
 
 import Test.QuickCheck
-import Test.QuickCheck.Monadic (monadicIO)
 import Test.QuickCheck.Property (Property(..))
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.PrimArray
 import Data.Proxy
 import Control.Monad.ST
-import Control.Monad
-import Data.Monoid (Endo(..),Sum(..),Dual(..))
 import GHC.Ptr (Ptr(..))
 import Data.Primitive.Addr (Addr(..))
 import Foreign.Marshal.Alloc
@@ -76,12 +73,7 @@ import Foreign.Marshal.Array
 import Foreign.Storable
 import Text.Read (readMaybe)
 import Data.Aeson (FromJSON(..),ToJSON(..))
-import Data.Functor.Classes
-import Control.Applicative
-import Data.Foldable (foldlM,fold,foldMap,foldl',foldr')
-import Control.Exception (ErrorCall,evaluate,try)
-import Control.Monad.Trans.Class (lift)
-import qualified Data.Foldable as F
+import Data.Foldable (foldMap)
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
