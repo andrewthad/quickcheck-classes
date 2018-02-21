@@ -57,31 +57,24 @@ module Test.QuickCheck.Classes
   , Laws(..)
   ) where
 
-import Test.QuickCheck
-import Test.QuickCheck.Monadic (monadicIO)
-import Test.QuickCheck.Property (Property(..))
+import Control.Applicative (liftA2)
+import Control.Monad.ST
+import Data.Aeson (FromJSON(..),ToJSON(..))
+import Data.Foldable (foldMap)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
+import Data.Primitive.Addr (Addr(..))
 import Data.Primitive.PrimArray
 import Data.Proxy
-import Control.Monad.ST
-import Control.Monad
-import Data.Monoid (Endo(..),Sum(..),Dual(..))
-import GHC.Ptr (Ptr(..))
-import Data.Primitive.Addr (Addr(..))
-import Foreign.Marshal.Alloc
-import System.IO.Unsafe
 import Data.Semigroup (Semigroup)
 import GHC.Exts (IsList(fromList,toList,fromListN),Item)
+import GHC.Ptr (Ptr(..))
+import Foreign.Marshal.Alloc
 import Foreign.Marshal.Array
 import Foreign.Storable
+import System.IO.Unsafe
+import Test.QuickCheck
+import Test.QuickCheck.Property (Property(..))
 import Text.Read (readMaybe)
-import Data.Aeson (FromJSON(..),ToJSON(..))
-import Data.Functor.Classes
-import Control.Applicative
-import Data.Foldable (foldlM,fold,foldMap,foldl',foldr')
-import Control.Exception (ErrorCall,evaluate,try)
-import Control.Monad.Trans.Class (lift)
-import qualified Data.Foldable as F
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
@@ -104,7 +97,7 @@ data Laws = Laws
 --   integrate multiple properties into larger test suite.
 lawsCheck :: Laws -> IO ()
 lawsCheck (Laws className properties) = do
-  flip foldlMapM properties $ \(name,p) -> do
+  flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
 
@@ -115,12 +108,12 @@ lawsCheckMany ::
   -> IO ()
 lawsCheckMany xs = do
   putStrLn "Testing properties for common typeclasses"
-  r <- flip foldlMapM xs $ \(typeName,laws) -> do
+  r <- flip foldMapA xs $ \(typeName,laws) -> do
     putStrLn $ "------------"
     putStrLn $ "-- " ++ typeName
     putStrLn $ "------------"
-    flip foldlMapM laws $ \(Laws typeClassName properties) -> do
-      flip foldlMapM properties $ \(name,p) -> do
+    flip foldMapA laws $ \(Laws typeClassName properties) -> do
+      flip foldMapA properties $ \(name,p) -> do
         putStr (typeClassName ++ ": " ++ name ++ " ")
         r <- quickCheckResult p
         return $ case r of
@@ -138,8 +131,16 @@ instance Monoid Status where
   mappend Good x = x
   mappend Bad _ = Bad
 
-foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
-foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+newtype Ap f a = Ap { getAp :: f a }
+
+instance (Applicative f, Monoid a) => Monoid (Ap f a) where
+  {-# INLINE mempty #-}
+  mempty = Ap $ pure mempty
+  {-# INLINE mappend #-}
+  mappend (Ap x) (Ap y) = Ap $ liftA2 mappend x y
+
+foldMapA :: (Foldable t, Monoid m, Applicative f) => (a -> f m) -> t a -> f m
+foldMapA f = getAp . foldMap (Ap . f)
 
 -- | Tests the following properties:
 --
