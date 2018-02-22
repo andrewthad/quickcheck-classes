@@ -285,6 +285,10 @@ integralLaws p = Laws "Monoid"
 --   @testBit zeroBits i ≡ False@
 -- [/Pop Zero/]
 --   @popCount zeroBits ≡ 0@
+-- [/Count Leading Zeros of Zero/]
+--   @countLeadingZeros zeroBits ≡ finiteBitSize ⊥@
+-- [/Count Trailing Zeros of Zero/]
+--   @countTrailingZeros zeroBits ≡ finiteBitSize ⊥@
 --
 -- All of the useful instances of the 'Bits' typeclass
 -- also have 'FiniteBits' instances, so these property
@@ -301,6 +305,8 @@ bitsLaws p = Laws "Bits"
   , ("Set Zero", bitsSetZero p)
   , ("Test Zero", bitsTestZero p)
   , ("Pop Zero", bitsPopZero p)
+  , ("Count Leading Zeros of Zero", bitsCountLeadingZeros p)
+  , ("Count Trailing Zeros of Zero", bitsCountTrailingZeros p)
   ]
 
 -- | Test that a 'Prim' instance obey the several laws.
@@ -491,6 +497,22 @@ bitsPopZero _ = myForAllShrink True (const True)
   (\() -> popCount (zeroBits :: a))
   "0"
   (\() -> 0)
+
+bitsCountLeadingZeros :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsCountLeadingZeros _ = myForAllShrink True (const True)
+  (\() -> [])
+  "countLeadingZeros zeroBits"
+  (\() -> countLeadingZeros (zeroBits :: a))
+  "finiteBitSize undefined"
+  (\() -> finiteBitSize (undefined :: a))
+
+bitsCountTrailingZeros :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsCountTrailingZeros _ = myForAllShrink True (const True)
+  (\() -> [])
+  "countTrailingZeros zeroBits"
+  (\() -> countTrailingZeros (zeroBits :: a))
+  "finiteBitSize undefined"
+  (\() -> finiteBitSize (undefined :: a))
 
 integralQuotientRemainder :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
 integralQuotientRemainder _ = myForAllShrink False (\(_,y) -> y /= 0)
