@@ -214,14 +214,19 @@ eqLaws p = Laws "Eq"
 
 -- | Tests the following properties:
 --
--- [/Transitive/]
+-- [/Antisymmetry/]
+--   @a ≤ b ∧ b ≤ a ⇒ a = b  
+-- [/Transitivity/]
 --   @a ≤ b ∧ b ≤ c ⇒ a ≤ c@
--- [/Comparable/]
+-- [/Totality/]
 --   @a ≤ b ∨ a > b@
+
+
 ordLaws :: (Ord a, Arbitrary a, Show a) => Proxy a -> Laws
 ordLaws p = Laws "Ord"
-  [ ("Transitive", ordTransitive p)
-  , ("Comparable", ordComparable p)
+  [ ("Antisymmetry", ordAntisymmetric p)
+  , ("Transitivity", ordTransitive p)
+  , ("Totality", ordTotality p)
   ]
 
 -- | Tests the following properties:
@@ -365,23 +370,32 @@ eqTransitive _ = property $ \(a :: a) b c -> case a == b of
     True -> a /= c
     False -> True
 
+ordAntisymmetric :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+ordAntisymmetric _ = property $ \(a :: a) b -> ((a <= b) && (b <= a)) == (a == b)
+
+ordTransitive :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+ordTransitive _ = property $ \(a :: a) b c -> ((a <= b) && (b <= c)) == (a <= c)
+
+ordTotality :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+ordTotality _ = property $ \(a :: a) b -> ((a <= b) || (b <= a)) == True
+
 -- Technically, this tests something a little stronger than it is supposed to.
 -- But that should be alright since this additional strength is implied by
 -- the rest of the Ord laws.
-ordTransitive :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
-ordTransitive _ = property $ \(a :: a) b c -> case (compare a b, compare b c) of
-  (LT,LT) -> a < c
-  (LT,EQ) -> a < c
-  (LT,GT) -> True
-  (EQ,LT) -> a < c
-  (EQ,EQ) -> a == c
-  (EQ,GT) -> a > c
-  (GT,LT) -> True
-  (GT,EQ) -> a > c
-  (GT,GT) -> a > c
+--ordTransitive :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+--ordTransitive _ = property $ \(a :: a) b c -> case (compare a b, compare b c) of
+--  (LT,LT) -> a < c
+--  (LT,EQ) -> a < c
+--  (LT,GT) -> True
+--  (EQ,LT) -> a < c
+--  (EQ,EQ) -> a == c
+--  (EQ,GT) -> a > c
+--  (GT,LT) -> True
+--  (GT,EQ) -> a > c
+--  (GT,GT) -> a > c
 
-ordComparable :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
-ordComparable _ = property $ \(a :: a) b -> a > b || b >= a
+--ordComparable :: forall a. (Show a, Ord a, Arbitrary a) => Proxy a -> Property
+--ordComparable _ = property $ \(a :: a) b -> a > b || b >= a
 
 eqSymmetric :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
 eqSymmetric _ = property $ \(a :: a) b -> case a == b of
