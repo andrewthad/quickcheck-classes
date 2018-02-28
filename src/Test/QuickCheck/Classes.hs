@@ -35,32 +35,36 @@ module Test.QuickCheck.Classes
   , lawsCheckMany
     -- * Properties
     -- ** Ground Types
-  , semigroupLaws
-  , monoidLaws
+  , bifunctorLaws
+  , bitsLaws
   , commutativeMonoidLaws
   , eqLaws
-  , ordLaws
-  , showReadLaws
-  , jsonLaws
-  , isListLaws
-  , primLaws
-  , storableLaws
   , integralLaws
-  , bitsLaws
+  , isListLaws
+  , jsonLaws
+  , monoidLaws
+  , ordLaws
+  , primLaws
+  , semigroupLaws
+  , showReadLaws
+  , storableLaws
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
-  , functorLaws
+  , alternativeLaws 
   , applicativeLaws
-  , monadLaws
+  --, bifunctorLaws 
   , foldableLaws
+  , functorLaws
+  , monadLaws
 #endif
     -- * Types
   , Laws(..)
   ) where
 
-import Control.Applicative (liftA2)
+import Control.Applicative (Alternative(..), liftA2)
 import Control.Monad.ST
 import Data.Aeson (FromJSON(..),ToJSON(..))
+import Data.Bifunctor (Bifunctor(..))
 import Data.Bits
 import Data.Foldable (foldMap)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
@@ -262,7 +266,7 @@ commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws
 -- [/Integer Roundtrip/]
 --   @fromInteger (toInteger x) ≡ x@
 integralLaws :: (Integral a, Arbitrary a, Show a) => Proxy a -> Laws
-integralLaws p = Laws "Monoid"
+integralLaws p = Laws "Integral"
   [ ("Quotient Remainder", integralQuotientRemainder p)
   , ("Division Modulus", integralDivisionModulus p)
   , ("Integer Roundtrip", integralIntegerRoundtrip p)
@@ -700,7 +704,7 @@ arrayEq ptrA ptrB len = go 0 where
     else return True
 
 #if MIN_VERSION_QuickCheck(2,10,0)
--- | Tests the following applicative properties:
+-- | Tests the following functor properties:
 --
 -- [/Identity/]
 --   @'fmap' 'id' ≡ 'id'@
@@ -713,6 +717,19 @@ functorLaws p = Laws "Functor"
   [ ("Identity", functorIdentity p)
   , ("Composition", functorComposition p)
   , ("Const", functorConst p)
+  ]
+
+-- | Tests the following alternative properties:
+--
+-- [/Identity/]
+--   @'empty' '<|>' x ≡ x@
+--   @x '<|>' 'empty' ≡ x@
+-- [/Associativity/]
+--   @a '<|>' (b '<|>' c) ≡ (a '<|>' b) '<|>' c)@ 
+alternativeLaws :: (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+alternativeLaws p = Laws "Alternative"
+  [ ("Identity", alternativeIdentity p)
+  , ("Associativity", alternativeAssociativity p)
   ]
 
 -- | Tests the following applicative properties:
@@ -757,6 +774,24 @@ monadLaws p = Laws "Monad"
   , ("Associativity", monadAssociativity p)
   , ("Return", monadReturn p)
   , ("Ap", monadAp p)
+  ]
+
+-- | Tests the following 'Bifunctor' properties:
+--
+-- [/Identity/]
+--   @'bimap' 'id' 'id' ≡ 'id'@
+-- [/First Identity/]
+--   @'first' 'id' ≡ 'id'@
+-- [/Second Identity/] 
+--   @'second' 'id' ≡ 'id'@
+-- [/Bimap Law/] -- TODO: FIX THIS NAME
+--   @'bimap' f g ≡ 'first' f . 'second' g@ 
+bifunctorLaws :: (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Laws
+bifunctorLaws p = Laws "Bifunctor"
+  [ ("Identity", bifunctorIdentity p)
+  , ("First Identity", bifunctorFirstIdentity p)
+  , ("Second Identity", bifunctorSecondIdentity p)
+  , ("Bimap Law (RENAME)", bifunctorFirstSecondIdentity p)
   ]
 
 -- | Tests the following 'Foldable' properties:
@@ -901,10 +936,15 @@ maybeToBottom :: Maybe a -> Bottom a
 maybeToBottom Nothing = BottomUndefined
 maybeToBottom (Just a) = BottomValue a
 
-data Apply f a = Apply { getApply :: f a }
+newtype Apply f a = Apply { getApply :: f a }
+
+newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
 
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
+
+instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
+  Apply2 a == Apply2 b = eq2 a b
 
 data LinearEquation = LinearEquation
   { _linearEquationLinear :: Integer
@@ -980,7 +1020,7 @@ runEquation (Equation a b c) x = a * x ^ (2 :: Integer) + b * x + c
 data EquationTwo = EquationTwo Integer Integer
   deriving (Eq)
 
--- This show instance is does not actually provide a
+-- This show instance does not actually provide a
 -- way to create an EquationTwo. Instead, it makes it look
 -- like a lambda that takes two variables.
 instance Show EquationTwo where
@@ -1007,6 +1047,13 @@ instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   arbitrary = fmap Apply arbitrary1
   shrink = map Apply . shrink1 . getApply
 
+instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
+  showsPrec p = showsPrec2 p . getApply2
+
+instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
+  arbitrary = fmap Apply2 arbitrary2
+  shrink = fmap Apply2 . shrink2 . getApply2
+
 functorIdentity :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
 functorIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (fmap id a) a
 
@@ -1023,6 +1070,12 @@ functorComposition _ = property $ \(Apply (a :: f Integer)) ->
 functorConst :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
 functorConst _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap (const 'X') a) ('X' <$ a)
+
+alternativeIdentity :: forall f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+alternativeIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> a) a) && (eq1 a (empty <|> a))
+
+alternativeAssociativity :: forall f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+alternativeAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (a <|> (b <|> c)) ((a <|> b) <|> c)
 
 applicativeIdentity :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
@@ -1071,6 +1124,32 @@ monadAp :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Prope
 monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
   let f = fmap runEquation f'
    in eq1 (ap f x) (f <*> x)
+
+-- | Tests the following 'Bifunctor' properties:
+--
+-- [/Identity/]
+--   @'bimap' 'id' 'id' ≡ 'id'@
+-- [/First Identity/]
+--   @'first' 'id' ≡ 'id'@
+-- [/Second Identity/] 
+--   @'second' 'id' ≡ 'id'@
+-- [/Bimap Law/] -- TODO: FIX THIS NAME
+--   @'bimap' f g ≡ 'first' f . 'second' g@ 
+
+bifunctorIdentity :: forall f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Property
+bifunctorIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (bimap id id x) x
+
+bifunctorFirstIdentity :: forall f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Property
+bifunctorFirstIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (first id x) x
+
+bifunctorSecondIdentity :: forall f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Property
+bifunctorSecondIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (second id x) x
+
+bifunctorFirstSecondIdentity
+  :: forall f.
+     (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
+  => Proxy f -> Property
+bifunctorFirstSecondIdentity _ = property $ \(Apply2 (z :: f Integer Integer)) -> eq2 (bimap id id z) ((first id . second id) z)
 
 #endif
 

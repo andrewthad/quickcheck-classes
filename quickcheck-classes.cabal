@@ -28,6 +28,7 @@ library
     Test.QuickCheck.Classes
   build-depends:
       base >= 4.7 && < 5
+    , bifunctors 
     , QuickCheck >= 2.9
     , transformers
     , primitive >= 0.6.1
