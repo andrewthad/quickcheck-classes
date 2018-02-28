@@ -35,6 +35,7 @@ library
     , prim-array
     , aeson
     , containers
+    , semigroupoids 
   default-language: Haskell2010
 
 test-suite test
