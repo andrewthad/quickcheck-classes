@@ -783,14 +783,14 @@ monadLaws p = Laws "Monad"
 --   @'first' 'id' ≡ 'id'@
 -- [/Second Identity/] 
 --   @'second' 'id' ≡ 'id'@
--- [/Bimap Law/] -- TODO: FIX THIS NAME
+-- [/Bifunctor Composition/]
 --   @'bimap' f g ≡ 'first' f . 'second' g@ 
 bifunctorLaws :: (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Laws
 bifunctorLaws p = Laws "Bifunctor"
   [ ("Identity", bifunctorIdentity p)
   , ("First Identity", bifunctorFirstIdentity p)
   , ("Second Identity", bifunctorSecondIdentity p)
-  , ("Bimap Law (RENAME)", bifunctorFirstSecondIdentity p)
+  , ("Bifunctor Composition", bifunctorComposition p)
   ]
 
 -- | Tests the following 'Foldable' properties:
@@ -1149,11 +1149,11 @@ bifunctorFirstIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 
 bifunctorSecondIdentity :: forall f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => Proxy f -> Property
 bifunctorSecondIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (second id x) x
 
-bifunctorFirstSecondIdentity
+bifunctorComposition
   :: forall f.
      (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
   => Proxy f -> Property
-bifunctorFirstSecondIdentity _ = property $ \(Apply2 (z :: f Integer Integer)) -> eq2 (bimap id id z) ((first id . second id) z)
+bifunctorComposition _ = property $ \(Apply2 (z :: f Integer Integer)) -> eq2 (bimap id id z) ((first id . second id) z)
 
 #endif
 
