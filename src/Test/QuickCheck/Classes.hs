@@ -35,7 +35,6 @@ module Test.QuickCheck.Classes
   , lawsCheckMany
     -- * Properties
     -- ** Ground Types
-  , bifunctorLaws
   , bitsLaws
   , commutativeMonoidLaws
   , eqLaws
@@ -52,7 +51,7 @@ module Test.QuickCheck.Classes
     -- ** Higher-Kinded Types
   , alternativeLaws 
   , applicativeLaws
-  --, bifunctorLaws 
+  , bifunctorLaws 
   , foldableLaws
   , functorLaws
   , monadLaws
