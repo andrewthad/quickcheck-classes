@@ -3,8 +3,11 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UnboxedTuples #-}
 
 {-# OPTIONS_GHC -Wall #-}
 
@@ -42,11 +45,13 @@ module Test.QuickCheck.Classes
   , ordLaws
   , showReadLaws
   , jsonLaws
-  , isListLaws
   , primLaws
   , storableLaws
   , integralLaws
+#if MIN_VERSION_base(4,7,0)
   , bitsLaws
+  , isListLaws
+#endif
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
   , functorLaws
@@ -58,30 +63,42 @@ module Test.QuickCheck.Classes
   , Laws(..)
   ) where
 
-import Control.Applicative (liftA2)
+import Data.Functor ((<$))
+import Control.Applicative (liftA2,(<*>),pure,Applicative,(<$>))
 import Control.Monad.ST
 import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Bits
-import Data.Foldable (foldMap)
+import Data.Foldable (foldMap,Foldable)
+import Data.Monoid (Monoid,mconcat,mempty,mappend)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.Addr (Addr(..))
-import Data.Primitive.PrimArray
 import Data.Proxy
+import Data.Semigroup (Semigroup)
 import Data.Semigroup (Semigroup)
 import Foreign.Marshal.Alloc
 import Foreign.Marshal.Array
 import Foreign.Storable
-import GHC.Exts (IsList(fromList,toList,fromListN),Item)
+import GHC.Exts (Int(I#),(*#),newByteArray#,unsafeFreezeByteArray#,
+  copyMutableByteArray#,copyByteArray#,quotInt#,sizeofByteArray#)
 import GHC.Ptr (Ptr(..))
 import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
-import Text.Read (readMaybe)
+import Control.Monad.Primitive (PrimMonad,PrimState,primitive,primitive_)
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
-import qualified GHC.OldList as L
+import qualified Data.List as L
 import qualified Data.Set as S
+
+#if MIN_VERSION_base(4,6,0)
+import Text.Read (readMaybe)
+#endif
+
+#if MIN_VERSION_base(4,7,0)
+import GHC.Exts (IsList(fromList,toList,fromListN),Item,
+  copyByteArrayToAddr#,copyAddrToByteArray#)
+#endif
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Exception (ErrorCall,try,evaluate)
@@ -135,20 +152,24 @@ lawsCheckMany xs = do
 
 data Status = Bad | Good
 
+instance Semigroup Status where
+  Good <> x = x
+  Bad <> _ = Bad
+
 instance Monoid Status where
   mempty = Good
-  mappend Good x = x
-  mappend Bad _ = Bad
+  mappend = (SG.<>)
 
 newtype Ap f a = Ap { getAp :: f a }
 
-instance (Applicative f, Monoid a) => Monoid (Ap f a) where
-  {-# INLINE mempty #-}
-  mempty = Ap $ pure mempty
-  {-# INLINE mappend #-}
-  mappend (Ap x) (Ap y) = Ap $ liftA2 mappend x y
+instance (Applicative f, Semigroup a) => Semigroup (Ap f a) where
+  Ap x <> Ap y = Ap $ liftA2 (SG.<>) x y
 
-foldMapA :: (Foldable t, Monoid m, Applicative f) => (a -> f m) -> t a -> f m
+instance (Applicative f, Monoid a, Semigroup a) => Monoid (Ap f a) where
+  mempty = Ap $ pure mempty
+  mappend = (SG.<>)
+
+foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> t a -> f m
 foldMapA f = getAp . foldMap (Ap . f)
 
 -- | Tests the following properties:
@@ -172,11 +193,16 @@ jsonLaws p = Laws "ToJSON/FromJSON"
 --   @fromList . toList ≡ id@
 -- [/Length Preservation/]
 --   @fromList xs ≡ fromListN (length xs) xs@
+--
+-- /Note:/ This property test is only available when
+-- using @base-4.7@ or newer.
+#if MIN_VERSION_base(4,7,0)
 isListLaws :: (IsList a, Show a, Show (Item a), Arbitrary a, Arbitrary (Item a), Eq a) => Proxy a -> Laws
 isListLaws p = Laws "IsList"
   [ ("Partial Isomorphism", isListPartialIsomorphism p)
   , ("Length Preservation", isListLengthPreservation p)
   ]
+#endif
 
 showReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> Laws
 showReadLaws p = Laws "Show/Read"
@@ -293,6 +319,10 @@ integralLaws p = Laws "Monoid"
 -- All of the useful instances of the 'Bits' typeclass
 -- also have 'FiniteBits' instances, so these property
 -- tests actually require that instance as well.
+--
+-- /Note:/ This property test is only available when
+-- using @base-4.7@ or newer.
+#if MIN_VERSION_base(4,7,0)
 bitsLaws :: (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Laws
 bitsLaws p = Laws "Bits"
   [ ("Conjunction Idempotence", bitsConjunctionIdempotence p)
@@ -305,9 +335,12 @@ bitsLaws p = Laws "Bits"
   , ("Set Zero", bitsSetZero p)
   , ("Test Zero", bitsTestZero p)
   , ("Pop Zero", bitsPopZero p)
+#if MIN_VERSION_base(4,8,0)
   , ("Count Leading Zeros of Zero", bitsCountLeadingZeros p)
   , ("Count Trailing Zeros of Zero", bitsCountTrailingZeros p)
+#endif
   ]
+#endif
 
 -- | Test that a 'Prim' instance obey the several laws.
 primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
@@ -315,7 +348,9 @@ primLaws p = Laws "Prim"
   [ ("ByteArray Set-Get (you get back what you put in)", primSetGetByteArray p)
   , ("ByteArray Get-Set (putting back what you got out has no effect)", primGetSetByteArray p)
   , ("ByteArray Set-Set (setting twice is same as setting once)", primSetSetByteArray p)
+#if MIN_VERSION_base(4,7,0)
   , ("ByteArray List Conversion Roundtrips", primListByteArray p)
+#endif
   , ("Addr Set-Get (you get back what you put in)", primSetGetAddr p)
   , ("Addr Get-Set (putting back what you got out has no effect)", primGetSetAddr p)
   , ("Addr List Conversion Roundtrips", primListAddr p)
@@ -328,6 +363,7 @@ storableLaws p = Laws "Storable"
   , ("List Conversion Roundtrips", storableList p)
   ]
 
+#if MIN_VERSION_base(4,7,0)
 isListPartialIsomorphism :: forall a. (IsList a, Show a, Arbitrary a, Eq a) => Proxy a -> Property
 isListPartialIsomorphism _ = myForAllShrink False (const True)
   (\(a :: a) -> ["a = " ++ show a])
@@ -339,10 +375,15 @@ isListPartialIsomorphism _ = myForAllShrink False (const True)
 isListLengthPreservation :: forall a. (IsList a, Show (Item a), Arbitrary (Item a), Eq a) => Proxy a -> Property
 isListLengthPreservation _ = property $ \(xs :: [Item a]) ->
   (fromList xs :: a) == fromListN (length xs) xs
+#endif
 
 showReadPartialIsomorphism :: forall a. (Show a, Read a, Arbitrary a, Eq a) => Proxy a -> Property
 showReadPartialIsomorphism _ = property $ \(a :: a) ->
+#if MIN_VERSION_base(4,6,0)
   readMaybe (show a) == Just a
+#else
+  read (show a) == a
+#endif
 
 -- TODO: improve the quality of the error message if
 -- something does not pass this test.
@@ -418,6 +459,7 @@ monoidRightIdentity _ = myForAllShrink False (const True)
   "a"
   (\a -> a)
 
+#if MIN_VERSION_base(4,7,0)
 bitsConjunctionIdempotence :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
 bitsConjunctionIdempotence _ = myForAllShrink False (const True)
   (\(n :: a) -> ["n = " ++ show n])
@@ -497,7 +539,9 @@ bitsPopZero _ = myForAllShrink True (const True)
   (\() -> popCount (zeroBits :: a))
   "0"
   (\() -> 0)
+#endif
 
+#if MIN_VERSION_base(4,8,0)
 bitsCountLeadingZeros :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
 bitsCountLeadingZeros _ = myForAllShrink True (const True)
   (\() -> [])
@@ -513,6 +557,7 @@ bitsCountTrailingZeros _ = myForAllShrink True (const True)
   (\() -> countTrailingZeros (zeroBits :: a))
   "finiteBitSize undefined"
   (\() -> finiteBitSize (undefined :: a))
+#endif
 
 integralQuotientRemainder :: forall a. (Integral a, Arbitrary a, Show a) => Proxy a -> Property
 integralQuotientRemainder _ = myForAllShrink False (\(_,y) -> y /= 0)
@@ -546,9 +591,11 @@ monoidCommutative _ = myForAllShrink True (const True)
   "mappend b a"
   (\(a,b) -> mappend b a)
 
+#if MIN_VERSION_base(4,7,0)
 primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListByteArray _ = property $ \(as :: [a]) ->
   as == toList (fromList as :: PrimArray a)
+#endif
 
 primListAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListAddr _ = property $ \(as :: [a]) -> unsafePerformIO $ do
@@ -581,7 +628,7 @@ primSetGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
 
 primGetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primGetSetByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
-  let arr1 = fromList as :: PrimArray a
+  let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
   arr2 <- return $ runST $ do
@@ -594,7 +641,7 @@ primGetSetByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
 
 primSetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primSetSetByteArray _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==> do
-  let arr1 = fromList as :: PrimArray a
+  let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
   (arr2,arr3) <- return $ runST $ do
@@ -622,7 +669,7 @@ primSetGetAddr _ = property $ \(a :: a) len -> (len > 0) ==> do
 
 primGetSetAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primGetSetAddr _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
-  let arr1 = fromList as :: PrimArray a
+  let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
   arr2 <- return $ unsafePerformIO $ do
@@ -694,7 +741,7 @@ arrayEq ptrA ptrB len = go 0 where
 --   @fmap (f . g) ≡ 'fmap' f . 'fmap' g@
 -- [/Const/]
 --   @(<$) ≡ 'fmap' 'const'@
-functorLaws :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+functorLaws :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 functorLaws p = Laws "Functor"
   [ ("Identity", functorIdentity p)
   , ("Composition", functorComposition p)
@@ -713,7 +760,7 @@ functorLaws p = Laws "Functor"
 --   @u '<*>' 'pure' y ≡ 'pure' ('$' y) '<*>' u@
 -- [/LiftA2 (1)/]
 --   @('<*>') ≡ 'liftA2' 'id'@
-applicativeLaws :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+applicativeLaws :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 applicativeLaws p = Laws "Applicative"
   [ ("Identity", applicativeIdentity p)
   , ("Composition", applicativeComposition p)
@@ -736,7 +783,7 @@ applicativeLaws p = Laws "Applicative"
 --   @'pure' ≡ 'return'@
 -- [/Ap/]
 --   @('<*>') ≡ 'ap'@
-monadLaws :: (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+monadLaws :: (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 monadLaws p = Laws "Monad"
   [ ("Left Identity", monadLeftIdentity p)
   , ("Right Identity", monadRightIdentity p)
@@ -768,33 +815,35 @@ monadLaws p = Laws "Monad"
 --
 -- Note that this checks to ensure that @foldl\'@ and @foldr\'@
 -- are suitably strict.
-foldableLaws :: (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+foldableLaws :: (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 foldableLaws = foldableLawsInternal
 
-foldableLawsInternal :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Laws
+foldableLawsInternal :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 foldableLawsInternal p = Laws "Foldable"
   [ (,) "fold" $ property $ \(Apply (a :: f (SG.Sum Integer))) ->
       F.fold a == F.foldMap id a
   , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: Equation) ->
       let f = SG.Sum . runEquation e
-       in foldMap f a == foldr (mappend . f) mempty a
+       in F.foldMap f a == F.foldr (mappend . f) mempty a
   , (,) "foldr" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runEquationTwo e
-       in foldr f z t == SG.appEndo (foldMap (SG.Endo . f) t) z
+       in F.foldr f z t == SG.appEndo (foldMap (SG.Endo . f) t) z
   , (,) "foldr'" (foldableFoldr' p)
   , (,) "foldl" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runEquationTwo e
-       in foldl f z t == SG.appEndo (SG.getDual (foldMap (SG.Dual . SG.Endo . flip f) t)) z
+       in F.foldl f z t == SG.appEndo (SG.getDual (F.foldMap (SG.Dual . SG.Endo . flip f) t)) z
   , (,) "foldl'" (foldableFoldl' p)
   , (,) "toList" $ property $ \(Apply (t :: f Integer)) ->
-      eq1 (F.toList t) (foldr (:) [] t)
+      eq1 (F.toList t) (F.foldr (:) [] t)
+#if MIN_VERSION_base(4,8,0)
   , (,) "null" $ property $ \(Apply (t :: f Integer)) ->
-      null t == foldr (const (const False)) True t
+      null t == F.foldr (const (const False)) True t
   , (,) "length" $ property $ \(Apply (t :: f Integer)) ->
-      length t == SG.getSum (foldMap (const (SG.Sum 1)) t)
+      F.length t == SG.getSum (F.foldMap (const (SG.Sum 1)) t)
+#endif
   ]
 
-foldableFoldl' :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+foldableFoldl' :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
   monadicIO $ do
     let f :: Integer -> Bottom Integer -> Integer
@@ -817,7 +866,7 @@ foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs
         Right i -> return (Just i)
     return (r1 == r2)
 
-foldableFoldr' :: forall f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+foldableFoldr' :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
   monadicIO $ do
     let f :: Bottom Integer -> Integer -> Integer
@@ -993,7 +1042,7 @@ instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   arbitrary = fmap Apply arbitrary1
   shrink = map Apply . shrink1 . getApply
 
-functorIdentity :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorIdentity :: forall proxy f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 functorIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (fmap id a) a
 
 func1 :: Integer -> (Integer,Integer)
@@ -1002,58 +1051,58 @@ func1 i = (div (i + 5) 3, i * i - 2 * i + 1)
 func2 :: (Integer,Integer) -> (Bool,Either Ordering Integer)
 func2 (a,b) = (odd a, if even a then Left (compare a b) else Right (b + 2))
 
-functorComposition :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorComposition :: forall proxy f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 functorComposition _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap func2 (fmap func1 a)) (fmap (func2 . func1) a)
 
-functorConst :: forall f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+functorConst :: forall proxy f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 functorConst _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap (const 'X') a) ('X' <$ a)
 
-applicativeIdentity :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeIdentity :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
 
-applicativeComposition :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeComposition :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 applicativeComposition _ = property $ \(Apply (u' :: f Equation)) (Apply (v' :: f Equation)) (Apply (w :: f Integer)) ->
   let u = fmap runEquation u'
       v = fmap runEquation v'
    in eq1 (pure (.) <*> u <*> v <*> w) (u <*> (v <*> w))
 
-applicativeHomomorphism :: forall f. (Applicative f, Eq1 f, Show1 f) => Proxy f -> Property
+applicativeHomomorphism :: forall proxy f. (Applicative f, Eq1 f, Show1 f) => proxy f -> Property
 applicativeHomomorphism _ = property $ \(e :: Equation) (a :: Integer) ->
   let f = runEquation e
    in eq1 (pure f <*> pure a) (pure (f a) :: f Integer)
 
-applicativeInterchange :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeInterchange :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 applicativeInterchange _ = property $ \(Apply (u' :: f Equation)) (y :: Integer) ->
   let u = fmap runEquation u'
    in eq1 (u <*> pure y) (pure ($ y) <*> u)
 
-applicativeLiftA2_1 :: forall f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+applicativeLiftA2_1 :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 applicativeLiftA2_1 _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
   let f = fmap runEquation f'
    in eq1 (liftA2 id f x) (f <*> x)
 
-monadLeftIdentity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadLeftIdentity :: forall proxy f. (Monad f, Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadLeftIdentity _ = property $ \(k' :: LinearEquationM f) (a :: Integer) -> 
   let k = runLinearEquationM k'
    in eq1 (return a >>= k) (k a)
 
-monadRightIdentity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadRightIdentity :: forall proxy f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadRightIdentity _ = property $ \(Apply (m :: f Integer)) -> 
   eq1 (m >>= return) m
 
-monadAssociativity :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadAssociativity :: forall proxy f. (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadAssociativity _ = property $ \(Apply (m :: f Integer)) (k' :: LinearEquationM f) (h' :: LinearEquationM f) -> 
   let k = runLinearEquationM k'
       h = runLinearEquationM h'
    in eq1 (m >>= (\x -> k x >>= h)) ((m >>= k) >>= h)
 
-monadReturn :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadReturn :: forall proxy f. (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadReturn _ = property $ \(x :: Integer) ->
   eq1 (return x) (pure x :: f Integer)
 
-monadAp :: forall f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => Proxy f -> Property
+monadAp :: forall proxy f. (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
   let f = fmap runEquation f'
    in eq1 (ap f x) (f <*> x)
@@ -1075,6 +1124,7 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
           err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in isValid x' ==> counterexample err (b1 == b2)
 
+#if MIN_VERSION_base(4,7,0)
 newtype BitIndex a = BitIndex Int
 
 instance FiniteBits a => Arbitrary (BitIndex a) where
@@ -1082,4 +1132,158 @@ instance FiniteBits a => Arbitrary (BitIndex a) where
     then fmap BitIndex (choose (0,n - 1))
     else return (BitIndex 0)
   shrink (BitIndex x) = if x > 0 then map BitIndex (S.toList (S.fromList [x - 1, div x 2, 0])) else []
+#endif
+
+-- byte array with phantom variable that specifies element type
+data PrimArray a = PrimArray ByteArray#
+data MutablePrimArray s a = MutablePrimArray (MutableByteArray# s)
+
+instance (Eq a, Prim a) => Eq (PrimArray a) where
+  a1 == a2 = sizeofPrimArray a1 == sizeofPrimArray a2 && loop (sizeofPrimArray a1 - 1)
+    where 
+    loop !i | i < 0 = True
+            | otherwise = indexPrimArray a1 i == indexPrimArray a2 i && loop (i-1)
+
+#if MIN_VERSION_base(4,7,0)
+instance Prim a => IsList (PrimArray a) where
+  type Item (PrimArray a) = a
+  fromList = primArrayFromList
+  fromListN = primArrayFromListN
+  toList = primArrayToList
+#endif
+
+indexPrimArray :: forall a. Prim a => PrimArray a -> Int -> a
+indexPrimArray (PrimArray arr#) (I# i#) = indexByteArray# arr# i#
+
+sizeofPrimArray :: forall a. Prim a => PrimArray a -> Int
+sizeofPrimArray (PrimArray arr#) = I# (quotInt# (sizeofByteArray# arr#) (sizeOf# (undefined :: a)))
+
+newPrimArray :: forall m a. (PrimMonad m, Prim a) => Int -> m (MutablePrimArray (PrimState m) a)
+newPrimArray (I# n#)
+  = primitive (\s# -> 
+      case newByteArray# (n# *# sizeOf# (undefined :: a)) s# of
+        (# s'#, arr# #) -> (# s'#, MutablePrimArray arr# #)
+    )
+
+readPrimArray :: (Prim a, PrimMonad m) => MutablePrimArray (PrimState m) a -> Int -> m a
+readPrimArray (MutablePrimArray arr#) (I# i#)
+  = primitive (readByteArray# arr# i#)
+
+writePrimArray ::
+     (Prim a, PrimMonad m)
+  => MutablePrimArray (PrimState m) a
+  -> Int
+  -> a
+  -> m ()
+writePrimArray (MutablePrimArray arr#) (I# i#) x
+  = primitive_ (writeByteArray# arr# i# x)
+
+unsafeFreezePrimArray
+  :: PrimMonad m => MutablePrimArray (PrimState m) a -> m (PrimArray a)
+unsafeFreezePrimArray (MutablePrimArray arr#)
+  = primitive (\s# -> case unsafeFreezeByteArray# arr# s# of
+                        (# s'#, arr'# #) -> (# s'#, PrimArray arr'# #))
+
+
+copyPrimArrayToPtr :: forall m a. (PrimMonad m, Prim a)
+  => Ptr a       -- ^ destination pointer
+  -> PrimArray a -- ^ source array
+  -> Int         -- ^ offset into source array
+  -> Int         -- ^ number of prims to copy
+  -> m ()
+copyPrimArrayToPtr addr@(Ptr addr#) ba@(PrimArray ba#) soff@(I# soff#) n@(I# n#) =
+#if MIN_VERSION_base(4,7,0)
+  primitive (\ s# ->
+      let s'# = copyByteArrayToAddr# ba# (soff# *# siz#) addr# (n# *# siz#) s#
+      in (# s'#, () #))
+  where siz# = sizeOf# (undefined :: a)
+#else
+  generateM_ n $ \ix -> writeOffAddr (ptrToAddr addr) ix (indexPrimArray ba (ix + soff))
+#endif
+
+ptrToAddr :: Ptr a -> Addr
+ptrToAddr (Ptr x) = Addr x
+
+generateM_ :: Monad m => Int -> (Int -> m a) -> m ()
+generateM_ n f = go 0 where
+  go !ix = if ix < n
+    then f ix >> go (ix + 1)
+    else return ()
+
+copyPtrToMutablePrimArray :: forall m a. (PrimMonad m, Prim a)
+  => MutablePrimArray (PrimState m) a
+  -> Int
+  -> Ptr a
+  -> Int
+  -> m ()
+copyPtrToMutablePrimArray ba@(MutablePrimArray ba#) doff@(I# doff#) addr@(Ptr addr#) n@(I# n#) = 
+#if MIN_VERSION_base(4,7,0)
+  primitive (\ s# ->
+      let s'# = copyAddrToByteArray# addr# ba# (doff# *# siz#) (n# *# siz#) s#
+      in (# s'#, () #))
+  where siz# = sizeOf# (undefined :: a)
+#else
+  generateM_ n $ \ix -> do
+    x <- readOffAddr (ptrToAddr addr) ix
+    writePrimArray ba (doff + ix) x
+#endif
+
+copyMutablePrimArray :: forall m a.
+     (PrimMonad m, Prim a)
+  => MutablePrimArray (PrimState m) a -- ^ destination array
+  -> Int -- ^ offset into destination array
+  -> MutablePrimArray (PrimState m) a -- ^ source array
+  -> Int -- ^ offset into source array
+  -> Int -- ^ number of bytes to copy
+  -> m ()
+copyMutablePrimArray (MutablePrimArray dst#) (I# doff#) (MutablePrimArray src#) (I# soff#) (I# n#)
+  = primitive_ (copyMutableByteArray#
+      src# 
+      (soff# *# (sizeOf# (undefined :: a)))
+      dst#
+      (doff# *# (sizeOf# (undefined :: a)))
+      (n# *# (sizeOf# (undefined :: a)))
+    )
+
+copyPrimArray :: forall m a.
+     (PrimMonad m, Prim a)
+  => MutablePrimArray (PrimState m) a -- ^ destination array
+  -> Int -- ^ offset into destination array
+  -> PrimArray a -- ^ source array
+  -> Int -- ^ offset into source array
+  -> Int -- ^ number of bytes to copy
+  -> m ()
+copyPrimArray (MutablePrimArray dst#) (I# doff#) (PrimArray src#) (I# soff#) (I# n#)
+  = primitive_ (copyByteArray#
+      src# 
+      (soff# *# (sizeOf# (undefined :: a)))
+      dst#
+      (doff# *# (sizeOf# (undefined :: a)))
+      (n# *# (sizeOf# (undefined :: a)))
+    )
+
+primArrayFromList :: Prim a => [a] -> PrimArray a
+primArrayFromList xs = primArrayFromListN (L.length xs) xs
+
+primArrayFromListN :: forall a. Prim a => Int -> [a] -> PrimArray a
+primArrayFromListN len vs = runST run where
+  run :: forall s. ST s (PrimArray a)
+  run = do
+    arr <- newPrimArray len
+    let go :: [a] -> Int -> ST s ()
+        go !xs !ix = case xs of
+          [] -> return ()
+          a : as -> do
+            writePrimArray arr ix a
+            go as (ix + 1)
+    go vs 0
+    unsafeFreezePrimArray arr
+
+primArrayToList :: forall a. Prim a => PrimArray a -> [a]
+primArrayToList arr = go 0 where
+  !len = sizeofPrimArray arr
+  go :: Int -> [a]
+  go !ix = if ix < len
+    then indexPrimArray arr ix : go (ix + 1)
+    else []
 

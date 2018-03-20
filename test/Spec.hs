@@ -1,28 +1,34 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-import Test.QuickCheck
-import Data.Proxy
-import Data.Word
-import Data.Int
 import Control.Monad
-import Data.Primitive
-import Data.Foldable
-import Data.Monoid (Sum)
-import Foreign.Storable
-import Data.Functor.Classes
+import Control.Applicative
 import Data.Aeson (ToJSON,FromJSON)
+import Data.Bits
+import Data.Foldable
+import Data.Functor.Classes
+import Data.Int
+import Data.Monoid (Sum,Monoid,mappend,mconcat,mempty)
+import Data.Primitive
+import Data.Proxy
 import Data.Vector (Vector)
-import Data.Bits (FiniteBits)
+import Data.Word
+import Foreign.Storable
+import Test.QuickCheck
 
 import qualified Data.Vector as V
+import qualified Data.Foldable as F
 
 import Test.QuickCheck.Classes
 
 main :: IO ()
 main = lawsCheckMany allPropsApplied
+
+-- Only needed to make GHC 7.4 content.
+data Proxy1 (f :: * -> *) = Proxy1
 
 allPropsApplied :: [(String,[Laws])]
 allPropsApplied = 
@@ -30,13 +36,28 @@ allPropsApplied =
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
 #if MIN_VERSION_QuickCheck(2,10,0)
-  , ("Maybe",allHigherLaws (Proxy :: Proxy Maybe))
-  , ("List",allHigherLaws (Proxy :: Proxy []))
+  , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
+  , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
 #endif
+#if MIN_VERSION_base(4,7,0)
   , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
+#endif
   ]
 
-allLaws :: forall a. (FiniteBits a, Integral a, Prim a, Storable a, Ord a, Arbitrary a, Show a, Read a, ToJSON a, FromJSON a) => Proxy a -> [Laws]
+allLaws :: forall a.
+  ( Integral a
+  , Prim a
+  , Storable a
+  , Ord a
+  , Arbitrary a
+  , Show a
+  , Read a
+  , ToJSON a
+  , FromJSON a
+#if MIN_VERSION_base(4,7,0)
+  , FiniteBits a
+#endif
+  ) => Proxy a -> [Laws]
 allLaws p = 
   [ primLaws p
   , storableLaws p
@@ -46,14 +67,16 @@ allLaws p =
   , eqLaws p
   , ordLaws p
   , integralLaws p
+#if MIN_VERSION_base(4,7,0)
   , bitsLaws p
+#endif
   ]
 
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
-foldlMapM f = foldlM (\b a -> fmap (mappend b) (f a)) mempty
+foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
-allHigherLaws :: (Foldable f, Monad f, Eq1 f, Arbitrary1 f, Show1 f) => Proxy f -> [Laws]
+allHigherLaws :: (Foldable f, Monad f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
   , applicativeLaws p
@@ -72,11 +95,15 @@ newtype Rouge a = Rouge [a]
   deriving (Eq,Show,Arbitrary,Eq1,Show1)
 #endif
 
+-- Note: when using base < 4.6, the Rouge type does
+-- not really test anything. 
 instance Foldable Rouge where
-  foldMap f (Rouge xs) = foldMap f xs
-  foldl f x (Rouge xs) = foldl f x xs
-  foldl' f x (Rouge xs) = foldl f x xs
-  foldr' f x (Rouge xs) = foldr f x xs
+  foldMap f (Rouge xs) = F.foldMap f xs
+  foldl f x (Rouge xs) = F.foldl f x xs
+#if MIN_VERSION_base(4,6,0)
+  foldl' f x (Rouge xs) = F.foldl f x xs
+  foldr' f x (Rouge xs) = F.foldr f x xs
+#endif
 
 -------------------
 -- Orphan Instances
