@@ -28,6 +28,7 @@ library
     Test.QuickCheck.Classes
   build-depends:
       base >= 4.5 && < 5
+    , bifunctors 
     , QuickCheck >= 2.9
     , transformers
     , primitive >= 0.6.1
@@ -35,6 +36,7 @@ library
     , containers
     , semigroups
     , tagged
+    , semigroupoids 
   default-language: Haskell2010
 
 test-suite test
