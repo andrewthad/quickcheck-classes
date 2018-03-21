@@ -1,0 +1,6 @@
+packages: .
+with-compiler: /opt/ghc/7.4.2/bin/ghc
+
+constraints:
+    transformers ==0.4.1.0
+  , transformers-compat ==0.5.1.4

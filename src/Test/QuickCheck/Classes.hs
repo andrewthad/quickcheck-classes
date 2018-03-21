@@ -61,10 +61,12 @@ module Test.QuickCheck.Classes
   , altLaws 
   , alternativeLaws 
   , applicativeLaws
-  , bifunctorLaws 
   , foldableLaws
   , functorLaws
   , monadLaws
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+  , bifunctorLaws 
+#endif
 #endif
     -- * Types
   , Laws(..)
@@ -843,6 +845,10 @@ monadLaws p = Laws "Monad"
 --   @'second' 'id' ≡ 'id'@
 -- [/Bifunctor Composition/]
 --   @'bimap' f g ≡ 'first' f . 'second' g@ 
+--
+-- /Note/: This property test is only available when this package is built with
+-- @base-4.9+@ or @transformers-0.5+@.
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 bifunctorLaws :: (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => proxy f -> Laws
 bifunctorLaws p = Laws "Bifunctor"
   [ ("Identity", bifunctorIdentity p)
@@ -850,6 +856,7 @@ bifunctorLaws p = Laws "Bifunctor"
   , ("Second Identity", bifunctorSecondIdentity p)
   , ("Bifunctor Composition", bifunctorComposition p)
   ]
+#endif
 
 -- | Tests the following 'Foldable' properties:
 --
@@ -1002,9 +1009,6 @@ newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
 
-instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
-  Apply2 a == Apply2 b = eq2 a b
-
 instance (Applicative f, Monoid a) => Semigroup (Apply f a) where
   Apply x <> Apply y = Apply $ liftA2 mappend x y
 
@@ -1012,8 +1016,13 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
+  Apply2 a == Apply2 b = eq2 a b
+
 instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
   showsPrec p = showsPrec2 p . getApply2
+#endif
 
 instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
   arbitrary = fmap Apply2 arbitrary2
@@ -1024,6 +1033,10 @@ data LinearEquation = LinearEquation
   { _linearEquationLinear :: Integer
   , _linearEquationConstant :: Integer
   } deriving (Eq)
+
+instance Show LinearEquation where
+  showsPrec = showLinear
+  showList = showLinearList
 
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 
@@ -1050,9 +1063,9 @@ showLinearList xs = SG.appEndo $ mconcat
 instance Show1 m => Show (LinearEquationM m) where
   show (LinearEquationM a b) = (\f -> f "")
     $ showString "\\x -> if odd x then "
-    . liftShowsPrec showLinear showLinearList 0 a
+    . showsPrec1 0 a
     . showString " else "
-    . liftShowsPrec showLinear showLinearList 0 b
+    . showsPrec1 0 b
 
 instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
   arbitrary = liftA2 LinearEquationM arbitrary1 arbitrary1
@@ -1198,6 +1211,7 @@ monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) ->
   let f = fmap runEquation f'
    in eq1 (ap f x) (f <*> x)
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 bifunctorIdentity :: forall proxy f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => proxy f -> Property
 bifunctorIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (bimap id id x) x
 
@@ -1212,6 +1226,7 @@ bifunctorComposition
      (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
   => proxy f -> Property
 bifunctorComposition _ = property $ \(Apply2 (z :: f Integer Integer)) -> eq2 (bimap id id z) ((first id . second id) z)
+#endif
 
 #endif
 

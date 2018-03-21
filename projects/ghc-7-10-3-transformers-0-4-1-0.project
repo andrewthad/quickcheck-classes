@@ -1,0 +1,6 @@
+packages: quickcheck-classes.cabal
+with-compiler: ghc-7.10.3
+
+constraints:
+    transformers ==0.4.1.0
+  , transformers-compat ==0.5.1.4

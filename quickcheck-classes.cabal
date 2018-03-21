@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.4.0
+version: 0.4.1
 synopsis: QuickCheck common typeclasses
 description:
   This library provides quickcheck properties to
@@ -30,8 +30,8 @@ library
       base >= 4.5 && < 5
     , bifunctors 
     , QuickCheck >= 2.9
-    , transformers
-    , primitive >= 0.6.1
+    , transformers >= 0.4 && < 0.6
+    , primitive >= 0.6.1 && < 0.7
     , aeson
     , containers
     , semigroups
