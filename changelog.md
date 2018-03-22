@@ -4,18 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.4.2] - 2017-03-22
+## [0.4.3] - ????-??-??
+### Added
+- Property tests for `foldl1` and `foldr1`.
+
+## [0.4.2] - 2018-03-22
 ### Changed
 - Made compatible with `transformers-0.3`. Tests for higher-kinded
   typeclasses are unavailable when built with a sufficiently old
   version of both `transformers` and `base`. This is because `Eq1`
   and `Show1` are unavailable in this situation.
 
-## [0.4.1] - 2017-03-21
+## [0.4.1] - 2018-03-21
 ### Changed
 - Made compatible with `transformers-0.4`.
 
-## [0.4.0] - 2017-03-20
+## [0.4.0] - 2018-03-20
 ### Added
 - Property tests for `Bifunctor` and `Alternative`.
 ### Changed
