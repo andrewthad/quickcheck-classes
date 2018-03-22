@@ -58,12 +58,14 @@ module Test.QuickCheck.Classes
 #endif
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , altLaws 
   , alternativeLaws 
   , applicativeLaws
   , foldableLaws
   , functorLaws
   , monadLaws
+#endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   , bifunctorLaws 
 #endif
@@ -114,7 +116,9 @@ import GHC.Exts (IsList(fromList,toList,fromListN),Item,
 import Control.Exception (ErrorCall,try,evaluate)
 import Control.Monad (ap)
 import Control.Monad.Trans.Class (lift)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
+#endif
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Test.QuickCheck.Monadic (monadicIO)
 import qualified Data.Foldable as F
@@ -752,6 +756,8 @@ arrayEq ptrA ptrB len = go 0 where
     else return True
 
 #if MIN_VERSION_QuickCheck(2,10,0)
+
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 -- | Tests the following functor properties:
 --
 -- [/Identity/]
@@ -834,29 +840,6 @@ monadLaws p = Laws "Monad"
   , ("Return", monadReturn p)
   , ("Ap", monadAp p)
   ]
-
--- | Tests the following 'Bifunctor' properties:
---
--- [/Identity/]
---   @'bimap' 'id' 'id' ≡ 'id'@
--- [/First Identity/]
---   @'first' 'id' ≡ 'id'@
--- [/Second Identity/] 
---   @'second' 'id' ≡ 'id'@
--- [/Bifunctor Composition/]
---   @'bimap' f g ≡ 'first' f . 'second' g@ 
---
--- /Note/: This property test is only available when this package is built with
--- @base-4.9+@ or @transformers-0.5+@.
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-bifunctorLaws :: (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => proxy f -> Laws
-bifunctorLaws p = Laws "Bifunctor"
-  [ ("Identity", bifunctorIdentity p)
-  , ("First Identity", bifunctorFirstIdentity p)
-  , ("Second Identity", bifunctorSecondIdentity p)
-  , ("Bifunctor Composition", bifunctorComposition p)
-  ]
-#endif
 
 -- | Tests the following 'Foldable' properties:
 --
@@ -1210,8 +1193,30 @@ monadAp :: forall proxy f. (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f
 monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) -> 
   let f = fmap runEquation f'
    in eq1 (ap f x) (f <*> x)
+#endif
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+-- | Tests the following 'Bifunctor' properties:
+--
+-- [/Identity/]
+--   @'bimap' 'id' 'id' ≡ 'id'@
+-- [/First Identity/]
+--   @'first' 'id' ≡ 'id'@
+-- [/Second Identity/] 
+--   @'second' 'id' ≡ 'id'@
+-- [/Bifunctor Composition/]
+--   @'bimap' f g ≡ 'first' f . 'second' g@ 
+--
+-- /Note/: This property test is only available when this package is built with
+-- @base-4.9+@ or @transformers-0.5+@.
+bifunctorLaws :: (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => proxy f -> Laws
+bifunctorLaws p = Laws "Bifunctor"
+  [ ("Identity", bifunctorIdentity p)
+  , ("First Identity", bifunctorFirstIdentity p)
+  , ("Second Identity", bifunctorSecondIdentity p)
+  , ("Bifunctor Composition", bifunctorComposition p)
+  ]
+
 bifunctorIdentity :: forall proxy f. (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f) => proxy f -> Property
 bifunctorIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (bimap id id x) x
 

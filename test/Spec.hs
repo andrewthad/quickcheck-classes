@@ -9,7 +9,9 @@ import Control.Applicative
 import Data.Aeson (ToJSON,FromJSON)
 import Data.Bits
 import Data.Foldable
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
+#endif
 import Data.Int
 import Data.Monoid (Sum,Monoid,mappend,mconcat,mempty)
 import Data.Primitive
@@ -36,8 +38,10 @@ allPropsApplied =
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
 #if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
+#endif
 #endif
 #if MIN_VERSION_base(4,7,0)
   , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
@@ -76,6 +80,7 @@ foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 allHigherLaws :: (Foldable f, Monad f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
@@ -84,15 +89,16 @@ allHigherLaws p =
   , foldableLaws p
   ]
 #endif
+#endif
 
 -- This type fails the laws for the strict functions
 -- in Foldable. It is used just to confirm that
 -- those property tests actually work.
 newtype Rouge a = Rouge [a]
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
   deriving (Eq,Show,Arbitrary,Arbitrary1,Eq1,Show1)
 #else
-  deriving (Eq,Show,Arbitrary,Eq1,Show1)
+  deriving (Eq,Show,Arbitrary)
 #endif
 
 -- Note: when using base < 4.6, the Rouge type does

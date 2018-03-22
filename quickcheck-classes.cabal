@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.4.1
+version: 0.4.2
 synopsis: QuickCheck common typeclasses
 description:
   This library provides quickcheck properties to
@@ -7,10 +7,7 @@ description:
   supposed to. There are other libraries that do similar
   things, such as `genvalidity-hspec` and `checkers`. This
   library differs from other solutions by not introducing
-  any new typeclasses that the user needs to learn. The source
-  code for this library should be easy to understand if you
-  are already familiar with quickcheck. Open an issue
-  if you feel that this is not the case.
+  any new typeclasses that the user needs to learn.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
 license: BSD3
 license-file: LICENSE
@@ -30,7 +27,7 @@ library
       base >= 4.5 && < 5
     , bifunctors 
     , QuickCheck >= 2.9
-    , transformers >= 0.4 && < 0.6
+    , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
     , aeson
     , containers
