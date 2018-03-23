@@ -63,6 +63,7 @@ module Test.QuickCheck.Classes
   , alternativeLaws 
   , applicativeLaws
   , foldableLaws
+  , traversableLaws
   , functorLaws
   , monadLaws
 #endif
@@ -81,6 +82,7 @@ import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Bifunctor (Bifunctor(..))
 import Data.Bits
 import Data.Foldable (foldMap,Foldable)
+import Data.Traversable (Traversable,fmapDefault,foldMapDefault,sequenceA,traverse)
 import Data.Monoid (Monoid,mconcat,mempty,mappend)
 import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.Addr (Addr(..))
@@ -97,9 +99,11 @@ import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
 import Control.Monad.Primitive (PrimMonad,PrimState,primitive,primitive_)
+import qualified Control.Monad.Trans.Writer.Lazy as WL
 import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
+import qualified Data.Monoid as MND
 import qualified Data.List as L
 import qualified Data.Set as S
 
@@ -118,6 +122,8 @@ import Control.Monad (ap)
 import Control.Monad.Trans.Class (lift)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
+import Data.Functor.Identity
+import Data.Functor.Compose
 #endif
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Test.QuickCheck.Monadic (monadicIO)
@@ -961,6 +967,151 @@ foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs 
         Left (_ :: ErrorCall) -> return Nothing
         Right i -> return (Just i)
     return (r1 == r2)
+
+-- | Tests the following 'Traversable' properties:
+--
+-- [/Naturality/]
+--   @t . 'traverse' f = 'traverse' (t . f)@
+--   for every applicative transformation @t@
+-- [/Identity/]
+--   @'traverse' Identity = Identity@
+-- [/Composition/]
+--   @'traverse' (Compose . 'fmap' g . f) = Compose . 'fmap' ('traverse' g) . 'traverse' f@
+-- [/Sequence Naturality/]
+--   @t . 'sequenceA' = 'sequenceA' . 'fmap' t@
+--   for every applicative transformation @t@
+-- [/Sequence Identity/]
+--   @'sequenceA' . 'fmap' Identity = Identity@
+-- [/Sequence Composition/]
+--   @'sequenceA' . 'fmap' Compose = Compose . 'fmap' 'sequenceA' . 'sequenceA'@
+-- [/foldMap/]
+--   @'foldMap' = 'foldMapDefault'@
+-- [/fmap/]
+--   @'fmap' = 'fmapDefault'@
+--
+-- Where an /applicative transformation/ is a function
+--
+-- @t :: (Applicative f, Applicative g) => f a -> g a@
+--
+-- preserving the 'Applicative' operations, i.e.
+--
+-- * Identity: @t ('pure' x) = 'pure' x@
+-- * Distributivity: @t (x '<*>' y) = t x '<*>' t y@
+traversableLaws :: (Traversable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+traversableLaws = traversableLawsInternal
+
+traversableLawsInternal :: forall proxy f. (Traversable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+traversableLawsInternal p = Laws "Traversable"
+  [ (,) "Naturality" $ property $ \(Apply (a :: f Integer)) ->
+      propNestedEq1 (apTrans (traverse func4 a)) (traverse (apTrans . func4) a)
+  , (,) "Identity" $ property $ \(Apply (t :: f Integer)) ->
+      nestedEq1 (traverse Identity t) (Identity t)
+  , (,) "Composition" $ property $ \(Apply (t :: f Integer)) ->
+      nestedEq1 (traverse (Compose . fmap func5 . func6) t) (Compose (fmap (traverse func5) (traverse func6 t)))
+  , (,) "Sequence Naturality" $ property $ \(Apply (x :: f (Compose Triple ((,) (S.Set Integer)) Integer))) ->
+      let a = fmap toSpecialApplicative x in
+      propNestedEq1 (apTrans (sequenceA a)) (sequenceA (fmap apTrans a))
+  , (,) "Sequence Identity" $ property $ \(Apply (t :: f Integer)) ->
+      nestedEq1 (sequenceA (fmap Identity t)) (Identity t)
+  , (,) "Sequence Composition" $ property $ \(Apply (t :: f (Triple (Triple Integer)))) ->
+      nestedEq1 (sequenceA (fmap Compose t)) (Compose (fmap sequenceA (sequenceA t)))
+  , (,) "foldMap" $ property $ \(Apply (t :: f Integer)) ->
+      foldMap func3 t == foldMapDefault func3 t
+  , (,) "fmap" $ property $ \(Apply (t :: f Integer)) ->
+      eq1 (fmap func3 t) (fmapDefault func3 t)
+  ]
+
+-- the Functor constraint is needed for transformers-0.4
+nestedEq1 :: (Eq1 f, Eq1 g, Eq a, Functor f) => f (g a) -> f (g a) -> Bool
+nestedEq1 x y = eq1 (Compose x) (Compose y)
+
+propNestedEq1 :: (Eq1 f, Eq1 g, Eq a, Show1 f, Show1 g, Show a, Functor f)
+  => f (g a) -> f (g a) -> Property
+propNestedEq1 x y = Compose x === Compose y
+
+toSpecialApplicative ::
+     Compose Triple ((,) (S.Set Integer)) Integer
+  -> Compose Triple (WL.Writer (S.Set Integer)) Integer
+toSpecialApplicative (Compose (Triple a b c)) =
+  Compose (Triple (WL.writer (flipPair a)) (WL.writer (flipPair b)) (WL.writer (flipPair c)))
+
+flipPair :: (a,b) -> (b,a)
+flipPair (x,y) = (y,x)
+
+-- Reverse the list and accumulate the writers. We cannot
+-- use Sum or Product or else it wont actually be a valid
+-- applicative transformation.
+apTrans :: 
+     Compose Triple (WL.Writer (S.Set Integer)) a
+  -> Compose (WL.Writer (S.Set Integer)) Triple a
+apTrans (Compose xs) = Compose (sequenceA (reverseTriple xs))
+
+func3 :: Integer -> SG.Sum Integer
+func3 i = SG.Sum (3 * i * i - 7 * i + 4)
+
+func4 :: Integer -> Compose Triple (WL.Writer (S.Set Integer)) Integer
+func4 i = Compose $ Triple
+  (WL.writer (i * i, S.singleton (i * 7 + 5)))
+  (WL.writer (i + 2, S.singleton (i * i + 3)))
+  (WL.writer (i * 7, S.singleton 4))
+
+func5 :: Integer -> Triple Integer
+func5 i = Triple (i + 2) (i * 3) (i * i)
+
+func6 :: Integer -> Triple Integer
+func6 i = Triple (i * i * i) (4 * i - 7) (i * i * i)
+
+data Triple a = Triple a a a
+  deriving (Show,Eq)
+
+tripleLiftEq :: (a -> b -> Bool) -> Triple a -> Triple b -> Bool
+tripleLiftEq p (Triple a1 b1 c1) (Triple a2 b2 c2) =
+  p a1 a2 && p b1 b2 && p c1 c2
+
+instance Eq1 Triple where
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+  liftEq = tripleLiftEq
+#else
+  eq1 = tripleLiftEq (==)
+#endif
+
+tripleLiftShowsPrec :: (Int -> a -> ShowS) -> ([a] -> ShowS) -> Int -> Triple a -> ShowS
+tripleLiftShowsPrec elemShowsPrec elemShowList p (Triple a b c) = showParen (p > 10)
+  $ showString "Triple "
+  . elemShowsPrec 11 a
+  . showString " "
+  . elemShowsPrec 11 b
+  . showString " "
+  . elemShowsPrec 11 c
+
+instance Show1 Triple where
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+  liftShowsPrec = tripleLiftShowsPrec
+#else
+  showsPrec1 = tripleLiftShowsPrec showsPrec showList
+#endif
+
+instance Arbitrary1 Triple where
+  liftArbitrary x = Triple <$> x <*> x <*> x
+
+instance Arbitrary a => Arbitrary (Triple a) where
+  arbitrary = liftArbitrary arbitrary
+
+instance Functor Triple where
+  fmap f (Triple a b c) = Triple (f a) (f b) (f c)
+
+instance Applicative Triple where
+  pure a = Triple a a a
+  Triple f g h <*> Triple a b c = Triple (f a) (g b) (h c)
+
+instance Foldable Triple where
+  foldMap f (Triple a b c) = f a MND.<> f b MND.<> f c
+
+instance Traversable Triple where
+  traverse f (Triple a b c) = Triple <$> f a <*> f b <*> f c
+
+reverseTriple :: Triple a -> Triple a
+reverseTriple (Triple a b c) = Triple c b a
 
 data ChooseSecond = ChooseSecond
   deriving (Eq)

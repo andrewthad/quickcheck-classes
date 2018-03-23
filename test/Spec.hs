@@ -9,6 +9,7 @@ import Control.Applicative
 import Data.Aeson (ToJSON,FromJSON)
 import Data.Bits
 import Data.Foldable
+import Data.Traversable
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
 #endif
@@ -81,12 +82,13 @@ foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-allHigherLaws :: (Foldable f, Monad f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
+allHigherLaws :: (Traversable f, Monad f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
   , foldableLaws p
+  , traversableLaws p
   ]
 #endif
 #endif
