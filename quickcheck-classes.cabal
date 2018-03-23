@@ -20,6 +20,23 @@ extra-source-files: README.md
 cabal-version: >=1.10
 extra-source-files: changelog.md
 
+flag aeson
+  description:
+    You can disable the use of the `aeson` package using `-f-aeson`.
+    .
+    This may be useful for accelerating builds in sandboxes for expert users.
+  default: True
+  manual: True
+
+flag semigroupoids
+  description:
+    You can disable the use of the `semigroupoids` package using `-f-semigroupoids`.
+    .
+    This may be useful for accelerating builds in sandboxes for expert users.
+  default: True
+  manual: True
+
+
 library
   hs-source-dirs: src
   exposed-modules:
@@ -30,11 +47,13 @@ library
     , QuickCheck >= 2.9
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
-    , aeson
     , containers
     , semigroups
     , tagged
-    , semigroupoids 
+  if flag(aeson)
+    build-depends: aeson
+  if flag(semigroupoids)
+    build-depends: semigroupoids 
   default-language: Haskell2010
 
 test-suite test
@@ -46,10 +65,11 @@ test-suite test
     , quickcheck-classes
     , QuickCheck
     , primitive
-    , aeson
     , vector
     , transformers
     , tagged
+  if flag(aeson)
+    build-depends: aeson
   default-language: Haskell2010
 
 source-repository head

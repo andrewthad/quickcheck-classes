@@ -42,9 +42,10 @@ module Test.QuickCheck.Classes
   , eqLaws
   , ordLaws
   , showReadLaws
+#if defined(VERSION_aeson)
   , jsonLaws
+#endif
   , integralLaws
-  , jsonLaws
   , monoidLaws
   , ordLaws
   , primLaws
@@ -59,7 +60,9 @@ module Test.QuickCheck.Classes
 #if MIN_VERSION_QuickCheck(2,10,0)
     -- ** Higher-Kinded Types
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(VERSION_semigroupoids)
   , altLaws 
+#endif
   , alternativeLaws 
   , applicativeLaws
   , foldableLaws
@@ -78,7 +81,6 @@ module Test.QuickCheck.Classes
 import Data.Functor ((<$))
 import Control.Applicative (liftA2,(<*>),pure,Applicative,(<$>),Alternative(..))
 import Control.Monad.ST
-import Data.Aeson (FromJSON(..),ToJSON(..))
 import Data.Bifunctor (Bifunctor(..))
 import Data.Bits
 import Data.Foldable (foldMap,Foldable)
@@ -88,7 +90,6 @@ import Data.Primitive hiding (sizeOf,newArray,copyArray)
 import Data.Primitive.Addr (Addr(..))
 import Data.Proxy
 import Data.Semigroup (Semigroup)
-import Data.Functor.Alt hiding (Apply)
 import Foreign.Marshal.Alloc
 import Foreign.Marshal.Array
 import Foreign.Storable
@@ -100,12 +101,21 @@ import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
 import Control.Monad.Primitive (PrimMonad,PrimState,primitive,primitive_)
 import qualified Control.Monad.Trans.Writer.Lazy as WL
-import qualified Data.Aeson as AE
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
 import qualified Data.Monoid as MND
 import qualified Data.List as L
 import qualified Data.Set as S
+
+#if defined(VERSION_semigroupoids)
+import Data.Functor.Alt (Alt)
+import qualified Data.Functor.Alt as Alt
+#endif
+
+#if defined(VERSION_aeson)
+import Data.Aeson (FromJSON(..),ToJSON(..))
+import qualified Data.Aeson as AE
+#endif
 
 #if MIN_VERSION_base(4,6,0)
 import Text.Read (readMaybe)
@@ -201,11 +211,26 @@ foldMapA f = getAp . foldMap (Ap . f)
 --
 -- Note that in the second propertiy, the type of decode is @ByteString -> Value@,
 -- not @ByteString -> a@
+#if defined(VERSION_aeson)
 jsonLaws :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> Laws
 jsonLaws p = Laws "ToJSON/FromJSON"
   [ ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)
   , ("Encoding Equals Value", jsonEncodingEqualsValue p)
   ]
+
+-- TODO: improve the quality of the error message if
+-- something does not pass this test.
+jsonEncodingEqualsValue :: forall a. (ToJSON a, Show a, Arbitrary a) => Proxy a -> Property
+jsonEncodingEqualsValue _ = property $ \(a :: a) ->
+  case AE.decode (AE.encode a) of
+    Nothing -> False
+    Just (v :: AE.Value) -> v == toJSON a
+
+jsonEncodingPartialIsomorphism :: forall a. (ToJSON a, FromJSON a, Show a, Eq a, Arbitrary a) => Proxy a -> Property
+jsonEncodingPartialIsomorphism _ = property $ \(a :: a) ->
+  AE.decode (AE.encode a) == Just a
+
+#endif
 
 -- | Tests the following properties:
 --
@@ -407,18 +432,6 @@ showReadPartialIsomorphism _ = property $ \(a :: a) ->
 #else
   read (show a) == a
 #endif
-
--- TODO: improve the quality of the error message if
--- something does not pass this test.
-jsonEncodingEqualsValue :: forall a. (ToJSON a, Show a, Arbitrary a) => Proxy a -> Property
-jsonEncodingEqualsValue _ = property $ \(a :: a) ->
-  case AE.decode (AE.encode a) of
-    Nothing -> False
-    Just (v :: AE.Value) -> v == toJSON a
-
-jsonEncodingPartialIsomorphism :: forall a. (ToJSON a, FromJSON a, Show a, Eq a, Arbitrary a) => Proxy a -> Property
-jsonEncodingPartialIsomorphism _ = property $ \(a :: a) ->
-  AE.decode (AE.encode a) == Just a
 
 eqTransitive :: forall a. (Show a, Eq a, Arbitrary a) => Proxy a -> Property
 eqTransitive _ = property $ \(a :: a) b c -> case a == b of
@@ -820,11 +833,20 @@ applicativeLaws p = Laws "Applicative"
 --   @(a '<!>' b) '<!>' c ≡ a '<!>' (b '<!>' c)@
 -- [/Left Distributivity/]
 --   @f '<$>' (a '<!>' b) = (f '<$>' a) '<!>' (f '<$>' b)
+#if defined(VERSION_semigroupoids)
 altLaws :: (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 altLaws p = Laws "Alt"
   [ ("Associativity", altAssociative p)
   , ("Left Distributivity", altLeftDistributive p)
   ]
+
+altAssociative :: forall proxy f. (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+altAssociative _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 ((a Alt.<!> b) Alt.<!> c) (a Alt.<!> (b Alt.<!> c))
+
+altLeftDistributive :: forall proxy f. (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+altLeftDistributive _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) -> eq1 (id <$> (a Alt.<!> b)) ((id <$> a) Alt.<!> (id <$> b))
+#endif
+
 
 -- | Tests the following monadic properties:
 --
@@ -1308,12 +1330,6 @@ functorComposition _ = property $ \(Apply (a :: f Integer)) ->
 functorConst :: forall proxy f. (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 functorConst _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap (const 'X') a) ('X' <$ a)
-
-altAssociative :: forall proxy f. (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-altAssociative _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 ((a <!> b) <!> c) (a <!> (b <!> c))
-
-altLeftDistributive :: forall proxy f. (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-altLeftDistributive _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) -> eq1 (id <$> (a <!> b)) ((id <$> a) <!> (id <$> b))
 
 alternativeIdentity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 alternativeIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> a) a) && (eq1 a (empty <|> a))

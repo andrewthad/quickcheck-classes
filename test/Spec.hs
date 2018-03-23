@@ -6,7 +6,9 @@
 
 import Control.Monad
 import Control.Applicative
+#if defined(VERSION_aeson)
 import Data.Aeson (ToJSON,FromJSON)
+#endif
 import Data.Bits
 import Data.Foldable
 import Data.Traversable
@@ -57,8 +59,10 @@ allLaws :: forall a.
   , Arbitrary a
   , Show a
   , Read a
+#if defined(VERSION_aeson)
   , ToJSON a
   , FromJSON a
+#endif
 #if MIN_VERSION_base(4,7,0)
   , FiniteBits a
 #endif
@@ -68,7 +72,9 @@ allLaws p =
   , storableLaws p
   , monoidLaws (Proxy :: Proxy (Sum a))
   , showReadLaws p
+#if defined(VERSION_aeson)
   , jsonLaws p
+#endif
   , eqLaws p
   , ordLaws p
   , integralLaws p
