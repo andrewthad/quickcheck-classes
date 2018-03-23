@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.4.4] - 2018-03-23
+### Added
+- Cabal flags for controlling whether or not `aeson` and `semigroupoids`
+  are used. These are mostly provided to accelerate builds `primitive`'s 
+  test suite.
+
 ## [0.4.3] - 2018-03-23
 ### Added
 - Property tests for `foldl1` and `foldr1`.
