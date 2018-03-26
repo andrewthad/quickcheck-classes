@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.4.3
+version: 0.4.5
 synopsis: QuickCheck common typeclasses
 description:
   This library provides quickcheck properties to
@@ -41,6 +41,7 @@ library
   hs-source-dirs: src
   exposed-modules:
     Test.QuickCheck.Classes
+    Test.QuickCheck.Classes.IsList
   build-depends:
       base >= 4.5 && < 5
     , bifunctors 
