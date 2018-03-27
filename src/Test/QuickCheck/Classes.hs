@@ -902,7 +902,7 @@ monadLaws p = Laws "Monad"
 -- In the laws above, the infix function @***@ refers to a typeclass
 -- method of 'Arrow'.
 monadZipLaws :: (MonadZip f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
-monadZipLaws p = Laws "Monad"
+monadZipLaws p = Laws "MonadZip"
   [ ("Naturality", monadZipNaturality p)
   ]
 
