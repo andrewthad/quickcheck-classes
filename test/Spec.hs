@@ -5,6 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Control.Monad
+import Control.Monad.Zip (MonadZip)
 import Control.Applicative
 #if defined(VERSION_aeson)
 import Data.Aeson (ToJSON,FromJSON)
@@ -88,11 +89,12 @@ foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-allHigherLaws :: (Traversable f, Monad f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
+allHigherLaws :: (Traversable f, MonadZip f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
+  , monadZipLaws p
   , foldableLaws p
   , traversableLaws p
   ]

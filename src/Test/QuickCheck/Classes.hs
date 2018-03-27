@@ -69,6 +69,7 @@ module Test.QuickCheck.Classes
   , traversableLaws
   , functorLaws
   , monadLaws
+  , monadZipLaws
 #endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   , bifunctorLaws 
@@ -100,6 +101,8 @@ import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
 import Control.Monad.Primitive (PrimMonad,PrimState,primitive,primitive_)
+import Control.Monad.Zip (MonadZip(mzip))
+import Control.Arrow ((***))
 import qualified Control.Monad.Trans.Writer.Lazy as WL
 import qualified Data.Primitive as P
 import qualified Data.Semigroup as SG
@@ -128,7 +131,7 @@ import GHC.Exts (IsList(fromList,toList,fromListN),Item,
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Exception (ErrorCall,try,evaluate)
-import Control.Monad (ap)
+import Control.Monad (ap,liftM)
 import Control.Monad.Trans.Class (lift)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
@@ -869,6 +872,18 @@ monadLaws p = Laws "Monad"
   , ("Ap", monadAp p)
   ]
 
+-- | Tests the following monadic zipping properties:
+--
+-- [/Naturality/]
+--   @liftM (f *** g) (mzip ma mb) = mzip (liftM f ma) (liftM g mb)@
+--
+-- In the laws above, the infix function @***@ refers to a typeclass
+-- method of 'Arrow'.
+monadZipLaws :: (MonadZip f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+monadZipLaws p = Laws "Monad"
+  [ ("Naturality", monadZipNaturality p)
+  ]
+
 -- | Tests the following 'Foldable' properties:
 --
 -- [/fold/]
@@ -1220,13 +1235,13 @@ instance Show LinearEquation where
 
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 
-runLinearEquation :: Integer -> LinearEquation -> Integer
-runLinearEquation x (LinearEquation a b) = a * x + b
+runLinearEquation :: LinearEquation -> Integer -> Integer
+runLinearEquation (LinearEquation a b) x = a * x + b
 
 runLinearEquationM :: Functor m => LinearEquationM m -> Integer -> m Integer
 runLinearEquationM (LinearEquationM e1 e2) i = if odd i
-  then fmap (runLinearEquation i) e1
-  else fmap (runLinearEquation i) e2
+  then fmap (flip runLinearEquation i) e1
+  else fmap (flip runLinearEquation i) e2
 
 instance Eq1 m => Eq (LinearEquationM m) where
   LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
@@ -1365,6 +1380,12 @@ monadLeftIdentity :: forall proxy f. (Monad f, Functor f, Eq1 f, Show1 f, Arbitr
 monadLeftIdentity _ = property $ \(k' :: LinearEquationM f) (a :: Integer) -> 
   let k = runLinearEquationM k'
    in eq1 (return a >>= k) (k a)
+
+monadZipNaturality :: forall proxy f. (MonadZip f, Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadZipNaturality _ = property $ \(f' :: LinearEquation) (g' :: LinearEquation) (Apply (ma :: f Integer)) (Apply (mb :: f Integer)) -> 
+  let f = runLinearEquation f'
+      g = runLinearEquation g'
+   in eq1 (liftM (f *** g) (mzip ma mb)) (mzip (liftM f ma) (liftM g mb))
 
 monadRightIdentity :: forall proxy f. (Monad f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 monadRightIdentity _ = property $ \(Apply (m :: f Integer)) -> 
