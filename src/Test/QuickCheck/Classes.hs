@@ -69,6 +69,7 @@ module Test.QuickCheck.Classes
   , traversableLaws
   , functorLaws
   , monadLaws
+  , monadPlusLaws 
   , monadZipLaws
 #endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
@@ -131,7 +132,7 @@ import GHC.Exts (IsList(fromList,toList,fromListN),Item,
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Exception (ErrorCall,try,evaluate)
-import Control.Monad (ap,liftM)
+import Control.Monad (ap,liftM,MonadPlus(mzero,mplus))
 import Control.Monad.Trans.Class (lift)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
@@ -808,6 +809,27 @@ alternativeLaws p = Laws "Alternative"
   , ("Associativity", alternativeAssociativity p)
   ]
 
+-- | Tests the following monad plus properties:
+--
+-- [/Left Identity/]
+--   @'mplus' 'empty' x ≡ x@
+-- [/Right Identity/]
+--   @'mplus' x 'empty' ≡ x@
+-- [/Associativity/]
+--   @'mplus' a ('mplus' b c) ≡ 'mplus' ('mplus' a b) c)@ 
+-- [/Left Zero/]
+--   @'mzero' '>>=' f ≡ 'mzero'@
+-- [/Right Zero/]
+--   @m >> 'mzero' ≡ 'mzero'@
+monadPlusLaws :: (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+monadPlusLaws p = Laws "MonadPlus"
+  [ ("Left Identity", monadPlusLeftIdentity p)
+  , ("Right Identity", monadPlusRightIdentity p)
+  , ("Associativity", monadPlusAssociativity p)
+  , ("Left Zero", monadPlusLeftZero p)
+  , ("Right Zero", monadPlusRightZero p)
+  ]
+
 -- | Tests the following applicative properties:
 --
 -- [/Identity/]
@@ -1351,6 +1373,21 @@ alternativeIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> 
 
 alternativeAssociativity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 alternativeAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (a <|> (b <|> c)) ((a <|> b) <|> c)
+
+monadPlusLeftIdentity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusLeftIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus mzero a) a
+
+monadPlusRightIdentity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusRightIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus a mzero) a
+
+monadPlusAssociativity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (mplus a (mplus b c)) (mplus (mplus a b) c)
+
+monadPlusLeftZero :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusLeftZero _ = property $ \(k' :: LinearEquationM f) -> eq1 (mzero >>= runLinearEquationM k') mzero
+
+monadPlusRightZero :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusRightZero _ = property $ \(Apply (a :: f Integer)) -> eq1 (a >> (mzero :: f Integer)) mzero
 
 applicativeIdentity :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a

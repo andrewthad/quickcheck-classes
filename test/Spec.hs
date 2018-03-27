@@ -89,11 +89,12 @@ foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-allHigherLaws :: (Traversable f, MonadZip f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
+allHigherLaws :: (Traversable f, MonadZip f, MonadPlus f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
 allHigherLaws p = 
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
+  , monadPlusLaws p
   , monadZipLaws p
   , foldableLaws p
   , traversableLaws p

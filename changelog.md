@@ -9,6 +9,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - Property test the naturality law for `MonadZip`. There is another law
   that instances should satisfy (the Information Preservation law), but
   it's more difficult to write a test for. It has been omitted for now.
+- Property tests for all `MonadPlus` laws.
 
 ## [0.4.5] - 2018-03-26
 ### Added
