@@ -9,30 +9,42 @@ module Test.QuickCheck.Classes.Common
   
   -- only used for higher-kinded types
   , Apply(..)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   , Apply2(..)
+#endif
   , Triple(..)
   , ChooseFirst(..)
   , ChooseSecond(..)
   , LastNothing(..)
   , Bottom(..)
   , LinearEquation(..)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , LinearEquationM(..)
+#endif
   , Equation(..)
   , EquationTwo(..)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , nestedEq1
   , propNestedEq1
   , toSpecialApplicative
+#endif
   , flipPair
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , apTrans
+#endif
   , func1
   , func2
   , func3
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , func4
+#endif
   , func5
   , func6
   , reverseTriple
   , runLinearEquation
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
   , runLinearEquationM
+#endif
   , runEquation
   , runEquationTwo
   ) where
@@ -79,6 +91,7 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
           err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in isValid x' ==> counterexample err (b1 == b2)
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 -- the Functor constraint is needed for transformers-0.4
 nestedEq1 :: (Eq1 f, Eq1 g, Eq a, Functor f) => f (g a) -> f (g a) -> Bool
 nestedEq1 x y = eq1 (Compose x) (Compose y)
@@ -92,10 +105,12 @@ toSpecialApplicative ::
   -> Compose Triple (WL.Writer (S.Set Integer)) Integer
 toSpecialApplicative (Compose (Triple a b c)) =
   Compose (Triple (WL.writer (flipPair a)) (WL.writer (flipPair b)) (WL.writer (flipPair c)))
+#endif
 
 flipPair :: (a,b) -> (b,a)
 flipPair (x,y) = (y,x)
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 -- Reverse the list and accumulate the writers. We cannot
 -- use Sum or Product or else it wont actually be a valid
 -- applicative transformation.
@@ -103,6 +118,7 @@ apTrans ::
      Compose Triple (WL.Writer (S.Set Integer)) a
   -> Compose (WL.Writer (S.Set Integer)) Triple a
 apTrans (Compose xs) = Compose (sequenceA (reverseTriple xs))
+#endif
 
 func1 :: Integer -> (Integer,Integer)
 func1 i = (div (i + 5) 3, i * i - 2 * i + 1)
@@ -113,11 +129,13 @@ func2 (a,b) = (odd a, if even a then Left (compare a b) else Right (b + 2))
 func3 :: Integer -> SG.Sum Integer
 func3 i = SG.Sum (3 * i * i - 7 * i + 4)
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 func4 :: Integer -> Compose Triple (WL.Writer (S.Set Integer)) Integer
 func4 i = Compose $ Triple
   (WL.writer (i * i, S.singleton (i * 7 + 5)))
   (WL.writer (i + 2, S.singleton (i * i + 3)))
   (WL.writer (i * 7, S.singleton 4))
+#endif
 
 func5 :: Integer -> Triple Integer
 func5 i = Triple (i + 2) (i * 3) (i * i)
@@ -132,11 +150,13 @@ tripleLiftEq :: (a -> b -> Bool) -> Triple a -> Triple b -> Bool
 tripleLiftEq p (Triple a1 b1 c1) (Triple a2 b2 c2) =
   p a1 a2 && p b1 b2 && p c1 c2
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 instance Eq1 Triple where
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   liftEq = tripleLiftEq
 #else
   eq1 = tripleLiftEq (==)
+#endif
 #endif
 
 tripleLiftShowsPrec :: (Int -> a -> ShowS) -> ([a] -> ShowS) -> Int -> Triple a -> ShowS
@@ -148,11 +168,13 @@ tripleLiftShowsPrec elemShowsPrec _ p (Triple a b c) = showParen (p > 10)
   . showString " "
   . elemShowsPrec 11 c
 
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 instance Show1 Triple where
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   liftShowsPrec = tripleLiftShowsPrec
 #else
   showsPrec1 = tripleLiftShowsPrec showsPrec showList
+#endif
 #endif
 
 instance Arbitrary1 Triple where
@@ -226,11 +248,6 @@ maybeToBottom (Just a) = BottomValue a
 
 newtype Apply f a = Apply { getApply :: f a }
 
-newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
-
-instance (Eq1 f, Eq a) => Eq (Apply f a) where
-  Apply a == Apply b = eq1 a b
-
 instance (Applicative f, Monoid a) => Semigroup (Apply f a) where
   Apply x <> Apply y = Apply $ liftA2 mappend x y
 
@@ -238,20 +255,38 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
 
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
+instance (Eq1 f, Eq a) => Eq (Apply f a) where
+  Apply a == Apply b = eq1 a b
+
+-- This show instance is intentionally a little bit wrong.
+-- We don't wrap the result in Apply since the end user
+-- should not be made aware of the Apply wrapper anyway.
+instance (Show1 f, Show a) => Show (Apply f a) where
+  showsPrec p = showsPrec1 p . getApply
+
+instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
+  arbitrary = fmap Apply arbitrary1
+  shrink = map Apply . shrink1 . getApply
+#endif
+
 foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> t a -> f m
 foldMapA f = getApply . foldMap (Apply . f)
 
+
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
+
 instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
   Apply2 a == Apply2 b = eq2 a b
 
 instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
   showsPrec p = showsPrec2 p . getApply2
-#endif
 
 instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
   arbitrary = fmap Apply2 arbitrary2
   shrink = fmap Apply2 . shrink2 . getApply2
+#endif
 
 data LinearEquation = LinearEquation
   { _linearEquationLinear :: Integer
@@ -262,18 +297,8 @@ instance Show LinearEquation where
   showsPrec = showLinear
   showList = showLinearList
 
-data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
-
 runLinearEquation :: LinearEquation -> Integer -> Integer
 runLinearEquation (LinearEquation a b) x = a * x + b
-
-runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
-runLinearEquationM (LinearEquationM e1 e2) i = if odd i
-  then liftM (flip runLinearEquation i) e1
-  else liftM (flip runLinearEquation i) e2
-
-instance Eq1 m => Eq (LinearEquationM m) where
-  LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
 
 showLinear :: Int -> LinearEquation -> ShowS
 showLinear _ (LinearEquation a b) = shows a . showString " * x + " . shows b
@@ -283,6 +308,17 @@ showLinearList xs = SG.appEndo $ mconcat
    $ [SG.Endo (showChar '[')]
   ++ L.intersperse (SG.Endo (showChar ',')) (map (SG.Endo . showLinear 0) xs)
   ++ [SG.Endo (showChar ']')]
+
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
+data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
+
+runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
+runLinearEquationM (LinearEquationM e1 e2) i = if odd i
+  then liftM (flip runLinearEquation i) e1
+  else liftM (flip runLinearEquation i) e2
+
+instance Eq1 m => Eq (LinearEquationM m) where
+  LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
 
 instance Show1 m => Show (LinearEquationM m) where
   show (LinearEquationM a b) = (\f -> f "")
@@ -297,6 +333,7 @@ instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
     [ map (\x -> LinearEquationM x b) (shrink1 a)
     , map (\x -> LinearEquationM a x) (shrink1 b)
     ]
+#endif
 
 instance Arbitrary LinearEquation where
   arbitrary = do
@@ -348,12 +385,3 @@ instance Arbitrary EquationTwo where
 runEquationTwo :: EquationTwo -> Integer -> Integer -> Integer
 runEquationTwo (EquationTwo a b) x y = a * x + b * y
 
--- This show instance is intentionally a little bit wrong.
--- We don't wrap the result in Apply since the end user
--- should not be made aware of the Apply wrapper anyway.
-instance (Show1 f, Show a) => Show (Apply f a) where
-  showsPrec p = showsPrec1 p . getApply
-
-instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
-  arbitrary = fmap Apply arbitrary1
-  shrink = map Apply . shrink1 . getApply

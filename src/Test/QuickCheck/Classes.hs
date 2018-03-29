@@ -42,7 +42,7 @@ module Test.QuickCheck.Classes
   , semigroupLaws
   , showReadLaws
   , storableLaws
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
     -- ** Higher-Kinded Types
   , alternativeLaws
 #if defined(VERSION_semigroupoids)

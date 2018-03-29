@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.4.7
+version: 0.4.8
 synopsis: QuickCheck common typeclasses
 description:
   This library provides quickcheck properties to
@@ -13,7 +13,7 @@ license: BSD3
 license-file: LICENSE
 author: Andrew Martin
 maintainer: andrew.thaddeus@gmail.com
-copyright: 2017 Andrew Martin
+copyright: 2018 Andrew Martin
 category: Testing
 build-type: Simple
 extra-source-files: README.md
