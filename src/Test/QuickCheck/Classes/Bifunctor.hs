@@ -3,7 +3,7 @@
 
 {-# OPTIONS_GHC -Wall #-}
 
-module Test.QuickCheck.Classes.Applicative
+module Test.QuickCheck.Classes.Bifunctor
   (
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
     bifunctorLaws
