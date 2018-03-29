@@ -18,7 +18,7 @@ ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
 ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
 Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
 -}
-module Test.QuickCheck.Classes.Common.Ground
+module Test.QuickCheck.Classes
   ( -- * Running 
     lawsCheck
   , lawsCheckMany

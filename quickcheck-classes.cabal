@@ -41,13 +41,12 @@ library
   hs-source-dirs: src
   exposed-modules:
     Test.QuickCheck.Classes
-    Test.QuickCheck.Classes.IsList
     Test.QuickCheck.Classes.Alt
     Test.QuickCheck.Classes.Alternative
     Test.QuickCheck.Classes.Applicative
     Test.QuickCheck.Classes.Bifunctor
     Test.QuickCheck.Classes.Bits
-    Test.QuickCheck.Classes.Eq.hs
+    Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Foldable
     Test.QuickCheck.Classes.Functor
     Test.QuickCheck.Classes.Integral
