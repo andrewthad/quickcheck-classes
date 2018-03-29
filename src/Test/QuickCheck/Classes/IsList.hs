@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -23,7 +24,8 @@ type to have an 'IsList' instance.
 module Test.QuickCheck.Classes.IsList
   ( 
 #if MIN_VERSION_base(4,7,0)
-    foldrProp
+    isListLaws 
+  , foldrProp
   , foldlProp
   , foldlMProp
   , mapProp
@@ -39,12 +41,41 @@ module Test.QuickCheck.Classes.IsList
 import Control.Monad.ST (ST,runST)
 import Control.Monad (mapM)
 import Control.Applicative (liftA2)
-import GHC.Exts (IsList,Item,toList,fromList)
+import GHC.Exts (IsList,Item,toList,fromList,fromListN)
 import Data.Proxy (Proxy)
 import Data.Foldable (foldlM)
 import Test.QuickCheck (Property,Arbitrary,Function,CoArbitrary,(===),property,
   applyFun,applyFun2,NonNegative(..),Fun)
 import qualified Data.List as L
+
+import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+
+-- | Tests the following properties:
+--
+-- [/Partial Isomorphism/]
+--   @fromList . toList ≡ id@
+-- [/Length Preservation/]
+--   @fromList xs ≡ fromListN (length xs) xs@
+--
+-- /Note:/ This property test is only available when
+-- using @base-4.7@ or newer.
+isListLaws :: (IsList a, Show a, Show (Item a), Arbitrary a, Arbitrary (Item a), Eq a) => Proxy a -> Laws
+isListLaws p = Laws "IsList"
+  [ ("Partial Isomorphism", isListPartialIsomorphism p)
+  , ("Length Preservation", isListLengthPreservation p)
+  ]
+
+isListPartialIsomorphism :: forall a. (IsList a, Show a, Arbitrary a, Eq a) => Proxy a -> Property
+isListPartialIsomorphism _ = myForAllShrink False (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "fromList (toList a)"
+  (\a -> fromList (toList a))
+  "a"
+  (\a -> a)
+
+isListLengthPreservation :: forall a. (IsList a, Show (Item a), Arbitrary (Item a), Eq a) => Proxy a -> Property
+isListLengthPreservation _ = property $ \(xs :: [Item a]) ->
+  (fromList xs :: a) == fromListN (length xs) xs
 
 foldrProp :: (IsList c, Item c ~ a, Arbitrary c, Show c, Show a, CoArbitrary a, Function a)
   => Proxy a -- ^ input element type

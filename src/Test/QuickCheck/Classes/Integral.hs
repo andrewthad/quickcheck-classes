@@ -10,7 +10,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common.Ground (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 
 -- | Tests the following properties:
 --

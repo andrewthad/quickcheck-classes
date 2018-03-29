@@ -19,7 +19,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as AE
 #endif
 
-import Test.QuickCheck.Classes.Common.Ground (Laws(..))
+import Test.QuickCheck.Classes.Common (Laws(..))
 
 -- | Tests the following properties:
 --

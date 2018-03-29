@@ -15,7 +15,7 @@ import Test.QuickCheck.Property (Property)
 import Text.Read (readMaybe)
 #endif
 
-import Test.QuickCheck.Classes.Common.Ground (Laws(..))
+import Test.QuickCheck.Classes.Common (Laws(..))
 
 showReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> Laws
 showReadLaws p = Laws "Show/Read"
