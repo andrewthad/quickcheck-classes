@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.Traversable
 #endif  
   ) where
 
+import Data.Foldable (foldMap)
 import Data.Traversable (Traversable,fmapDefault,foldMapDefault,sequenceA,traverse)
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)

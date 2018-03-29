@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.Functor
 #endif  
   ) where
 
+import Data.Functor
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))

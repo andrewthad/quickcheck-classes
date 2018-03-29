@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.Monad
 #endif  
   ) where
 
+import Control.Applicative
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Monad (ap)

@@ -37,7 +37,11 @@ module Test.QuickCheck.Classes.Common
   , runEquationTwo
   ) where
 
-import Control.Applicative (liftA2)
+import Control.Applicative
+import Control.Monad
+import Data.Foldable
+import Data.Traversable
+import Data.Monoid
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
 import Data.Functor.Compose
@@ -263,10 +267,10 @@ data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 runLinearEquation :: LinearEquation -> Integer -> Integer
 runLinearEquation (LinearEquation a b) x = a * x + b
 
-runLinearEquationM :: Functor m => LinearEquationM m -> Integer -> m Integer
+runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
 runLinearEquationM (LinearEquationM e1 e2) i = if odd i
-  then fmap (flip runLinearEquation i) e1
-  else fmap (flip runLinearEquation i) e2
+  then liftM (flip runLinearEquation i) e1
+  else liftM (flip runLinearEquation i) e2
 
 instance Eq1 m => Eq (LinearEquationM m) where
   LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
@@ -289,7 +293,7 @@ instance Show1 m => Show (LinearEquationM m) where
 
 instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
   arbitrary = liftA2 LinearEquationM arbitrary1 arbitrary1
-  shrink (LinearEquationM a b) = concat
+  shrink (LinearEquationM a b) = L.concat
     [ map (\x -> LinearEquationM x b) (shrink1 a)
     , map (\x -> LinearEquationM a x) (shrink1 b)
     ]

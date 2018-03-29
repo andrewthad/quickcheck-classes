@@ -7,7 +7,7 @@ module Test.QuickCheck.Classes.Monoid
   , commutativeMonoidLaws
   ) where
 
-import Data.Monoid (Monoid)
+import Data.Monoid
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)

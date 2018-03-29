@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.Foldable
 #endif  
   ) where
 
+import Data.Monoid
 import Data.Foldable (foldMap,Foldable)
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)

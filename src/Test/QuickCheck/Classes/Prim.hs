@@ -11,6 +11,7 @@ module Test.QuickCheck.Classes.Prim
   ( primLaws
   ) where
 
+import Control.Applicative
 import Control.Monad.Primitive (PrimMonad, PrimState,primitive,primitive_)
 import Control.Monad.ST
 import Data.Proxy (Proxy)

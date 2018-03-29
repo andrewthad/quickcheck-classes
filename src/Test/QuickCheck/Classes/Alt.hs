@@ -12,6 +12,8 @@ module Test.QuickCheck.Classes.Alt
 #endif
 ) where
 
+import Data.Functor
+
 #if defined(VERSION_semigroupoids)
 import Data.Functor.Alt (Alt)
 import qualified Data.Functor.Alt as Alt

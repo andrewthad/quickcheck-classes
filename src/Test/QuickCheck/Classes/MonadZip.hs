@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.MonadZip
 #endif  
   ) where
 
+import Control.Applicative
 import Control.Arrow ((***))
 import Control.Monad.Zip (MonadZip(mzip))
 import Test.QuickCheck hiding ((.&.))

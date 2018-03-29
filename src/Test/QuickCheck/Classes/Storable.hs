@@ -11,6 +11,7 @@ module Test.QuickCheck.Classes.Storable
   ( storableLaws
   ) where
 
+import Control.Applicative
 import Data.Proxy (Proxy)
 import Foreign.Marshal.Alloc
 import Foreign.Marshal.Array

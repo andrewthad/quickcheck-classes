@@ -44,6 +44,7 @@ module Test.QuickCheck.Classes.IsList
   ) where
 
 #if MIN_VERSION_base(4,7,0)
+import Control.Applicative
 import Control.Monad.ST (ST,runST)
 import Control.Monad (mapM,filterM,replicateM)
 import Control.Applicative (liftA2)
@@ -51,6 +52,7 @@ import GHC.Exts (IsList,Item,toList,fromList,fromListN)
 import Data.Maybe (mapMaybe,catMaybes)
 import Data.Proxy (Proxy)
 import Data.Foldable (foldlM)
+import Data.Traversable (traverse)
 import Test.QuickCheck (Property,Arbitrary,Function,CoArbitrary,(===),property,
   applyFun,applyFun2,NonNegative(..),Fun)
 import qualified Data.List as L
