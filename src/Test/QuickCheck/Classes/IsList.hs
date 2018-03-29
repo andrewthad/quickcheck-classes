@@ -32,6 +32,8 @@ module Test.QuickCheck.Classes.IsList
   , traverseProp
   , generateProp
   , generateMProp
+  , replicateProp
+  , replicateMProp
   , filterProp
   , filterMProp
   , mapMaybeProp
@@ -41,7 +43,7 @@ module Test.QuickCheck.Classes.IsList
 
 #if MIN_VERSION_base(4,7,0)
 import Control.Monad.ST (ST,runST)
-import Control.Monad (mapM,filterM)
+import Control.Monad (mapM,filterM,replicateM)
 import Control.Applicative (liftA2)
 import GHC.Exts (IsList,Item,toList,fromList)
 import Data.Maybe (mapMaybe,catMaybes)
@@ -121,6 +123,20 @@ generateMProp :: (Item c ~ a, Eq c, Show c, IsList c, Arbitrary a, Show a)
   -> Property
 generateMProp _ f = property $ \(NonNegative len) func ->
   fromList (runST (stGenerateList len (stApplyFun func))) === runST (f len (stApplyFun func))
+
+replicateProp :: (Item c ~ a, Eq c, Show c, IsList c, Arbitrary a, Show a)
+  => Proxy a -- ^ input element type
+  -> (Int -> a -> c) -- replicate function
+  -> Property
+replicateProp _ f = property $ \(NonNegative len) a ->
+  fromList (replicate len a) === f len a
+
+replicateMProp :: (Item c ~ a, Eq c, Show c, IsList c, Arbitrary a, Show a)
+  => Proxy a -- ^ input element type
+  -> (forall s. Int -> ST s a -> ST s c) -- replicate function
+  -> Property
+replicateMProp _ f = property $ \(NonNegative len) a ->
+  fromList (runST (replicateM len (return a))) === runST (f len (return a))
 
 -- | Property for the @filter@ function, which keeps elements for which
 -- the predicate holds true.
