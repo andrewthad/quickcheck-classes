@@ -32,14 +32,19 @@ module Test.QuickCheck.Classes.IsList
   , traverseProp
   , generateProp
   , generateMProp
+  , filterProp
+  , filterMProp
+  , mapMaybeProp
+  , mapMaybeMProp
 #endif
   ) where
 
 #if MIN_VERSION_base(4,7,0)
 import Control.Monad.ST (ST,runST)
-import Control.Monad (mapM)
+import Control.Monad (mapM,filterM)
 import Control.Applicative (liftA2)
 import GHC.Exts (IsList,Item,toList,fromList)
+import Data.Maybe (mapMaybe,catMaybes)
 import Data.Proxy (Proxy)
 import Data.Foldable (foldlM)
 import Test.QuickCheck (Property,Arbitrary,Function,CoArbitrary,(===),property,
@@ -117,6 +122,42 @@ generateMProp :: (Item c ~ a, Eq c, Show c, IsList c, Arbitrary a, Show a)
 generateMProp _ f = property $ \(NonNegative len) func ->
   fromList (runST (stGenerateList len (stApplyFun func))) === runST (f len (stApplyFun func))
 
+-- | Property for the @filter@ function, which keeps elements for which
+-- the predicate holds true.
+filterProp :: (IsList c, Item c ~ a, Arbitrary c, Show c, Show a, Eq c, CoArbitrary a, Function a)
+  => Proxy a -- ^ element type
+  -> ((a -> Bool) -> c -> c) -- ^ map function
+  -> Property
+filterProp _ f = property $ \c func ->
+  fromList (filter (applyFun func) (toList c)) === f (applyFun func) c
+
+-- | Property for the @filterM@ function, which keeps elements for which
+-- the predicate holds true in an applicative context.
+filterMProp :: (IsList c, Item c ~ a, Arbitrary c, Show c, Show a, Eq c, CoArbitrary a, Function a)
+  => Proxy a -- ^ element type
+  -> (forall s. (a -> ST s Bool) -> c -> ST s c) -- ^ traverse function
+  -> Property
+filterMProp _ f = property $ \c func ->
+  fromList (runST (filterM (return . applyFun func) (toList c))) === runST (f (return . applyFun func) c)
+
+-- | Property for the @mapMaybe@ function, which keeps elements for which
+-- the predicate holds true.
+mapMaybeProp :: (IsList c, Item c ~ a, Item d ~ b, Eq d, IsList d, Arbitrary b, Show d, Show b, Arbitrary c, Show c, Show a, Eq c, CoArbitrary a, Function a)
+  => Proxy a -- ^ input element type
+  -> Proxy b -- ^ output element type
+  -> ((a -> Maybe b) -> c -> d) -- ^ map function
+  -> Property
+mapMaybeProp _ _ f = property $ \c func ->
+  fromList (mapMaybe (applyFun func) (toList c)) === f (applyFun func) c
+
+mapMaybeMProp :: (IsList c, IsList d, Eq d, Show d, Show b, Item c ~ a, Item d ~ b, Arbitrary c, Arbitrary b, Show c, Show a, CoArbitrary a, Function a)
+  => Proxy a -- ^ input element type
+  -> Proxy b -- ^ output element type
+  -> (forall s. (a -> ST s (Maybe b)) -> c -> ST s d) -- ^ traverse function
+  -> Property
+mapMaybeMProp _ _ f = property $ \c func ->
+  fromList (runST (mapMaybeMList (return . applyFun func) (toList c))) === runST (f (return . applyFun func) c)
+
 imapList :: (Int -> a -> b) -> [a] -> [b]
 imapList f xs = map (uncurry f) (zip (enumFrom 0) xs)
 
@@ -124,6 +165,9 @@ imapMList :: (Int -> a -> ST s b) -> [a] -> ST s [b]
 imapMList f = go 0 where
   go !_ [] = return []
   go !ix (x : xs) = liftA2 (:) (f ix x) (go (ix + 1) xs)
+
+mapMaybeMList :: Applicative f => (a -> f (Maybe b)) -> [a] -> f [b]
+mapMaybeMList f = fmap catMaybes . traverse f
 
 generateList :: Int -> (Int -> a) -> [a]
 generateList len f = go 0 where
