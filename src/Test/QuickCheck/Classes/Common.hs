@@ -4,7 +4,8 @@
 
 module Test.QuickCheck.Classes.Common
   ( Laws(..)
-  , myForAllShrink
+  , foldMapA 
+  , myForAllShrink 
   
   -- only used for higher-kinded types
   , Apply(..)
@@ -232,6 +233,9 @@ instance (Applicative f, Monoid a) => Semigroup (Apply f a) where
 instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
+
+foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> t a -> f m
+foldMapA f = getApply . foldMap (Apply . f)
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
