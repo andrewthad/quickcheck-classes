@@ -4,12 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.4.6] - 2018-??-??
+## [0.4.6] - 2018-03-29
 ### Added
 - Property test the naturality law for `MonadZip`. There is another law
   that instances should satisfy (the Information Preservation law), but
   it's more difficult to write a test for. It has been omitted for now.
 - Property tests for all `MonadPlus` laws.
+- Several additional property tests for list-like containers: mapMaybe,
+  replicate, filter.
 
 ## [0.4.5] - 2018-03-26
 ### Added
