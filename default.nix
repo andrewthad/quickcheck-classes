@@ -1,4 +1,4 @@
-{ package ? "quickcheck-classes", compiler ? "ghc841" }:
+{ package ? "quickcheck-classes", compiler ? "ghc742" }:
 let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
     nixpkgs = fetchNixpkgs {
       rev = "c484079ac7b4cf003f6b09e64cde59cb9a98b923";

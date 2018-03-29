@@ -189,6 +189,16 @@ unsafeFreezePrimArray (MutablePrimArray arr#)
   = primitive (\s# -> case unsafeFreezeByteArray# arr# s# of
                         (# s'#, arr'# #) -> (# s'#, PrimArray arr'# #))
 
+#if !MIN_VERSION_base(4,7,0)
+ptrToAddr :: Ptr a -> Addr
+ptrToAddr (Ptr x) = Addr x
+
+generateM_ :: Monad m => Int -> (Int -> m a) -> m ()
+generateM_ n f = go 0 where
+  go !ix = if ix < n
+    then f ix >> go (ix + 1)
+    else return ()
+#endif
 
 copyPrimArrayToPtr :: forall m a. (PrimMonad m, Prim a)
   => Ptr a       -- ^ destination pointer
@@ -196,18 +206,16 @@ copyPrimArrayToPtr :: forall m a. (PrimMonad m, Prim a)
   -> Int         -- ^ offset into source array
   -> Int         -- ^ number of prims to copy
   -> m ()
-copyPrimArrayToPtr (Ptr addr#) (PrimArray ba#) (I# soff#) (I# n#) =
 #if MIN_VERSION_base(4,7,0)
+copyPrimArrayToPtr (Ptr addr#) (PrimArray ba#) (I# soff#) (I# n#) =
   primitive (\ s# ->
       let s'# = copyByteArrayToAddr# ba# (soff# *# siz#) addr# (n# *# siz#) s#
       in (# s'#, () #))
   where siz# = sizeOf# (undefined :: a)
 #else
+copyPrimArrayToPtr addr ba soff n =
   generateM_ n $ \ix -> writeOffAddr (ptrToAddr addr) ix (indexPrimArray ba (ix + soff))
 #endif
-
---ptrToAddr :: Ptr a -> Addr
---ptrToAddr (Ptr x) = Addr x
 
 copyPtrToMutablePrimArray :: forall m a. (PrimMonad m, Prim a)
   => MutablePrimArray (PrimState m) a
@@ -215,13 +223,14 @@ copyPtrToMutablePrimArray :: forall m a. (PrimMonad m, Prim a)
   -> Ptr a
   -> Int
   -> m ()
-copyPtrToMutablePrimArray (MutablePrimArray ba#) (I# doff#) (Ptr addr#) (I# n#) =
 #if MIN_VERSION_base(4,7,0)
+copyPtrToMutablePrimArray (MutablePrimArray ba#) (I# doff#) (Ptr addr#) (I# n#) =
   primitive (\ s# ->
       let s'# = copyAddrToByteArray# addr# ba# (doff# *# siz#) (n# *# siz#) s#
       in (# s'#, () #))
   where siz# = sizeOf# (undefined :: a)
 #else
+copyPtrToMutablePrimArray ba doff addr n =
   generateM_ n $ \ix -> do
     x <- readOffAddr (ptrToAddr addr) ix
     writePrimArray ba (doff + ix) x
