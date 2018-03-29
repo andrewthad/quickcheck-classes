@@ -1,4 +1,4 @@
-{ package ? "quickcheck-classes", compiler ? "ghc822" }:
+{ package ? "quickcheck-classes", compiler ? "ghc742" }:
 
 (import ./default.nix {
   inherit package compiler;

@@ -41,7 +41,29 @@ library
   hs-source-dirs: src
   exposed-modules:
     Test.QuickCheck.Classes
+    Test.QuickCheck.Classes.Alt
+    Test.QuickCheck.Classes.Alternative
+    Test.QuickCheck.Classes.Applicative
+    Test.QuickCheck.Classes.Bifunctor
+    Test.QuickCheck.Classes.Bits
+    Test.QuickCheck.Classes.Eq
+    Test.QuickCheck.Classes.Foldable
+    Test.QuickCheck.Classes.Functor
+    Test.QuickCheck.Classes.Integral
     Test.QuickCheck.Classes.IsList
+    Test.QuickCheck.Classes.Json
+    Test.QuickCheck.Classes.Monad
+    Test.QuickCheck.Classes.MonadPlus
+    Test.QuickCheck.Classes.MonadZip
+    Test.QuickCheck.Classes.Monoid
+    Test.QuickCheck.Classes.Ord
+    Test.QuickCheck.Classes.Prim
+    Test.QuickCheck.Classes.Semigroup
+    Test.QuickCheck.Classes.ShowRead
+    Test.QuickCheck.Classes.Storable
+    Test.QuickCheck.Classes.Traversable
+  other-modules:
+    Test.QuickCheck.Classes.Common
   build-depends:
       base >= 4.5 && < 5
     , bifunctors 

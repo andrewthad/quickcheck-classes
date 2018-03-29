@@ -1,19 +1,17 @@
-{ package ? "quickcheck-classes", compiler ? "ghc822" }:
-let
-  fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
-  nixpkgs = fetchNixpkgs {
-    rev = "01705125314fa0c7753f27c3dd7c4bfbda55c375"; 
-    sha256 = "1a96vb4hlhnadm445lifq02wg2vz0a2hyxrcl6d0jy2cn7427aq6"; 
-  };
-  pkgs = import nixpkgs { config = {}; overlays = []; };
-  inherit (pkgs) haskell;
+{ package ? "quickcheck-classes", compiler ? "ghc742" }:
+let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
+    nixpkgs = fetchNixpkgs {
+      rev = "c484079ac7b4cf003f6b09e64cde59cb9a98b923";
+      sha256 = "0sh4f8w30sya7vydwm86dni1ylz59hiq627df1dv1zg7riq036cw";
+      sha256unpacked = "0fc6y2yjlfbss7cq7lgah0xvlnyas5v3is9r5bxyyp7rkwlyvny4";
+    };
+    pkgs = import nixpkgs { config = {}; overlays = []; };
+    inherit (pkgs) haskell;
 
-  
   filterPredicate = p: type:
     let path = baseNameOf p; in !(
-       (type == "directory" && path == "dist")
-    || (type == "symlink"   && path == "result")
-    || (type == "directory" && path == ".git")
+       (type == "directory" && path == ".git")
+    || (type == "directory" && pkgs.lib.hasPrefix "dist" path) 
     || (type == "symlink"   && pkgs.lib.hasPrefix "result" path)
     || pkgs.lib.hasSuffix "~" path
     || pkgs.lib.hasSuffix ".o" path
@@ -28,12 +26,6 @@ let
          };
 
     {
-      #mkDerivation = args: super.mkDerivation (args // {
-        #doBenchmark = pkgs.lib.elem args.pname [ "quickcheck-classes" ]; 
-        #doCheck = pkgs.lib.elem args.pname [ "quickcheck-classes" ]; 
-        #doHaddock = false;
-      #});
-      
       quickcheck-classes = overrideCabal (build "quickcheck-classes" ./.) (drv: {
         doBenchmark = true;
         doCheck = true;
