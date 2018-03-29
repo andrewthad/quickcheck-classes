@@ -23,6 +23,8 @@ module Test.QuickCheck.Classes.Common
   , toSpecialApplicative
   , flipPair
   , apTrans
+  , func1
+  , func2
   , func3
   , func4
   , func5
@@ -96,6 +98,12 @@ apTrans ::
      Compose Triple (WL.Writer (S.Set Integer)) a
   -> Compose (WL.Writer (S.Set Integer)) Triple a
 apTrans (Compose xs) = Compose (sequenceA (reverseTriple xs))
+
+func1 :: Integer -> (Integer,Integer)
+func1 i = (div (i + 5) 3, i * i - 2 * i + 1)
+
+func2 :: (Integer,Integer) -> (Bool,Either Ordering Integer)
+func2 (a,b) = (odd a, if even a then Left (compare a b) else Right (b + 2))
 
 func3 :: Integer -> SG.Sum Integer
 func3 i = SG.Sum (3 * i * i - 7 * i + 4)
