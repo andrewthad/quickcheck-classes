@@ -2,11 +2,11 @@ name: quickcheck-classes
 version: 0.4.8
 synopsis: QuickCheck common typeclasses
 description:
-  This library provides quickcheck properties to
-  ensure that typeclass instances the set of laws that they are
-  supposed to. There are other libraries that do similar
-  things, such as `genvalidity-hspec` and `checkers`. This
-  library differs from other solutions by not introducing
+  This library provides quickcheck properties to ensure
+  that typeclass instances adhere to the set of laws that
+  they are supposed to. There are other libraries that do
+  similar things, such as `genvalidity-hspec` and `checkers`.
+  This library differs from other solutions by not introducing
   any new typeclasses that the user needs to learn.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
 license: BSD3
