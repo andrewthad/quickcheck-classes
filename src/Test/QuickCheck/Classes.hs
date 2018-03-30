@@ -105,14 +105,16 @@ import Test.QuickCheck.Classes.Traversable
 #endif
 #endif
 
+--
 -- used below
+--
 import Test.QuickCheck
 import Test.QuickCheck.Classes.Common (foldMapA, Laws(..))
 import Data.Monoid (Monoid(..))
 import Data.Semigroup (Semigroup)
 import qualified Data.Semigroup as SG
 
--- | A convenience function for working testing properties in GHCi.
+-- | A convenience function for testing properties in GHCi.
 --   See the test suite of this library for an example of how to
 --   integrate multiple properties into larger test suite.
 lawsCheck :: Laws -> IO ()
