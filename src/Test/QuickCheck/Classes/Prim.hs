@@ -15,8 +15,9 @@ import Control.Applicative
 import Control.Monad.Primitive (PrimMonad, PrimState,primitive,primitive_)
 import Control.Monad.ST
 import Data.Proxy (Proxy)
-import Data.Primitive hiding (sizeOf, newArray, copyArray)
-import Data.Primitive.Addr (Addr(..))
+import Data.Primitive.ByteArray
+import Data.Primitive.Types
+import Data.Primitive.Addr
 import Foreign.Marshal.Alloc
 import GHC.Exts
   (Int(I#),(*#),newByteArray#,unsafeFreezeByteArray#,copyMutableByteArray#

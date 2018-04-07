@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.4.9] - 2018-04-06
+### Change
+- Be more careful with import of `Data.Primitive`. There is a
+  branch of `primitive` that adds `PrimArray`. The implementation
+  of `PrimArray` in this library should eventually be removed, but
+  for now it will be sufficient to ensure that it does not create
+  a conflicting import problem with the one in the branch.
+
 ## [0.4.8] - 2018-03-29
 ### Change
 - Fix compilation regression for older versions of transformers.
