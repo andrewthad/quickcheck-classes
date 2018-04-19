@@ -36,6 +36,13 @@ flag semigroupoids
   default: True
   manual: True
 
+flag semirings
+  description:
+    You can disable the use of the `semirings` package using `-f-semirings`.
+    .
+    This may be useful for accelerating builds in sandboxes for expert users.
+    default: True
+    manual: True
 
 library
   hs-source-dirs: src
@@ -61,6 +68,7 @@ library
     Test.QuickCheck.Classes.Ord
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
+    Test.QuickCheck.Classes.Semiring 
     Test.QuickCheck.Classes.ShowRead
     Test.QuickCheck.Classes.Storable
     Test.QuickCheck.Classes.Traversable
@@ -77,6 +85,8 @@ library
     build-depends: aeson
   if flag(semigroupoids)
     build-depends: semigroupoids 
+  if flag(semirings)
+    build-depends: semirings
   default-language: Haskell2010
 
 test-suite test

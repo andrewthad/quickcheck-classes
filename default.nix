@@ -26,6 +26,9 @@ let fetchNixpkgs = import ./nix/fetchNixpkgs.nix;
          };
 
     {
+      constrictor = cp "constrictor"; 
+      semirings = cp "semirings"; 
+       
       quickcheck-classes = overrideCabal (build "quickcheck-classes" ./.) (drv: {
         doBenchmark = true;
         doCheck = true;
