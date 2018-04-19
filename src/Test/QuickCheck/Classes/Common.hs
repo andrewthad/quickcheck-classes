@@ -76,7 +76,16 @@ data Laws = Laws
     -- ^ Pairs of law name and property
   }
 
-myForAllShrink :: (Arbitrary a, Show b, Eq b) => Bool -> (a -> Bool) -> (a -> [String]) -> String -> (a -> b) -> String -> (a -> b) -> Property
+myForAllShrink :: (Arbitrary a, Show b, Eq b)
+  => Bool -- Should we show the RHS. It's better not to show it
+          -- if the RHS is equal to the input.
+  -> (a -> Bool) -- is the value a valid input
+  -> (a -> [String])
+  -> String
+  -> (a -> b)
+  -> String
+  -> (a -> b)
+  -> Property
 myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
   again $
   MkProperty $

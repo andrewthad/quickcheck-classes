@@ -22,11 +22,14 @@ import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 --   @mappend mempty a ≡ a@
 -- [/Right Identity/]
 --   @mappend a mempty ≡ a@
+-- [/Concatenation/]
+--   @mconcat as ≡ foldr mappend mempty as@
 monoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 monoidLaws p = Laws "Monoid"
   [ ("Associative", monoidAssociative p)
   , ("Left Identity", monoidLeftIdentity p)
   , ("Right Identity", monoidRightIdentity p)
+  , ("Concatenation", monoidConcatenation p)
   ]
 
 -- | Tests everything from 'monoidProps' plus the following:
@@ -37,6 +40,14 @@ commutativeMonoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Law
 commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws p) ++
   [ ("Commutative", monoidCommutative p)
   ]
+
+monoidConcatenation :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+monoidConcatenation _ = myForAllShrink True (const True)
+  (\(as :: [a]) -> ["as = " ++ show as])
+  "mconcat as"
+  (\as -> mconcat as)
+  "foldr mappend mempty as"
+  (\as -> foldr mappend mempty as)
 
 monoidAssociative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidAssociative _ = myForAllShrink True (const True)

@@ -71,6 +71,7 @@ allLaws :: forall a.
 allLaws p = 
   [ primLaws p
   , storableLaws p
+  , semigroupLaws (Proxy :: Proxy (Sum a))
   , monoidLaws (Proxy :: Proxy (Sum a))
   , showReadLaws p
 #if defined(VERSION_aeson)

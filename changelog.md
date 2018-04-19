@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.4.7] - 2018-??-??
+### Added
+- Property tests for `mconcat`, `sconcat`, and `stimes`. It isn't
+  common to override the defaults for these, but when you do, it's
+  nice to check that they agree with what they are supposed to do.
+
 ## [0.4.9] - 2018-04-06
 ### Change
 - Be more careful with import of `Data.Primitive`. There is a
