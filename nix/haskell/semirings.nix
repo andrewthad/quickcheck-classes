@@ -1,20 +1,19 @@
 { mkDerivation, base, constrictor, containers, deepseq, fetchgit
-, hashable, integer-gmp, log-domain, primitive, stdenv
-, unordered-containers, vector
+, hashable, integer-gmp, stdenv, unordered-containers, vector
 }:
 mkDerivation {
   pname = "semirings";
-  version = "0.0.1.0";
+  version = "0.1.0";
   src = fetchgit {
     url = "https://github.com/chessai/semirings.git";
-    sha256 = "0kp933dkl5nbwlapq9qh0ml4z91h1m9gxvhymsk7v08cl9x8c3pd";
-    rev = "b8092bdf815a81cbfbc6e93bb34901bd8bb9f7d9";
+    sha256 = "0l4crfpbvrf3mgh25lwzm1gsvn3mqihwrdprnpfdbf5hr1q8mrfk";
+    rev = "799274b32d40ba72d9fdf5321ca3a6a655ac0f35";
   };
   libraryHaskellDepends = [
-    base constrictor containers deepseq hashable integer-gmp log-domain
-    primitive unordered-containers vector
+    base constrictor containers deepseq hashable integer-gmp
+    unordered-containers vector
   ];
-  homepage = "https://github.com/chessai/semirings#readme";
-  description = "semirings";
+  homepage = "http://github.com/chessai/semirings";
+  description = "smush those monoids";
   license = stdenv.lib.licenses.bsd3;
 }
