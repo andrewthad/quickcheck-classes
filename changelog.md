@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.4.7] - 2018-??-??
+## [0.4.10] - 2018-05-03
 ### Added
 - Property tests for `mconcat`, `sconcat`, and `stimes`. It isn't
   common to override the defaults for these, but when you do, it's
