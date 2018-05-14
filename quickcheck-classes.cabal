@@ -2,7 +2,7 @@ name: quickcheck-classes
 version: 0.4.10
 synopsis: QuickCheck common typeclasses
 description:
-  This library provides quickcheck properties to ensure
+  This library provides QuickCheck properties to ensure
   that typeclass instances adhere to the set of laws that
   they are supposed to. There are other libraries that do
   similar things, such as `genvalidity-hspec` and `checkers`.
@@ -36,12 +36,12 @@ flag semigroupoids
   default: True
   manual: True
 
-
 library
   hs-source-dirs: src
   exposed-modules:
     Test.QuickCheck.Classes
     Test.QuickCheck.Classes.IsList
+    Test.QuickCheck.Classes.Proxy 
   other-modules:
     Test.QuickCheck.Classes.Alt
     Test.QuickCheck.Classes.Alternative

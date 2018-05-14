@@ -70,25 +70,25 @@ foldableLawsInternal p = Laws "Foldable"
   , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: QuadraticEquation) ->
       let f = SG.Sum . runQuadraticEquation e
        in F.foldMap f a == F.foldr (mappend . f) mempty a
-  , (,) "foldr" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
-      let f = runEquationTwo e
+  , (,) "foldr" $ property $ \(e :: LinearEquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
+      let f = runLinearEquationTwo e
        in F.foldr f z t == SG.appEndo (foldMap (SG.Endo . f) t) z
   , (,) "foldr'" (foldableFoldr' p)
-  , (,) "foldl" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
-      let f = runEquationTwo e
+  , (,) "foldl" $ property $ \(e :: LinearEquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
+      let f = runLinearEquationTwo e
        in F.foldl f z t == SG.appEndo (SG.getDual (F.foldMap (SG.Dual . SG.Endo . flip f) t)) z
   , (,) "foldl'" (foldableFoldl' p)
-  , (,) "foldl1" $ property $ \(e :: EquationTwo) (Apply (t :: f Integer)) ->
+  , (,) "foldl1" $ property $ \(e :: LinearEquationTwo) (Apply (t :: f Integer)) ->
       case compatToList t of
         [] -> True
         x : xs ->
-          let f = runEquationTwo e
+          let f = runLinearEquationTwo e
            in F.foldl1 f t == F.foldl f x xs
-  , (,) "foldr1" $ property $ \(e :: EquationTwo) (Apply (t :: f Integer)) ->
+  , (,) "foldr1" $ property $ \(e :: LinearEquationTwo) (Apply (t :: f Integer)) ->
       case unsnoc (compatToList t) of
         Nothing -> True
         Just (xs,x) ->
-          let f = runEquationTwo e
+          let f = runLinearEquationTwo e
            in F.foldr1 f t == F.foldr f x xs
   , (,) "toList" $ property $ \(Apply (t :: f Integer)) ->
       eq1 (F.toList t) (F.foldr (:) [] t)
