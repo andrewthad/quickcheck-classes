@@ -33,9 +33,6 @@ import Test.QuickCheck.Classes
 main :: IO ()
 main = lawsCheckMany allPropsApplied
 
--- Only needed to make GHC 7.4 content.
-data Proxy1 (f :: * -> *) = Proxy1
-
 allPropsApplied :: [(String,[Laws])]
 allPropsApplied = 
   [ ("Int",allLaws (Proxy :: Proxy Int))

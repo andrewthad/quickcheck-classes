@@ -1,27 +1,16 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE KindSignatures #-}
 
 {-# OPTIONS_GHC -Wall #-}
 
-{-|
-This library provides sets of properties that should hold for common typeclasses.
-All of these take a 'Proxy' argument that is used to nail down the type for which
-the typeclass dictionaries should be tested. For example, at GHCi:
->>> lawsCheck (monoidLaws (Proxy :: Proxy Ordering))
-Monoid: Associative +++ OK, passed 100 tests.
-Monoid: Left Identity +++ OK, passed 100 tests.
-Monoid: Right Identity +++ OK, passed 100 tests.
-Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
-have confidence that the 'Monoid' instance for 'Ordering' satisfies
-the monoid laws. We can check multiple typeclasses with:
->>> foldMap (lawsCheck . ($ (Proxy :: Proxy Word))) [jsonLaws,showReadLaws]
-ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
-ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
-Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+{-| This library provides sets of properties that should hold for common
+    typeclasses.
 -}
 module Test.QuickCheck.Classes
   ( -- * Running 
     lawsCheck
   , lawsCheckMany
+  , specialisedLawsCheckMany 
     -- * Properties
     -- ** Ground types
 #if MIN_VERSION_base(4,7,0)
@@ -61,6 +50,8 @@ module Test.QuickCheck.Classes
 #endif
     -- * Types
   , Laws(..)
+  , Proxy1(..)
+  , Proxy2(..)
   ) where
 
 --
@@ -111,29 +102,103 @@ import Test.QuickCheck.Classes.Traversable
 import Test.QuickCheck
 import Test.QuickCheck.Classes.Common (foldMapA, Laws(..))
 import Data.Monoid (Monoid(..))
+import Data.Proxy (Proxy(..))
 import Data.Semigroup (Semigroup)
+import qualified Data.List as List
 import qualified Data.Semigroup as SG
 
 -- | A convenience function for testing properties in GHCi.
---   See the test suite of this library for an example of how to
---   integrate multiple properties into larger test suite.
+-- For example, at GHCi:
+--
+-- >>> lawsCheck (monoidLaws (Proxy :: Proxy Ordering))
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+--
+-- Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
+-- have confidence that the 'Monoid' instance for 'Ordering' satisfies
+-- the monoid laws.
 lawsCheck :: Laws -> IO ()
 lawsCheck (Laws className properties) = do
   flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
 
+-- | A convenience function that allows one to check many typeclass
+-- instances of the same type.
+--
+-- >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
+-- ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
+-- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
+-- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+specialisedLawsCheckMany :: Proxy a -> [Proxy a -> Laws] -> IO ()
+specialisedLawsCheckMany p ls = foldMap (lawsCheck . ($ p)) ls
+
 -- | A convenience function for checking multiple typeclass instances
---   of multiple types.
+--   of multiple types. Consider the following Haskell source file:
+--
+-- @
+-- import Data.Proxy (Proxy(..))
+-- import Data.Map (Map)
+-- import Data.Set (Set)
+--
+-- -- A 'Proxy' for 'Set' 'Int'. 
+-- setInt :: Proxy (Set Int)
+-- setInt = Proxy
+-- 
+-- -- A 'Proxy' for 'Map' 'Int' 'Int'.
+-- mapInt :: Proxy (Map Int Int)
+-- mapInt = Proxy
+-- 
+-- myLaws :: Proxy a -> [Laws]
+-- myLaws p = [eqLaws p, monoidLaws p]
+--
+-- namedTests :: [(String, [Laws])]
+-- namedTests =
+--   [ ("Set Int", myLaws setInt)
+--   , ("Map Int Int", myLaws mapInt)
+--   ]
+-- @
+--   
+-- Now, in GHCi:
+--
+-- >>> lawsCheckMany namedTests
+--
+-- @
+-- Testing properties for common typeclasses
+-- -------------
+-- -- Set Int --
+-- -------------
+-- 
+-- Eq: Transitive +++ OK, passed 100 tests.
+-- Eq: Symmetric +++ OK, passed 100 tests.
+-- Eq: Reflexive +++ OK, passed 100 tests.
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+-- Monoid: Concatenation +++ OK, passed 100 tests.
+-- 
+-- -----------------
+-- -- Map Int Int --
+-- -----------------
+-- 
+-- Eq: Transitive +++ OK, passed 100 tests.
+-- Eq: Symmetric +++ OK, passed 100 tests.
+-- Eq: Reflexive +++ OK, passed 100 tests.
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+-- Monoid: Concatenation +++ OK, passed 100 tests.
+-- @
 lawsCheckMany ::
      [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
   -> IO ()
 lawsCheckMany xs = do
   putStrLn "Testing properties for common typeclasses"
   r <- flip foldMapA xs $ \(typeName,laws) -> do
-    putStrLn $ "------------"
-    putStrLn $ "-- " ++ typeName
-    putStrLn $ "------------"
+    putStrLn $ List.replicate (length typeName + 6) '-'
+    putStrLn $ "-- " ++ typeName ++ " --"
+    putStrLn $ List.replicate (length typeName + 6) '-'
     flip foldMapA laws $ \(Laws typeClassName properties) -> do
       flip foldMapA properties $ \(name,p) -> do
         putStr (typeClassName ++ ": " ++ name ++ " ")
@@ -155,3 +220,12 @@ instance Semigroup Status where
 instance Monoid Status where
   mempty = Good
   mappend = (SG.<>)
+
+-- | In older versions of GHC, Proxy is not poly-kinded,
+--   so we provide Proxy1.
+data Proxy1 (f :: * -> *) = Proxy1
+
+-- | In older versions of GHC, Proxy is not poly-kinded,
+--   so we provide Proxy2.
+data Proxy2 (f :: * -> * -> *) = Proxy2
+

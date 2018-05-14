@@ -21,8 +21,8 @@ module Test.QuickCheck.Classes.Common
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , LinearEquationM(..)
 #endif
-  , Equation(..)
-  , EquationTwo(..)
+  , QuadraticEquation(..)
+  , LinearEquationTwo(..)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , nestedEq1
   , propNestedEq1
@@ -45,8 +45,8 @@ module Test.QuickCheck.Classes.Common
 #if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
   , runLinearEquationM
 #endif
-  , runEquation
-  , runEquationTwo
+  , runQuadraticEquation
+  , runLinearEquationTwo
   ) where
 
 import Control.Applicative
@@ -353,44 +353,49 @@ instance Arbitrary LinearEquation where
      in map (\(x,y) -> LinearEquation (abs x) (abs y)) xs
 
 -- this is a quadratic equation
-data Equation = Equation Integer Integer Integer
+data QuadraticEquation = QuadraticEquation
+  { _quadraticEquationQuadratic :: Integer
+  , _quadraticEquationLinear :: Integer
+  , _quadraticEquationConstant :: Integer
+  }
   deriving (Eq)
 
 -- This show instance is does not actually provide a
 -- way to create an equation. Instead, it makes it look
 -- like a lambda.
-instance Show Equation where
-  show (Equation a b c) = "\\x -> " ++ show a ++ " * x ^ 2 + " ++ show b ++ " * x + " ++ show c
+instance Show QuadraticEquation where
+  show (QuadraticEquation a b c) = "\\x -> " ++ show a ++ " * x ^ 2 + " ++ show b ++ " * x + " ++ show c
 
-instance Arbitrary Equation where
+instance Arbitrary QuadraticEquation where
   arbitrary = do
     (a,b,c) <- arbitrary
-    return (Equation (abs a) (abs b) (abs c))
-  shrink (Equation a b c) =
+    return (QuadraticEquation (abs a) (abs b) (abs c))
+  shrink (QuadraticEquation a b c) =
     let xs = shrink (a,b,c)
-     in map (\(x,y,z) -> Equation (abs x) (abs y) (abs z)) xs
+     in map (\(x,y,z) -> QuadraticEquation (abs x) (abs y) (abs z)) xs
 
-runEquation :: Equation -> Integer -> Integer
-runEquation (Equation a b c) x = a * x ^ (2 :: Integer) + b * x + c
+runQuadraticEquation :: QuadraticEquation -> Integer -> Integer
+runQuadraticEquation (QuadraticEquation a b c) x = a * x ^ (2 :: Integer) + b * x + c
 
--- linear equation of two variables
-data EquationTwo = EquationTwo Integer Integer
+data LinearEquationTwo = LinearEquationTwo
+  { _linearEquationTwoX :: Integer
+  , _linearEquationTwoY :: Integer
+  }
   deriving (Eq)
 
 -- This show instance does not actually provide a
--- way to create an EquationTwo. Instead, it makes it look
+-- way to create a LinearEquationTwo. Instead, it makes it look
 -- like a lambda that takes two variables.
-instance Show EquationTwo where
-  show (EquationTwo a b) = "\\x y -> " ++ show a ++ " * x + " ++ show b ++ " * y"
+instance Show LinearEquationTwo where
+  show (LinearEquationTwo a b) = "\\x y -> " ++ show a ++ " * x + " ++ show b ++ " * y"
 
-instance Arbitrary EquationTwo where
+instance Arbitrary LinearEquationTwo where
   arbitrary = do
     (a,b) <- arbitrary
-    return (EquationTwo (abs a) (abs b))
-  shrink (EquationTwo a b) =
+    return (LinearEquationTwo (abs a) (abs b))
+  shrink (LinearEquationTwo a b) =
     let xs = shrink (a,b)
-     in map (\(x,y) -> EquationTwo (abs x) (abs y)) xs
+     in map (\(x,y) -> LinearEquationTwo (abs x) (abs y)) xs
 
-runEquationTwo :: EquationTwo -> Integer -> Integer -> Integer
-runEquationTwo (EquationTwo a b) x y = a * x + b * y
-
+runLinearEquationTwo :: LinearEquationTwo -> Integer -> Integer -> Integer
+runLinearEquationTwo (LinearEquationTwo a b) x y = a * x + b * y

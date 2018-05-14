@@ -68,8 +68,8 @@ monadReturn _ = property $ \(x :: Integer) ->
   eq1 (return x) (pure x :: f Integer)
 
 monadAp :: forall proxy f. (Monad f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-monadAp _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) ->
-  let f = fmap runEquation f'
+monadAp _ = property $ \(Apply (f' :: f QuadraticEquation)) (Apply (x :: f Integer)) ->
+  let f = fmap runQuadraticEquation f'
    in eq1 (ap f x) (f <*> x)
 
 #endif
