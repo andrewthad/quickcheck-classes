@@ -67,8 +67,8 @@ foldableLawsInternal :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 
 foldableLawsInternal p = Laws "Foldable"
   [ (,) "fold" $ property $ \(Apply (a :: f (SG.Sum Integer))) ->
       F.fold a == F.foldMap id a
-  , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: Equation) ->
-      let f = SG.Sum . runEquation e
+  , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: QuadraticEquation) ->
+      let f = SG.Sum . runQuadraticEquation e
        in F.foldMap f a == F.foldr (mappend . f) mempty a
   , (,) "foldr" $ property $ \(e :: EquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runEquationTwo e
