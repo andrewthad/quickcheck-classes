@@ -1,9 +1,9 @@
 # quickcheck-classes
 
 This library provides sets of properties that should hold for common typeclasses,
-along with three simple functions that you can use to test them.
+along with three (3) simple functions that you can use to test them.
 
-## `lawsCheck`:
+### `lawsCheck`:
 
 A convenience function for testing properties in GHCi.
 For example, at GHCi:
@@ -15,11 +15,11 @@ Monoid: Left Identity +++ OK, passed 100 tests.
 Monoid: Right Identity +++ OK, passed 100 tests.
 ```
 
-Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
-have confidence that the 'Monoid' instance for 'Ordering' satisfies
+Assuming that the `Arbitrary` instance for `Ordering` is good, we now
+have confidence that the `Monoid` instance for `Ordering` satisfies
 the monoid laws.
 
-## `lawsCheckMany`:
+### `lawsCheckMany`:
 
 A convenience function for checking multiple typeclass instances
 of multiple types. Consider the following Haskell source file:
@@ -79,7 +79,7 @@ Monoid: Concatenation +++ OK, passed 100 tests.
 
 ```
 
-## `specialisedLawsCheckMany`
+### `specialisedLawsCheckMany`
 
 A convenience function that allows one to check many typeclass
 instances of the same type.
