@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE KindSignatures #-}
 
 {-# OPTIONS_GHC -Wall #-}
 
@@ -49,6 +50,8 @@ module Test.QuickCheck.Classes
 #endif
     -- * Types
   , Laws(..)
+  , Proxy1(..)
+  , Proxy2(..)
   ) where
 
 --
@@ -217,3 +220,12 @@ instance Semigroup Status where
 instance Monoid Status where
   mempty = Good
   mappend = (SG.<>)
+
+-- | In older versions of GHC, Proxy is not poly-kinded,
+--   so we provide Proxy1.
+data Proxy1 (f :: * -> *) = Proxy1
+
+-- | In older versions of GHC, Proxy is not poly-kinded,
+--   so we provide Proxy2.
+data Proxy2 (f :: * -> * -> *) = Proxy2
+

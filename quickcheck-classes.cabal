@@ -41,7 +41,6 @@ library
   exposed-modules:
     Test.QuickCheck.Classes
     Test.QuickCheck.Classes.IsList
-    Test.QuickCheck.Classes.Proxy 
   other-modules:
     Test.QuickCheck.Classes.Alt
     Test.QuickCheck.Classes.Alternative
