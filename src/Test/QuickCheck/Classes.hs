@@ -2,28 +2,8 @@
 
 {-# OPTIONS_GHC -Wall #-}
 
-{-| This library provides sets of properties that should hold for common typeclasses.
-    All of these take a 'Proxy' argument that is used to nail down the type for which
-    the typeclass dictionaries should be tested. For example, we can test a single property:
-
-    >>> lawsCheck (monoidLaws (Proxy :: Proxy Ordering))
-
-        Monoid: Associative +++ OK, passed 100 tests.
-        Monoid: Left Identity +++ OK, passed 100 tests.
-        Monoid: Right Identity +++ OK, passed 100 tests.
-
-    Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
-    have confidence that the 'Monoid' instance for 'Ordering' satisfies
-    the monoid laws.
-    
-    We can check multiple typeclass instances of the same type with 'specialisedLawsCheckMany':
-    
-    >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
-
-        ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
-        ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
-        Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
-
+{-| This library provides sets of properties that should hold for common
+    typeclasses.
 -}
 module Test.QuickCheck.Classes
   ( -- * Running 
@@ -69,7 +49,6 @@ module Test.QuickCheck.Classes
 #endif
     -- * Types
   , Laws(..)
-  , module Test.QuickCheck.Classes.Proxy 
   ) where
 
 --
@@ -110,7 +89,6 @@ import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
-import Test.QuickCheck.Classes.Proxy
 import Test.QuickCheck.Classes.Traversable
 #endif
 #endif
@@ -127,9 +105,16 @@ import qualified Data.List as List
 import qualified Data.Semigroup as SG
 
 -- | A convenience function for testing properties in GHCi.
---   
---   See the test suite of this library for an example of how to
---   integrate multiple properties into larger test suite.
+-- For example, at GHCi:
+--
+-- >>> lawsCheck (monoidLaws (Proxy :: Proxy Ordering))
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+--
+-- Assuming that the 'Arbitrary' instance for 'Ordering' is good, we now
+-- have confidence that the 'Monoid' instance for 'Ordering' satisfies
+-- the monoid laws.
 lawsCheck :: Laws -> IO ()
 lawsCheck (Laws className properties) = do
   flip foldMapA properties $ \(name,p) -> do
@@ -137,13 +122,12 @@ lawsCheck (Laws className properties) = do
     quickCheck p
 
 -- | A convenience function that allows one to check many typeclass
---   instances of the same type.
+-- instances of the same type.
 --
---   >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
---
---       ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
---       ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
---       Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+-- >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
+-- ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
+-- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
+-- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
 specialisedLawsCheckMany :: Proxy a -> [Proxy a -> Laws] -> IO ()
 specialisedLawsCheckMany p ls = foldMap (lawsCheck . ($ p)) ls
 
@@ -156,68 +140,53 @@ specialisedLawsCheckMany p ls = foldMap (lawsCheck . ($ p)) ls
 -- import Data.Set (Set)
 --
 -- -- A 'Proxy' for 'Set' 'Int'. 
--- setInt :: Proxy (Set Int) -- setInt = Proxy
+-- setInt :: Proxy (Set Int)
+-- setInt = Proxy
 -- 
 -- -- A 'Proxy' for 'Map' 'Int' 'Int'.
 -- mapInt :: Proxy (Map Int Int)
 -- mapInt = Proxy
---
--- -- An orphan instance for 'Int', as is common in test suites.
--- -- If for whatever reason you do not want to use orphan instances,
--- -- consider using 'Sum' or 'Product' from 'Data.Monoid', or similar
--- -- newtypes from 'Data.Monoid'.
--- instance Semigroup Int where
---   (<>) = (+)
 -- 
--- -- An orphan instance for 'Int', as is common in test suites.
--- -- If for whatever reason you do not want to use orphan instances,
--- -- consider using 'Sum' or 'Product' from 'Data.Monoid', or similar
--- -- newtypes from 'Data.Monoid'.
--- instance Monoid Int where
---   mempty = 0
---   mappend = (+)
--- 
--- typeToLawsIWantToCheck :: Proxy a -> Laws
--- typeToLawsIWantToCheck p = [eqLaws p, commutativeMonoidLaws p]
+-- myLaws :: Proxy a -> [Laws]
+-- myLaws p = [eqLaws p, monoidLaws p]
 --
--- testThisStuff :: [(String, [Laws])
--- testThisStuff =
---   [ ("Set Int", typeToLawsIWantToCheck setInt)
---   , ("Map Int Int", typeToLawsIWantToCheck mapInt)
+-- namedTests :: [(String, [Laws])]
+-- namedTests =
+--   [ ("Set Int", myLaws setInt)
+--   , ("Map Int Int", myLaws mapInt)
 --   ]
 -- @
 --   
---   Now, in GHCi:
+-- Now, in GHCi:
 --
---   >>> lawsCheckMany testThisStuff
+-- >>> lawsCheckMany namedTests
 --
---       Testing properties for common typeclasses
---       -------------
---       -- Set Int --
---       -------------
---      
---       Eq: Transitive +++ OK, passed 100 tests.
---       Eq: Symmetric +++ OK, passed 100 tests.
---       Eq: Reflexive +++ OK, passed 100 tests.
---       Commutative Monoid: Associative +++ OK, passed 100 tests.
---       Commutative Monoid: Left Identity +++ OK, passed 100 tests.
---       Commutative Monoid: Right Identity +++ OK, passed 100 tests.
---       Commutative Monoid: Concatenation +++ OK, passed 100 tests.
---       Commutative Monoid: Commutative +++ OK, passed 100 tests.
---       
---       -----------------
---       -- Map Int Int --
---       -----------------
---
---       Eq: Transitive +++ OK, passed 100 tests.
---       Eq: Symmetric +++ OK, passed 100 tests.
---       Eq: Reflexive +++ OK, passed 100 tests.
---       Commutative Monoid: Associative +++ OK, passed 100 tests.
---       Commutative Monoid: Left Identity +++ OK, passed 100 tests.
---       Commutative Monoid: Right Identity +++ OK, passed 100 tests.
---       Commutative Monoid: Concatenation +++ OK, passed 100 tests.
---       Commutative Monoid: Commutative +++ OK, passed 100 tests.
---       
+-- @
+-- Testing properties for common typeclasses
+-- -------------
+-- -- Set Int --
+-- -------------
+-- 
+-- Eq: Transitive +++ OK, passed 100 tests.
+-- Eq: Symmetric +++ OK, passed 100 tests.
+-- Eq: Reflexive +++ OK, passed 100 tests.
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+-- Monoid: Concatenation +++ OK, passed 100 tests.
+-- 
+-- -----------------
+-- -- Map Int Int --
+-- -----------------
+-- 
+-- Eq: Transitive +++ OK, passed 100 tests.
+-- Eq: Symmetric +++ OK, passed 100 tests.
+-- Eq: Reflexive +++ OK, passed 100 tests.
+-- Monoid: Associative +++ OK, passed 100 tests.
+-- Monoid: Left Identity +++ OK, passed 100 tests.
+-- Monoid: Right Identity +++ OK, passed 100 tests.
+-- Monoid: Concatenation +++ OK, passed 100 tests.
+-- @
 lawsCheckMany ::
      [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
   -> IO ()
