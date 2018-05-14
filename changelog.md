@@ -7,9 +7,11 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.4.11] - 2018-05-14
 ### Added
 - Greatly improved documentation
+- `specialisedLawsCheckMany` function, a shorter way for the user
+  to use `lawsCheckMany` on a single type.
 
 ### Change
-- Some internal names to be more clear in what they do
+- Some internal names, making it more clear what it is that they do.
 
 ## [0.4.10] - 2018-05-03
 ### Added
