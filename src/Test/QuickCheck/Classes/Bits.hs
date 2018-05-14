@@ -133,10 +133,10 @@ bitsComplementBit _ = myForAllShrink True (const True)
 bitsClearZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
 bitsClearZero _ = myForAllShrink False (const True)
   (\(n :: a) -> ["n = " ++ show n])
-  "complement (complement n)"
-  (\n -> complement (complement n))
+  "clearBit zeroBits n"
+  (\n -> clearBit n zeroBits)
   "n"
-  (\n -> n)
+  (\_ -> zeroBits)
 
 bitsSetZero :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
 bitsSetZero _ = myForAllShrink True (const True)
