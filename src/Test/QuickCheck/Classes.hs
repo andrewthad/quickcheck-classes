@@ -101,6 +101,7 @@ import Test.QuickCheck.Classes.Traversable
 --
 import Test.QuickCheck
 import Test.QuickCheck.Classes.Common (foldMapA, Laws(..))
+import Data.Foldable
 import Data.Monoid (Monoid(..))
 import Data.Proxy (Proxy(..))
 import Data.Semigroup (Semigroup)
