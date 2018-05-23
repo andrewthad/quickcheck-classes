@@ -34,5 +34,6 @@ playground/auth.txt
 tags
 TAGS
 result*
+*.ghc*
 
 docs/db/unthreat

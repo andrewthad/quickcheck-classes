@@ -32,7 +32,7 @@ monoidLaws p = Laws "Monoid"
   , ("Concatenation", monoidConcatenation p)
   ]
 
--- | Tests everything from 'monoidProps' plus the following:
+-- | Tests everything from 'monoidLaws' plus the following:
 --
 -- [/Commutative/]
 --   @mappend a b ≡ mappend b a@

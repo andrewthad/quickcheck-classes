@@ -52,24 +52,24 @@ applicativeIdentity :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
 
 applicativeComposition :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-applicativeComposition _ = property $ \(Apply (u' :: f Equation)) (Apply (v' :: f Equation)) (Apply (w :: f Integer)) ->
-  let u = fmap runEquation u'
-      v = fmap runEquation v'
+applicativeComposition _ = property $ \(Apply (u' :: f QuadraticEquation)) (Apply (v' :: f QuadraticEquation)) (Apply (w :: f Integer)) ->
+  let u = fmap runQuadraticEquation u'
+      v = fmap runQuadraticEquation v'
    in eq1 (pure (.) <*> u <*> v <*> w) (u <*> (v <*> w))
 
 applicativeHomomorphism :: forall proxy f. (Applicative f, Eq1 f, Show1 f) => proxy f -> Property
-applicativeHomomorphism _ = property $ \(e :: Equation) (a :: Integer) ->
-  let f = runEquation e
+applicativeHomomorphism _ = property $ \(e :: QuadraticEquation) (a :: Integer) ->
+  let f = runQuadraticEquation e
    in eq1 (pure f <*> pure a) (pure (f a) :: f Integer)
 
 applicativeInterchange :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-applicativeInterchange _ = property $ \(Apply (u' :: f Equation)) (y :: Integer) ->
-  let u = fmap runEquation u'
+applicativeInterchange _ = property $ \(Apply (u' :: f QuadraticEquation)) (y :: Integer) ->
+  let u = fmap runQuadraticEquation u'
    in eq1 (u <*> pure y) (pure ($ y) <*> u)
 
 applicativeLiftA2_1 :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-applicativeLiftA2_1 _ = property $ \(Apply (f' :: f Equation)) (Apply (x :: f Integer)) ->
-  let f = fmap runEquation f'
+applicativeLiftA2_1 _ = property $ \(Apply (f' :: f QuadraticEquation)) (Apply (x :: f Integer)) ->
+  let f = fmap runQuadraticEquation f'
    in eq1 (liftA2 id f x) (f <*> x)
 
 #endif
