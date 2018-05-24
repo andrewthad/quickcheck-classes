@@ -86,7 +86,7 @@ library
   if flag(semigroupoids)
     build-depends: semigroupoids 
   if flag(semirings)
-    build-depends: semirings
+    build-depends: semirings >= 0.1.3
   default-language: Haskell2010
 
 test-suite test
