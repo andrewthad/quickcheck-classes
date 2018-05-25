@@ -17,6 +17,17 @@ import Text.Read (readMaybe)
 
 import Test.QuickCheck.Classes.Common (Laws(..))
 
+-- | Tests the following properties:
+--
+-- [/Partial Isomorphism/]
+--   @'readMaybe' ('show' a) == 'Just' a@
+--  
+-- /Note:/ When using @base-4.5@ or older, this
+-- instead test the following:
+--
+-- [/Partial Isomorphism/]
+--   @'read' ('show' a) == a@ 
+--
 showReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> Laws
 showReadLaws p = Laws "Show/Read"
   [ ("Partial Isomorphism", showReadPartialIsomorphism p)

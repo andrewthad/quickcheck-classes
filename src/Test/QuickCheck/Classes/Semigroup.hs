@@ -20,11 +20,11 @@ import Data.List.NonEmpty (NonEmpty((:|)))
 -- | Tests the following properties:
 --
 -- [/Associative/]
---   @a <> (b <> c) ≡ (a <> b) <> c@
+--   @a '<>' (b '<>' c) ≡ (a '<>' b) '<>' c@
 -- [/Concatenation/]
---   @sconcat as ≡ foldr1 (<>) as@
+--   @'sconcat' as ≡ 'foldr1' ('<>') as@
 -- [/Times/]
---   @stimes n a ≡ foldr1 (<>) (replicate n a)@
+--   @'stimes' n a ≡ 'foldr1' ('<>') (replicate n a)@
 semigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 semigroupLaws p = Laws "Semigroup"
   [ ("Associative", semigroupAssociative p)

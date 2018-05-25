@@ -37,9 +37,9 @@ import Test.QuickCheck.Classes.Common
 -- | Tests the following alt properties:
 --
 -- [/Associativity/]
---   @(a '<!>' b) '<!>' c ≡ a '<!>' (b '<!>' c)@
+--   @(a 'Alt.<!>' b) 'Alt.<!>' c ≡ a 'Alt.<!>' (b 'Alt.<!>' c)@
 -- [/Left Distributivity/]
---   @f '<$>' (a '<!>' b) = (f '<$>' a) '<!>' (f '<$>' b)
+--   @f '<$>' (a 'Alt.<!>' b) ≡ (f '<$>' a) 'Alt.<!>' (f '<$>' b)@
 #if defined(VERSION_semigroupoids)
 altLaws :: (Alt f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 altLaws p = Laws "Alt"

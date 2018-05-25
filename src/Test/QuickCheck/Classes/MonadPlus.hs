@@ -12,6 +12,7 @@ module Test.QuickCheck.Classes.MonadPlus
 
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
+import Control.Applicative(Alternative(empty))
 import Control.Monad (MonadPlus(mzero,mplus))
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
@@ -37,7 +38,7 @@ import Test.QuickCheck.Classes.Common
 -- [/Left Zero/]
 --   @'mzero' '>>=' f ≡ 'mzero'@
 -- [/Right Zero/]
---   @m >> 'mzero' ≡ 'mzero'@
+--   @m '>>' 'mzero' ≡ 'mzero'@
 monadPlusLaws :: (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 monadPlusLaws p = Laws "MonadPlus"
   [ ("Left Identity", monadPlusLeftIdentity p)

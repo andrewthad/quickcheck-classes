@@ -15,7 +15,7 @@ import Test.QuickCheck.Classes.Common (Laws(..))
 -- | Tests the following properties:
 --
 -- [/Antisymmetry/]
---   @a ≤ b ∧ b ≤ a ⇒ a = b  
+--   @a ≤ b ∧ b ≤ a ⇒ a = b@ 
 -- [/Transitivity/]
 --   @a ≤ b ∧ b ≤ c ⇒ a ≤ c@
 -- [/Totality/]

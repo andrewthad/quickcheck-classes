@@ -32,7 +32,7 @@ import Test.QuickCheck.Classes.Common
 -- [/Second Identity/] 
 --   @'second' 'id' ≡ 'id'@
 -- [/Bifunctor Composition/]
---   @'bimap' f g ≡ 'first' f . 'second' g@ 
+--   @'bimap' f g ≡ 'first' f '.' 'second' g@ 
 --
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.

@@ -11,7 +11,7 @@ module Test.QuickCheck.Classes.Foldable
   ) where
 
 import Data.Monoid
-import Data.Foldable (foldMap,Foldable)
+import Data.Foldable
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Exception (ErrorCall,try,evaluate)
@@ -42,9 +42,9 @@ import Test.QuickCheck.Classes.Common
 -- [/foldr/]
 --   @'foldr' f z t ≡ 'appEndo' ('foldMap' ('Endo' . f) t ) z@
 -- [/foldr'/]
---   @'foldr'' f z0 xs = let f\' k x z = k '$!' f x z in 'foldl' f\' 'id' xs z0@
+--   @'foldr'' f z0 xs ≡ let f\' k x z = k '$!' f x z in 'foldl' f\' 'id' xs z0@
 -- [/foldr1/]
---   @'foldr1' f t ≡ let Just (xs,x) = unsnoc ('toList' t) in 'foldr' f x xs@
+--   @'foldr1' f t ≡ let 'Just' (xs,x) = 'unsnoc' ('toList' t) in 'foldr' f x xs@
 -- [/foldl/]
 --   @'foldl' f z t ≡ 'appEndo' ('getDual' ('foldMap' ('Dual' . 'Endo' . 'flip' f) t)) z@
 -- [/foldl'/]
@@ -56,7 +56,7 @@ import Test.QuickCheck.Classes.Common
 -- [/null/]
 --   @'null' ≡ 'foldr' ('const' ('const' 'False')) 'True'@
 -- [/length/]
---   @'length' ≡ getSum . foldMap ('const' ('Sum' 1))@
+--   @'length' ≡ 'getSum' . 'foldMap' ('const' ('Sum' 1))@
 --
 -- Note that this checks to ensure that @foldl\'@ and @foldr\'@
 -- are suitably strict.

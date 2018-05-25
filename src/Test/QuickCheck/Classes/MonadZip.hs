@@ -32,9 +32,9 @@ import Test.QuickCheck.Classes.Common
 -- | Tests the following monadic zipping properties:
 --
 -- [/Naturality/]
---   @liftM (f *** g) (mzip ma mb) = mzip (liftM f ma) (liftM g mb)@
+--   @'liftM' (f '***' g) ('mzip' ma mb) = 'mzip' ('liftM' f ma) ('liftM' g mb)@
 --
--- In the laws above, the infix function @***@ refers to a typeclass
+-- In the laws above, the infix function @'***'@ refers to a typeclass
 -- method of 'Arrow'.
 monadZipLaws :: (MonadZip f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 monadZipLaws p = Laws "MonadZip"

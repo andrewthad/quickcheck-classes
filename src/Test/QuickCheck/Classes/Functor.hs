@@ -31,9 +31,9 @@ import Test.QuickCheck.Classes.Common
 -- [/Identity/]
 --   @'fmap' 'id' ≡ 'id'@
 -- [/Composition/]
---   @fmap (f . g) ≡ 'fmap' f . 'fmap' g@
+--   @'fmap' (f '.' g) ≡ 'fmap' f '.' 'fmap' g@
 -- [/Const/]
---   @(<$) ≡ 'fmap' 'const'@
+--   @('<$') ≡ 'fmap' 'const'@
 functorLaws :: (Functor f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 functorLaws p = Laws "Functor"
   [ ("Identity", functorIdentity p)

@@ -33,23 +33,23 @@ import Test.QuickCheck.Classes.Common
 -- | Tests the following 'Traversable' properties:
 --
 -- [/Naturality/]
---   @t . 'traverse' f = 'traverse' (t . f)@
+--   @t '.' 'traverse' f ≡ 'traverse' (t '.' f)@
 --   for every applicative transformation @t@
 -- [/Identity/]
---   @'traverse' Identity = Identity@
+--   @'traverse' 'Identity' ≡ 'Identity'@
 -- [/Composition/]
---   @'traverse' (Compose . 'fmap' g . f) = Compose . 'fmap' ('traverse' g) . 'traverse' f@
+--   @'traverse' ('Compose' '.' 'fmap' g '.' f) ≡ 'Compose' '.' 'fmap' ('traverse' g) '.' 'traverse' f@
 -- [/Sequence Naturality/]
---   @t . 'sequenceA' = 'sequenceA' . 'fmap' t@
+--   @t '.' 'sequenceA' ≡ 'sequenceA' '.' 'fmap' t@
 --   for every applicative transformation @t@
 -- [/Sequence Identity/]
---   @'sequenceA' . 'fmap' Identity = Identity@
+--   @'sequenceA' '.' 'fmap' 'Identity' ≡ 'Identity'@
 -- [/Sequence Composition/]
---   @'sequenceA' . 'fmap' Compose = Compose . 'fmap' 'sequenceA' . 'sequenceA'@
+--   @'sequenceA' '.' 'fmap' 'Compose' ≡ 'Compose' '.' 'fmap' 'sequenceA' '.' 'sequenceA'@
 -- [/foldMap/]
---   @'foldMap' = 'foldMapDefault'@
+--   @'foldMap' ≡ 'foldMapDefault'@
 -- [/fmap/]
---   @'fmap' = 'fmapDefault'@
+--   @'fmap' ≡ 'fmapDefault'@
 --
 -- Where an /applicative transformation/ is a function
 --
@@ -57,8 +57,8 @@ import Test.QuickCheck.Classes.Common
 --
 -- preserving the 'Applicative' operations, i.e.
 --
--- * Identity: @t ('pure' x) = 'pure' x@
--- * Distributivity: @t (x '<*>' y) = t x '<*>' t y@
+-- * Identity: @t ('pure' x) ≡ 'pure' x@
+-- * Distributivity: @t (x '<*>' y) ≡ t x '<*>' t y@
 traversableLaws :: (Traversable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 traversableLaws = traversableLawsInternal
 
