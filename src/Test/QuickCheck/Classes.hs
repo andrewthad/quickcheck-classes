@@ -101,6 +101,7 @@ import Test.QuickCheck.Classes.Traversable
 --
 import Test.QuickCheck
 import Test.QuickCheck.Classes.Common (foldMapA, Laws(..))
+import Control.Monad
 import Data.Foldable
 import Data.Monoid (Monoid(..))
 import Data.Proxy (Proxy(..))
@@ -133,7 +134,7 @@ lawsCheck (Laws className properties) = do
 -- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
 -- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
 specialisedLawsCheckMany :: Proxy a -> [Proxy a -> Laws] -> IO ()
-specialisedLawsCheckMany p ls = foldMap (lawsCheck . ($ p)) ls
+specialisedLawsCheckMany p ls = foldlMapM (lawsCheck . ($ p)) ls
 
 -- | A convenience function for checking multiple typeclass instances
 --   of multiple types. Consider the following Haskell source file:
@@ -229,4 +230,9 @@ data Proxy1 (f :: * -> *) = Proxy1
 -- | In older versions of GHC, Proxy is not poly-kinded,
 --   so we provide Proxy2.
 data Proxy2 (f :: * -> * -> *) = Proxy2
+
+-- This is used internally to work around a missing Monoid
+-- instance for IO on older GHCs.
+foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
+foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
