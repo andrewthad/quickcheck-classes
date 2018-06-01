@@ -18,7 +18,6 @@ import Foreign.Marshal.Array
 import Foreign.Storable
 
 import GHC.Ptr (Ptr(..), plusPtr)
-import System.IO (fixIO)
 import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
@@ -32,10 +31,10 @@ storableLaws p = Laws "Storable"
   [ ("Set-Get (you get back what you put in)", storableSetGet p)
   , ("Get-Set (putting back what you got out has no effect)", storableGetSet p)
   , ("List Conversion Roundtrips", storableList p)
-  , ("Storable Peek Elem", storablePeekElem p)
-  , ("Storable Poke Elem", storablePokeElem p)
-  , ("Storable Peek Byte", storablePeekByte p)
-  , ("Storable Poke Byte", storablePokeByte p)
+  , ("peekElemOff a i ≡ peek (plusPtr a (i * sizeOf undefined))", storablePeekElem p)
+  , ("peekElemOff a i x ≡ poke (plusPtr a (i * sizeOf undefined)) x ≡ id ", storablePokeElem p)
+  , ("peekByteOff a i ≡ peek (plusPtr a i)", storablePeekByte p)
+  , ("peekByteOff a i x ≡ poke (plusPtr a i) x ≡ id ", storablePokeByte p)
   ]
 
 storablePeekElem :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -45,7 +44,7 @@ storablePeekElem _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   return $ unsafePerformIO $ do
     addr :: Ptr a <- mallocArray len
     x <- peekElemOff addr ix
-    y <- fixIO $ \result -> peek (addr `plusPtr` (ix * sizeOf result))
+    y <- peek (addr `plusPtr` (ix * sizeOf (undefined :: a)))
     free addr
     return (x == y)
 
