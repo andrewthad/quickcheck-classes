@@ -33,15 +33,20 @@ semigroupLaws p = Laws "Semigroup"
   ]
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-semigroupAssociative _ = property $ \(a :: a) b c -> a <> (b <> c) == (a <> b) <> c
+semigroupAssociative _ = myForAllShrink True (const True)
+  (\(a :: a,b,c) -> ["a = " ++ show a, "b = " ++ show b, "c = " ++ show c])
+  "a <> (b <> c)"
+  (\(a,b,c) -> a <> (b <> c))
+  "(a <> b) <> c"
+  (\(a,b,c) -> (a <> b) <> c)
 
 semigroupConcatenation :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupConcatenation _ = myForAllShrink True (const True)
-  (\(a, as :: [a]) -> ["as = " ++ show (a :| as)])
+  (\(a, SmallList (as :: [a])) -> ["as = " ++ show (a :| as)])
   "sconcat as"
-  (\(a,as) -> sconcat (a :| as))
+  (\(a, SmallList as) -> sconcat (a :| as))
   "foldr1 (<>) as"
-  (\(a,as) -> foldr1 (<>) (a :| as))
+  (\(a, SmallList as) -> foldr1 (<>) (a :| as))
 
 semigroupTimes :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupTimes _ = myForAllShrink True (\(_,n) -> n > 0)
@@ -50,4 +55,14 @@ semigroupTimes _ = myForAllShrink True (\(_,n) -> n > 0)
   (\(a,n) -> stimes n a)
   "foldr1 (<>) (replicate n a)"
   (\(a,n) -> foldr1 (<>) (replicate n a))
+
+newtype SmallList a = SmallList { getSmallList :: [a] }
+  deriving (Eq,Show)
+
+instance Arbitrary a => Arbitrary (SmallList a) where
+  arbitrary = do
+    n <- choose (0,6)
+    xs <- vector n
+    return (SmallList xs)
+  shrink = map SmallList . shrink . getSmallList
 

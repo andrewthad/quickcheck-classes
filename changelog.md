@@ -7,6 +7,15 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.4.12] - TBA
 ### Added
 - Remaining laws for `Storable` typeclass.
+### Change
+- Correct the law from the `Bits` typeclass that relates `clearBit`
+  and `zeroBits`.
+- Limit the size of the lists that are used when testing that
+  `mconcat` and `sconcat` have behaviors that match their default
+  implementations. For some data structures, concatenating the
+  elements in a list of several dozen arbitrary values does not
+  finish in a reasonable amount of time. So, the size of these
+  has been limited to 6.
 
 ## [0.4.11.1] - 2018-05-25
 ### Change

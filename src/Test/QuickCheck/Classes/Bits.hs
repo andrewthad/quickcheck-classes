@@ -130,12 +130,12 @@ bitsComplementBit _ = myForAllShrink True (const True)
   "xor n (bit i)"
   (\(n,BitIndex i) -> xor n (bit i))
 
-bitsClearZero :: forall a. (Bits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsClearZero :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
 bitsClearZero _ = myForAllShrink False (const True)
-  (\(n :: a) -> ["n = " ++ show n])
+  (\(BitIndex n :: BitIndex a) -> ["n = " ++ show n])
   "clearBit zeroBits n"
-  (\n -> clearBit n zeroBits)
-  "n"
+  (\(BitIndex n) -> clearBit zeroBits n :: a)
+  "zeroBits"
   (\_ -> zeroBits)
 
 bitsSetZero :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property

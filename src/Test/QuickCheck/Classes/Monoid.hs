@@ -43,11 +43,11 @@ commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws
 
 monoidConcatenation :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidConcatenation _ = myForAllShrink True (const True)
-  (\(as :: [a]) -> ["as = " ++ show as])
+  (\(SmallList (as :: [a])) -> ["as = " ++ show as])
   "mconcat as"
-  (\as -> mconcat as)
+  (\(SmallList as) -> mconcat as)
   "foldr mappend mempty as"
-  (\as -> foldr mappend mempty as)
+  (\(SmallList as) -> foldr mappend mempty as)
 
 monoidAssociative :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidAssociative _ = myForAllShrink True (const True)
@@ -80,4 +80,14 @@ monoidCommutative _ = myForAllShrink True (const True)
   (\(a,b) -> mappend a b)
   "mappend b a"
   (\(a,b) -> mappend b a)
+
+newtype SmallList a = SmallList { getSmallList :: [a] }
+  deriving (Eq,Show)
+
+instance Arbitrary a => Arbitrary (SmallList a) where
+  arbitrary = do
+    n <- choose (0,6)
+    xs <- vector n
+    return (SmallList xs)
+  shrink = map SmallList . shrink . getSmallList
 
