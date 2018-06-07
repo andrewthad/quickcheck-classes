@@ -2,7 +2,7 @@ resolver: 'nightly-2017-12-01'
 packages:
 - '.'
 extra-deps:
-- 'prim-array-0.2.1'
+- 'semirings-0.1.3.0'
 flags: {}
 extra-package-dbs: []
 

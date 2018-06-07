@@ -210,7 +210,7 @@ indexPrimArray :: forall a. Prim a => PrimArray a -> Int -> a
 indexPrimArray (PrimArray arr#) (I# i#) = indexByteArray# arr# i#
 
 sizeofPrimArray :: forall a. Prim a => PrimArray a -> Int
-sizeofPrimArray (PrimArray arr#) = I# (quotInt# (sizeofByteArray# arr#) (sizeOf# (undefined :: a)))
+sizeofPrimArray (PrimArray arr#) = I# (quotInt# (sizeofByteArray# arr#) (P.sizeOf# (undefined :: a)))
 
 newPrimArray :: forall m a. (PrimMonad m, Prim a) => Int -> m (MutablePrimArray (PrimState m) a)
 newPrimArray (I# n#)
@@ -361,7 +361,7 @@ primListByteArray _ = property $ \(as :: [a]) ->
 #endif
 
 setOffAddr :: forall a. Prim a => Addr -> Int -> Int -> a -> IO ()
-setOffAddr addr ix len a = setAddr (plusAddr addr (sizeOf (undefined :: a) * ix)) len a
+setOffAddr addr ix len a = setAddr (plusAddr addr (P.sizeOf (undefined :: a) * ix)) len a
 
 internalDefaultSetPrimArray :: Prim a
   => MutablePrimArray s a -> Int -> Int -> a -> ST s ()

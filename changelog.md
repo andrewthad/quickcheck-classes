@@ -19,6 +19,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   elements in a list of several dozen arbitrary values does not
   finish in a reasonable amount of time. So, the size of these
   has been limited to 6.
+- Make library build against `primitive-0.6.1.0`.
 
 ## [0.4.11.1] - 2018-05-25
 ### Change
