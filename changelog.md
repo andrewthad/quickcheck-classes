@@ -7,6 +7,9 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.4.12] - TBA
 ### Added
 - Remaining laws for `Storable` typeclass.
+- Laws for `Prim` typeclass requiring `setByteArray` and `setOffAddr` to
+  match the behavior that would result from manually iterating over the
+  array and writing the value element-by-element.
 ### Change
 - Correct the law from the `Bits` typeclass that relates `clearBit`
   and `zeroBits`.

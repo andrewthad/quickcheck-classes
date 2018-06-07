@@ -20,8 +20,8 @@ import Data.Primitive.Types
 import Data.Primitive.Addr
 import Foreign.Marshal.Alloc
 import GHC.Exts
-  (Int(I#),(*#),newByteArray#,unsafeFreezeByteArray#,copyMutableByteArray#
-  ,copyByteArray#,quotInt#,sizeofByteArray#)
+  (State#,Int#,Addr#,Int(I#),(*#),(+#),(<#),newByteArray#,unsafeFreezeByteArray#,
+   copyMutableByteArray#,copyByteArray#,quotInt#,sizeofByteArray#)
 
 #if MIN_VERSION_base(4,7,0)
 import GHC.Exts (IsList(fromList,toList,fromListN),Item,
@@ -37,18 +37,21 @@ import qualified Data.List as L
 import qualified Data.Primitive as P
 
 import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Compat (isTrue#)
 
 -- | Test that a 'Prim' instance obey the several laws.
 primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 primLaws p = Laws "Prim"
-  [ ("ByteArray Set-Get (you get back what you put in)", primSetGetByteArray p)
-  , ("ByteArray Get-Set (putting back what you got out has no effect)", primGetSetByteArray p)
-  , ("ByteArray Set-Set (setting twice is same as setting once)", primSetSetByteArray p)
+  [ ("ByteArray Put-Get (you get back what you put in)", primPutGetByteArray p)
+  , ("ByteArray Get-Put (putting back what you got out has no effect)", primGetPutByteArray p)
+  , ("ByteArray Put-Put (putting twice is same as putting once)", primPutPutByteArray p)
+  , ("ByteArray Set Range", primSetByteArray p)
 #if MIN_VERSION_base(4,7,0)
   , ("ByteArray List Conversion Roundtrips", primListByteArray p)
 #endif
-  , ("Addr Set-Get (you get back what you put in)", primSetGetAddr p)
-  , ("Addr Get-Set (putting back what you got out has no effect)", primGetSetAddr p)
+  , ("Addr Put-Get (you get back what you put in)", primPutGetAddr p)
+  , ("Addr Get-Put (putting back what you got out has no effect)", primGetPutAddr p)
+  , ("Addr Set Range", primSetOffAddr p)
   , ("Addr List Conversion Roundtrips", primListAddr p)
   ]
 
@@ -72,8 +75,8 @@ primListAddr _ = property $ \(as :: [a]) -> unsafePerformIO $ do
   free ptr
   return (as == asNew)
 
-primSetGetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primSetGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
+primPutGetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primPutGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
   ix <- choose (0,len - 1)
   return $ runST $ do
     arr <- newPrimArray len
@@ -81,8 +84,8 @@ primSetGetByteArray _ = property $ \(a :: a) len -> (len > 0) ==> do
     a' <- readPrimArray arr ix
     return (a == a')
 
-primGetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primGetSetByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
+primGetPutByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primGetPutByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
@@ -94,8 +97,8 @@ primGetSetByteArray _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
     unsafeFreezePrimArray marr
   return (arr1 == arr2)
 
-primSetSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primSetSetByteArray _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==> do
+primPutPutByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primPutPutByteArray _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==> do
   let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
@@ -111,8 +114,8 @@ primSetSetByteArray _ = property $ \(a :: a) (as :: [a]) -> (not (L.null as)) ==
     return (arr2,arr3)
   return (arr2 == arr3)
 
-primSetGetAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primSetGetAddr _ = property $ \(a :: a) len -> (len > 0) ==> do
+primPutGetAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primPutGetAddr _ = property $ \(a :: a) len -> (len > 0) ==> do
   ix <- choose (0,len - 1)
   return $ unsafePerformIO $ do
     ptr@(Ptr addr#) :: Ptr a <- mallocBytes (len * P.sizeOf (undefined :: a))
@@ -122,8 +125,8 @@ primSetGetAddr _ = property $ \(a :: a) len -> (len > 0) ==> do
     free ptr
     return (a == a')
 
-primGetSetAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-primGetSetAddr _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
+primGetPutAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primGetPutAddr _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   let arr1 = primArrayFromList as :: PrimArray a
       len = L.length as
   ix <- choose (0,len - 1)
@@ -139,6 +142,51 @@ primGetSetAddr _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
     unsafeFreezePrimArray marr
   return (arr1 == arr2)
 
+primSetByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primSetByteArray _ = property $ \(as :: [a]) (z :: a) -> do
+  let arr1 = primArrayFromList as :: PrimArray a
+      len = L.length as
+  x <- choose (0,len)
+  y <- choose (0,len)
+  let lo = min x y
+      hi = max x y
+  return $ runST $ do
+    marr2 <- newPrimArray len
+    copyPrimArray marr2 0 arr1 0 len
+    marr3 <- newPrimArray len
+    copyPrimArray marr3 0 arr1 0 len
+    setPrimArray marr2 lo (hi - lo) z
+    internalDefaultSetPrimArray marr3 lo (hi - lo) z
+    arr2 <- unsafeFreezePrimArray marr2
+    arr3 <- unsafeFreezePrimArray marr3
+    return (arr2 == arr3)
+
+primSetOffAddr :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+primSetOffAddr _ = property $ \(as :: [a]) (z :: a) -> do
+  let arr1 = primArrayFromList as :: PrimArray a
+      len = L.length as
+  x <- choose (0,len)
+  y <- choose (0,len)
+  let lo = min x y
+      hi = max x y
+  return $ unsafePerformIO $ do
+    ptrA@(Ptr addrA#) :: Ptr a <- mallocBytes (len * P.sizeOf (undefined :: a))
+    let addrA = Addr addrA#
+    copyPrimArrayToPtr ptrA arr1 0 len
+    ptrB@(Ptr addrB#) :: Ptr a <- mallocBytes (len * P.sizeOf (undefined :: a))
+    let addrB = Addr addrB#
+    copyPrimArrayToPtr ptrB arr1 0 len
+    setOffAddr addrA lo (hi - lo) z
+    internalDefaultSetOffAddr addrB lo (hi - lo) z
+    marrA <- newPrimArray len
+    copyPtrToMutablePrimArray marrA 0 ptrA len
+    free ptrA
+    marrB <- newPrimArray len
+    copyPtrToMutablePrimArray marrB 0 ptrB len
+    free ptrB
+    arrA <- unsafeFreezePrimArray marrA
+    arrB <- unsafeFreezePrimArray marrB
+    return (arrA == arrB)
 
 -- byte array with phantom variable that specifies element type
 data PrimArray a = PrimArray ByteArray#
@@ -271,6 +319,16 @@ copyPrimArray (MutablePrimArray dst#) (I# doff#) (PrimArray src#) (I# soff#) (I#
       (n# *# (sizeOf# (undefined :: a)))
     )
 
+setPrimArray
+  :: (Prim a, PrimMonad m)
+  => MutablePrimArray (PrimState m) a -- ^ array to fill
+  -> Int -- ^ offset into array
+  -> Int -- ^ number of values to fill
+  -> a -- ^ value to fill with
+  -> m ()
+setPrimArray (MutablePrimArray dst#) (I# doff#) (I# sz#) x
+  = primitive_ (P.setByteArray# dst# doff# sz# x)
+
 primArrayFromList :: Prim a => [a] -> PrimArray a
 primArrayFromList xs = primArrayFromListN (L.length xs) xs
 
@@ -296,9 +354,37 @@ primArrayToList arr = go 0 where
     then indexPrimArray arr ix : go (ix + 1)
     else []
 
-
 #if MIN_VERSION_base(4,7,0)
 primListByteArray :: forall a. (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 primListByteArray _ = property $ \(as :: [a]) ->
   as == toList (fromList as :: PrimArray a)
 #endif
+
+setOffAddr :: forall a. Prim a => Addr -> Int -> Int -> a -> IO ()
+setOffAddr addr ix len a = setAddr (plusAddr addr (sizeOf (undefined :: a) * ix)) len a
+
+internalDefaultSetPrimArray :: Prim a
+  => MutablePrimArray s a -> Int -> Int -> a -> ST s ()
+internalDefaultSetPrimArray (MutablePrimArray arr) (I# i) (I# len) ident =
+  primitive_ (internalDefaultSetByteArray# arr i len ident)
+
+internalDefaultSetByteArray# :: Prim a
+  => MutableByteArray# s -> Int# -> Int# -> a -> State# s -> State# s
+internalDefaultSetByteArray# arr# i# len# ident = go 0#
+  where
+  go ix# s0 = if isTrue# (ix# <# len#)
+    then case writeByteArray# arr# (i# +# ix#) ident s0 of
+      s1 -> go (ix# +# 1#) s1
+    else s0
+
+internalDefaultSetOffAddr :: Prim a => Addr -> Int -> Int -> a -> IO ()
+internalDefaultSetOffAddr (Addr addr) (I# ix) (I# len) a = primitive_
+  (internalDefaultSetOffAddr# addr ix len a)
+
+internalDefaultSetOffAddr# :: Prim a => Addr# -> Int# -> Int# -> a -> State# s -> State# s
+internalDefaultSetOffAddr# addr# i# len# ident = go 0#
+  where
+  go ix# s0 = if isTrue# (ix# <# len#)
+    then case writeOffAddr# addr# (i# +# ix#) ident s0 of
+      s1 -> go (ix# +# 1#) s1
+    else s0
