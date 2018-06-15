@@ -36,6 +36,7 @@ import Data.Vector (Vector)
 import Data.Word
 import Foreign.Storable
 import Test.QuickCheck
+import Text.Show.Functions
 
 import qualified Data.Vector as V
 import qualified Data.Foldable as F
@@ -175,17 +176,15 @@ instance Ord k => Apply (Pound k) where
 
 #if defined(VERSION_semigroupoids)
 #if MIN_VERSION_containers(0,5,9)
--- This is dumb
-instance Show (a -> b) where
-  show _ = "Function "
-
 prop_map_apply_equals :: Map Int (Int -> Int)
                       -> Map Int Int
-                      -> Pound Int (Int -> Int) 
-                      -> Pound Int Int
                       -> Bool
-prop_map_apply_equals mf ma pf pa =
-  (mf <.> ma) == getPound (pf <.> pa)
+prop_map_apply_equals mf ma =
+  let pf = Pound mf
+      pa = Pound ma
+      m = mf <.> ma
+      p = pf <.> pa
+  in m == (getPound p)
 #endif
 #endif
 
