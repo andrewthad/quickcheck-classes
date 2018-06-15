@@ -36,6 +36,7 @@ module Test.QuickCheck.Classes
   , alternativeLaws
 #if defined(VERSION_semigroupoids)
   , altLaws
+  , applyLaws
 #endif
   , applicativeLaws
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
@@ -82,6 +83,7 @@ import Test.QuickCheck.Classes.Storable
 import Test.QuickCheck.Classes.Alternative
 #if defined(VERSION_semigroupoids)
 import Test.QuickCheck.Classes.Alt
+import Test.QuickCheck.Classes.Apply
 #endif
 import Test.QuickCheck.Classes.Applicative
 #if MIN_VERSION_transformers(0,5,0)

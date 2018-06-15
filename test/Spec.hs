@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 import Control.Monad
 import Control.Monad.Zip (MonadZip)
@@ -12,7 +13,18 @@ import Data.Aeson (ToJSON,FromJSON)
 #endif
 import Data.Bits
 import Data.Foldable
+#if defined(VERSION_containers)
+import Data.Map (Map)
+#endif
+#if MIN_VERSION_containers(0,5,9)
+import qualified Data.Map.Merge.Strict as MM
+#endif
 import Data.Traversable
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(VERSION_semigroupoids)
+import Data.Functor.Apply (Apply((<.>)))
+#endif
+#endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
 #endif
@@ -31,7 +43,9 @@ import qualified Data.Foldable as F
 import Test.QuickCheck.Classes
 
 main :: IO ()
-main = lawsCheckMany allPropsApplied
+main = do
+  quickCheck prop_map_apply_equals
+  lawsCheckMany allPropsApplied
 
 allPropsApplied :: [(String,[Laws])]
 allPropsApplied = 
@@ -42,6 +56,14 @@ allPropsApplied =
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
+#endif
+#endif
+#if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(VERSION_semigroupoids)
+  , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
+  , ("Pound", someHigherLaws (Proxy1 :: Proxy1 (Pound Int)))
+#endif
 #endif
 #endif
 #if MIN_VERSION_base(4,7,0)
@@ -100,6 +122,17 @@ allHigherLaws p =
 #endif
 #endif
 
+#if MIN_VERSION_QuickCheck(2,10,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(VERSION_semigroupoids)
+someHigherLaws :: (Apply f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
+someHigherLaws p = 
+  [ applyLaws p
+  ]
+#endif
+#endif
+#endif
+
 -- This type fails the laws for the strict functions
 -- in Foldable. It is used just to confirm that
 -- those property tests actually work.
@@ -118,6 +151,42 @@ instance Foldable Rouge where
 #if MIN_VERSION_base(4,6,0)
   foldl' f x (Rouge xs) = F.foldl f x xs
   foldr' f x (Rouge xs) = F.foldr f x xs
+#endif
+
+newtype Pound k v = Pound { getPound :: Map k v }
+#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
+  deriving (Eq,Functor,Show,Arbitrary,Arbitrary1,Eq1,Show1)
+#else
+  deriving (Eq,Show,Arbitrary)
+#endif
+
+#if defined(VERSION_semigroupoids)
+#if MIN_VERSION_containers(0,5,9)
+instance Ord k => Apply (Pound k) where
+  Pound m1 <.> Pound m2 = Pound $
+    MM.merge
+      MM.dropMissing
+      MM.dropMissing
+      (MM.zipWithMatched (\_ f a -> f a))
+      m1
+      m2
+#endif
+#endif
+
+#if defined(VERSION_semigroupoids)
+#if MIN_VERSION_containers(0,5,9)
+-- This is dumb
+instance Show (a -> b) where
+  show _ = "Function "
+
+prop_map_apply_equals :: Map Int (Int -> Int)
+                      -> Map Int Int
+                      -> Pound Int (Int -> Int) 
+                      -> Pound Int Int
+                      -> Bool
+prop_map_apply_equals mf ma pf pa =
+  (mf <.> ma) == getPound (pf <.> pa)
+#endif
 #endif
 
 -------------------

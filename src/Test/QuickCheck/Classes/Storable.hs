@@ -26,6 +26,12 @@ import qualified Data.List as L
 
 import Test.QuickCheck.Classes.Common (Laws(..))
 
+-- | Tests the following alternative properties:
+--
+-- [/Set-Get/]
+--   @'runST' ('pokeElemOff' ptr ix a >> 'peekElemOff' ptr ix') ≡  a@
+-- [/Get-Set/]
+--   @'runST' ('peekElemOff' ptr ix >> 'pokeElemOff' ptr ix a) ≡ a@
 storableLaws :: (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 storableLaws p = Laws "Storable"
   [ ("Set-Get (you get back what you put in)", storableSetGet p)
