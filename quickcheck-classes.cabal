@@ -54,7 +54,7 @@ library
     Test.QuickCheck.Classes.Alternative
     Test.QuickCheck.Classes.Applicative
     Test.QuickCheck.Classes.Apply
-    Test.QuickCheck.Classes.Arrow
+    -- Test.QuickCheck.Classes.Arrow
     Test.QuickCheck.Classes.Bifunctor
     Test.QuickCheck.Classes.Bits
     Test.QuickCheck.Classes.Category

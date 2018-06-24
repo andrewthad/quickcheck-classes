@@ -3,6 +3,7 @@
 
 {-# OPTIONS_GHC -Wall #-}
 
+-- N.B.: This module is not currently built.
 module Test.QuickCheck.Classes.Arrow
   (
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
