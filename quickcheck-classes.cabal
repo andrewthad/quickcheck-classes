@@ -54,8 +54,10 @@ library
     Test.QuickCheck.Classes.Alternative
     Test.QuickCheck.Classes.Applicative
     Test.QuickCheck.Classes.Apply
+    -- Test.QuickCheck.Classes.Arrow
     Test.QuickCheck.Classes.Bifunctor
     Test.QuickCheck.Classes.Bits
+    Test.QuickCheck.Classes.Category
     Test.QuickCheck.Classes.Common
     Test.QuickCheck.Classes.Compat
     Test.QuickCheck.Classes.Eq
@@ -64,6 +66,7 @@ library
     Test.QuickCheck.Classes.Integral
     Test.QuickCheck.Classes.Json
     Test.QuickCheck.Classes.Monad
+    Test.QuickCheck.Classes.MonadFail
     Test.QuickCheck.Classes.MonadPlus
     Test.QuickCheck.Classes.MonadZip
     Test.QuickCheck.Classes.Monoid
