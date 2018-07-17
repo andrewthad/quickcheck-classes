@@ -27,6 +27,8 @@ module Test.QuickCheck.Classes
 #endif
   , monoidLaws
   , ordLaws
+  , enumLaws
+  , boundedEnumLaws
   , primLaws
   , semigroupLaws
   , showReadLaws
@@ -61,6 +63,7 @@ module Test.QuickCheck.Classes
 
 -- Ground Types
 import Test.QuickCheck.Classes.Bits
+import Test.QuickCheck.Classes.Enum
 import Test.QuickCheck.Classes.Eq
 import Test.QuickCheck.Classes.Integral
 #if MIN_VERSION_base(4,7,0)
