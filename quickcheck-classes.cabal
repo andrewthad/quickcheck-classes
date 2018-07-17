@@ -60,6 +60,7 @@ library
     Test.QuickCheck.Classes.Category
     Test.QuickCheck.Classes.Common
     Test.QuickCheck.Classes.Compat
+    Test.QuickCheck.Classes.Enum
     Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Foldable
     Test.QuickCheck.Classes.Functor
