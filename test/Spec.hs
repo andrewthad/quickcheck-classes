@@ -80,6 +80,8 @@ allLaws :: forall a.
   , Arbitrary a
   , Show a
   , Read a
+  , Enum a
+  , Bounded a
 #if defined(VERSION_aeson)
   , ToJSON a
   , FromJSON a
@@ -94,6 +96,7 @@ allLaws p =
   , semigroupLaws (Proxy :: Proxy (Sum a))
   , monoidLaws (Proxy :: Proxy (Sum a))
   , showReadLaws p
+  , boundedEnumLaws p
 #if defined(VERSION_aeson)
   , jsonLaws p
 #endif
