@@ -4,6 +4,7 @@
 
 module Test.QuickCheck.Classes.Semigroup
   ( semigroupLaws
+  , commutativeSemigroupLaws
   ) where
 
 import Prelude hiding (foldr1)
@@ -32,6 +33,15 @@ semigroupLaws p = Laws "Semigroup"
   , ("Times", semigroupTimes p)
   ]
 
+-- | Tests everything from 'semigroupLaws', plus the following:
+--
+-- [/Commutative/]
+--   @a '<>' b ≡ b '<>' a@
+commutativeSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+commutativeSemigroupLaws p = Laws "Commutative Semigroup" $ lawsProperties (semigroupLaws p) ++
+  [ ("Commutative", semigroupCommutative p)
+  ]
+
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupAssociative _ = myForAllShrink True (const True)
   (\(a :: a,b,c) -> ["a = " ++ show a, "b = " ++ show b, "c = " ++ show c])
@@ -39,6 +49,14 @@ semigroupAssociative _ = myForAllShrink True (const True)
   (\(a,b,c) -> a <> (b <> c))
   "(a <> b) <> c"
   (\(a,b,c) -> (a <> b) <> c)
+
+semigroupCommutative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semigroupCommutative _ = myForAllShrink True (const True)
+  (\(a :: a,b) -> ["a = " ++ show a, "b = " ++ show b])
+  "a <> b"
+  (\(a,b) -> a <> b)
+  "b <> a"
+  (\(a,b) -> b <> a)
 
 semigroupConcatenation :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupConcatenation _ = myForAllShrink True (const True)

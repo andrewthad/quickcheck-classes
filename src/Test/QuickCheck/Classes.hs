@@ -31,6 +31,7 @@ module Test.QuickCheck.Classes
   , boundedEnumLaws
   , primLaws
   , semigroupLaws
+  , commutativeSemigroupLaws
   , showReadLaws
   , storableLaws
 #if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
