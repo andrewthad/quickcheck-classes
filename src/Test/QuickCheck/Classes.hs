@@ -16,7 +16,6 @@ module Test.QuickCheck.Classes
 #if MIN_VERSION_base(4,7,0)
   , bitsLaws
 #endif
-  , commutativeMonoidLaws 
   , eqLaws
   , integralLaws
 #if MIN_VERSION_base(4,7,0)
@@ -26,6 +25,7 @@ module Test.QuickCheck.Classes
   , jsonLaws
 #endif
   , monoidLaws
+  , commutativeMonoidLaws 
   , ordLaws
   , enumLaws
   , boundedEnumLaws
@@ -42,13 +42,19 @@ module Test.QuickCheck.Classes
 #endif
   , applicativeLaws
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-  , bifunctorLaws 
+  , bifunctorLaws
+  , categoryLaws
+  , commutativeCategoryLaws
 #endif
   , foldableLaws
   , functorLaws
   , monadLaws
   , monadPlusLaws
   , monadZipLaws
+#if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+  , semigroupoidLaws
+  , commutativeSemigroupoidLaws
+#endif
   , traversableLaws
 #endif
     -- * Types
@@ -92,11 +98,17 @@ import Test.QuickCheck.Classes.Applicative
 #if MIN_VERSION_transformers(0,5,0)
 import Test.QuickCheck.Classes.Bifunctor
 #endif
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+import Test.QuickCheck.Classes.Category
+#endif
 import Test.QuickCheck.Classes.Foldable
 import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
+#if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+import Test.QuickCheck.Classes.Semigroupoid
+#endif
 import Test.QuickCheck.Classes.Traversable
 #endif
 #endif
@@ -240,4 +252,3 @@ data Proxy2 (f :: * -> * -> *) = Proxy2
 -- instance for IO on older GHCs.
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
-

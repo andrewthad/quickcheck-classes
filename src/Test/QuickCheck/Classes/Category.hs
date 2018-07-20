@@ -28,7 +28,7 @@ import Test.QuickCheck.Classes.Common
 -- | Tests the following 'Category' properties:
 --
 -- [/Right Identity/]
---   @f '.' 'id' ≡ f
+--   @f '.' 'id' ≡ f@
 -- [/Left Identity/]
 --   @'id' '.' f ≡ f@
 -- [/Associativity/]
@@ -40,7 +40,7 @@ categoryLaws :: (Category cat, Eq2 cat, Show2 cat, Arbitrary2 cat) => proxy cat 
 categoryLaws p = Laws "Category"
   [ ("Right Identity", categoryRightIdentity p)
   , ("Left Identity", categoryLeftIdentity p)
-  , ("Second Identity", categoryAssociativity p)
+  , ("Associativity", categoryAssociativity p)
   ]
 
 -- | Test everything from 'categoryLaws' plus the following:

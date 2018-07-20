@@ -74,6 +74,7 @@ library
     Test.QuickCheck.Classes.Ord
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
+    Test.QuickCheck.Classes.Semigroupoid
     Test.QuickCheck.Classes.Semiring 
     Test.QuickCheck.Classes.ShowRead
     Test.QuickCheck.Classes.Storable
