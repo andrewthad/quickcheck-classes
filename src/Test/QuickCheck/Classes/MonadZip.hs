@@ -11,7 +11,7 @@ module Test.QuickCheck.Classes.MonadZip
   ) where
 
 import Control.Applicative
-import Control.Arrow ((***))
+import Control.Arrow (Arrow(..))
 import Control.Monad.Zip (MonadZip(mzip))
 import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)

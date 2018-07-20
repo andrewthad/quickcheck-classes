@@ -42,7 +42,7 @@ semigroupoidLaws p = Laws "Semigroupoid"
   [ ("Associativity", semigroupoidAssociativity p)
   ]
 
--- | Test everything from 'semigroupoidLaws' plus the following:
+-- | Tests everything from 'semigroupoidLaws' plus the following:
 --
 -- [/Commutative/]
 --   @f `'o'` g ≡ g `'o'` f@

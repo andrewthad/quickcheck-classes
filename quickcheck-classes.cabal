@@ -72,6 +72,7 @@ library
     Test.QuickCheck.Classes.MonadZip
     Test.QuickCheck.Classes.Monoid
     Test.QuickCheck.Classes.Ord
+    Test.QuickCheck.Classes.Plus 
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
     Test.QuickCheck.Classes.Semigroupoid

@@ -51,6 +51,10 @@ module Test.QuickCheck.Classes
   , monadLaws
   , monadPlusLaws
   , monadZipLaws
+#if defined(VERSION_semigroupoids)
+  , plusLaws
+  , extendedPlusLaws
+#endif
 #if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   , semigroupoidLaws
   , commutativeSemigroupoidLaws
@@ -107,6 +111,7 @@ import Test.QuickCheck.Classes.Monad
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
 #if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+import Test.QuickCheck.Classes.Plus
 import Test.QuickCheck.Classes.Semigroupoid
 #endif
 import Test.QuickCheck.Classes.Traversable
