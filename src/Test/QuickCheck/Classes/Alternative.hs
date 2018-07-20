@@ -28,19 +28,24 @@ import Test.QuickCheck.Classes.Common
 
 -- | Tests the following alternative properties:
 --
--- [/Identity/]
+-- [/Left Identity/]
 --   @'empty' '<|>' x ≡ x@
+-- [/Right Identity/]
 --   @x '<|>' 'empty' ≡ x@
 -- [/Associativity/]
 --   @a '<|>' (b '<|>' c) ≡ (a '<|>' b) '<|>' c)@
 alternativeLaws :: (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
 alternativeLaws p = Laws "Alternative"
-  [ ("Identity", alternativeIdentity p)
+  [ ("Left Identity", alternativeLeftIdentity p)
+  , ("Right Identity", alternativeRightIdentity p)
   , ("Associativity", alternativeAssociativity p)
   ]
 
-alternativeIdentity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
-alternativeIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> a) a) && (eq1 a (empty <|> a))
+alternativeLeftIdentity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+alternativeLeftIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> a) a)
+
+alternativeRightIdentity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+alternativeRightIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 a (empty <|> a))
 
 alternativeAssociativity :: forall proxy f. (Alternative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
 alternativeAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (a <|> (b <|> c)) ((a <|> b) <|> c)
