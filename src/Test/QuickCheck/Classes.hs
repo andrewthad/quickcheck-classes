@@ -32,6 +32,9 @@ module Test.QuickCheck.Classes
   , primLaws
   , semigroupLaws
   , commutativeSemigroupLaws
+#if defined(VERSION_semirings)
+  , semiringLaws
+#endif
   , showReadLaws
   , storableLaws
 #if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
@@ -87,6 +90,9 @@ import Test.QuickCheck.Classes.Monoid
 import Test.QuickCheck.Classes.Ord
 import Test.QuickCheck.Classes.Prim
 import Test.QuickCheck.Classes.Semigroup
+#if defined(VERSION_semirings)
+import Test.QuickCheck.Classes.Semiring
+#endif
 import Test.QuickCheck.Classes.ShowRead
 import Test.QuickCheck.Classes.Storable
 
