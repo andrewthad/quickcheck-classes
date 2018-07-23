@@ -10,7 +10,8 @@ module Test.QuickCheck.Classes
   ( -- * Running 
     lawsCheck
   , lawsCheckMany
-  , specialisedLawsCheckMany 
+  , lawsCheckOne
+  , specialisedLawsCheckMany
     -- * Properties
     -- ** Ground types
 #if MIN_VERSION_base(4,7,0)
@@ -162,8 +163,19 @@ lawsCheck (Laws className properties) = do
 -- ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
 -- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
 -- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+{-# DEPRECATED specialisedLawsCheckMany "Use the better-named 'Test.QuickCheck.Classes.lawsCheckOne' instead" #-}
 specialisedLawsCheckMany :: Proxy a -> [Proxy a -> Laws] -> IO ()
 specialisedLawsCheckMany p ls = foldlMapM (lawsCheck . ($ p)) ls
+
+-- | A convenience function that allows one to check many typeclass
+-- instances of the same type.
+--
+-- >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
+-- ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
+-- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
+-- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
+lawsCheckOne :: Proxy a -> [Proxy a -> Laws] -> IO ()
+lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 
 -- | A convenience function for checking multiple typeclass instances
 --   of multiple types. Consider the following Haskell source file:
