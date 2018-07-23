@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.4.14] - TBA
+## [0.4.14] - 2018-07-23
 ### Added
 - commutativeSemigroupLaws
 - the following typeclasses:
@@ -15,8 +15,8 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - semiringLaws were never exported, we now export them.
 - make documentation for `MonadPlus` and `Alternative` consistent.
 - bump semirings to 0.2.0.0
-- deprecate 'Test.QuickCheck.Classes.specialisedLawsCheckMany'
-  in favour of 'Test.QuickCheck.Classes.lawsCheckOne'
+- deprecate `Test.QuickCheck.Classes.specialisedLawsCheckMany`
+  in favour of `Test.QuickCheck.Classes.lawsCheckOne`
 
 ## [0.4.13] - 2018-07-18
 ### Added
