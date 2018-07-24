@@ -60,7 +60,7 @@ module Test.QuickCheck.Classes
   , plusLaws
   , extendedPlusLaws
 #endif
-#if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if defined(VERSION_semigroupoids) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0))
   , semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
