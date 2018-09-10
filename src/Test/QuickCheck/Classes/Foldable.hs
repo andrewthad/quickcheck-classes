@@ -5,9 +5,11 @@
 
 module Test.QuickCheck.Classes.Foldable
   (
+#if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
     foldableLaws
-#endif  
+#endif
+#endif
   ) where
 
 import Data.Monoid

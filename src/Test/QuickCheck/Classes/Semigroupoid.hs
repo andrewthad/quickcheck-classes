@@ -5,12 +5,14 @@
 
 module Test.QuickCheck.Classes.Semigroupoid
   (
+#if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 #if defined(VERSION_semigroupoids)
     semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
-#endif  
+#endif
+#endif
   ) where
 
 import Prelude hiding (id, (.))

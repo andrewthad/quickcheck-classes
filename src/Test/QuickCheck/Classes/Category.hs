@@ -5,10 +5,12 @@
 
 module Test.QuickCheck.Classes.Category
   (
+#if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
     categoryLaws
   , commutativeCategoryLaws
-#endif  
+#endif
+#endif
   ) where
 
 import Prelude hiding (id, (.))

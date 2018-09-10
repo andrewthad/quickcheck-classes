@@ -186,11 +186,16 @@ instance Show1 Triple where
 #endif
 #endif
 
+#if MIN_VERSION_QuickCheck(2,10,0)
 instance Arbitrary1 Triple where
   liftArbitrary x = Triple <$> x <*> x <*> x
 
 instance Arbitrary a => Arbitrary (Triple a) where
   arbitrary = liftArbitrary arbitrary
+#else
+instance Arbitrary a => Arbitrary (Triple a) where
+  arbitrary = Triple <$> arbitrary <*> arbitrary <*> arbitrary
+#endif
 
 instance Functor Triple where
   fmap f (Triple a b c) = Triple (f a) (f b) (f c)
@@ -274,9 +279,11 @@ instance (Eq1 f, Eq a) => Eq (Apply f a) where
 instance (Show1 f, Show a) => Show (Apply f a) where
   showsPrec p = showsPrec1 p . getApply
 
+#if MIN_VERSION_QuickCheck(2,10,0)
 instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   arbitrary = fmap Apply arbitrary1
   shrink = map Apply . shrink1 . getApply
+#endif
 #endif
 
 foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> t a -> f m
@@ -292,9 +299,11 @@ instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
 instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
   showsPrec p = showsPrec2 p . getApply2
 
+#if MIN_VERSION_QuickCheck(2,10,0)
 instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
   arbitrary = fmap Apply2 arbitrary2
   shrink = fmap Apply2 . shrink2 . getApply2
+#endif
 #endif
 
 data LinearEquation = LinearEquation
@@ -336,12 +345,14 @@ instance Show1 m => Show (LinearEquationM m) where
     . showString " else "
     . showsPrec1 0 b
 
+#if MIN_VERSION_QuickCheck(2,10,0)
 instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
   arbitrary = liftA2 LinearEquationM arbitrary1 arbitrary1
   shrink (LinearEquationM a b) = L.concat
     [ map (\x -> LinearEquationM x b) (shrink1 a)
     , map (\x -> LinearEquationM a x) (shrink1 b)
     ]
+#endif
 #endif
 
 instance Arbitrary LinearEquation where

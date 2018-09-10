@@ -53,8 +53,13 @@ import Data.Maybe (mapMaybe,catMaybes)
 import Data.Proxy (Proxy)
 import Data.Foldable (foldlM)
 import Data.Traversable (traverse)
-import Test.QuickCheck (Property,Arbitrary,Function,CoArbitrary,(===),property,
-  applyFun,applyFun2,NonNegative(..),Fun)
+import Test.QuickCheck (Property,Arbitrary,CoArbitrary,(===),property,
+  NonNegative(..))
+#if MIN_VERSION_QuickCheck(2,10,0)
+import Test.QuickCheck.Function (Function,Fun,applyFun,applyFun2)
+#else
+import Test.QuickCheck.Function (Function,Fun,apply)
+#endif
 import qualified Data.List as L
 
 import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
@@ -235,4 +240,12 @@ stApplyFun f a = return (applyFun f a)
 
 stApplyFun2 :: Fun (a,b) c -> a -> b -> ST s c
 stApplyFun2 f a b = return (applyFun2 f a b)
+
+#if !MIN_VERSION_QuickCheck(2,10,0)
+applyFun :: Fun a b -> (a -> b)
+applyFun = apply
+
+applyFun2 :: Fun (a, b) c -> (a -> b -> c)
+applyFun2 = curry . apply
+#endif
 #endif
