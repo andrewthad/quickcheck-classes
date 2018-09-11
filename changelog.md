@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.4.x.y] - TBA
+### Change
+- Support QuickCheck-2.12
+- Fix compilation for containers<0.5.9
+- Fix compilation with QuickCheck-2.9
+
 ## [0.4.14.1] - 2018-07-24
 ### Change
 - Build correctly when dependency on semigroupoids is disabled.
