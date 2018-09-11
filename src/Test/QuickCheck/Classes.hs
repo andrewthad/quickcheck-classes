@@ -247,7 +247,7 @@ lawsCheckMany xs = do
         putStr (typeClassName ++ ": " ++ name ++ " ")
         r <- quickCheckResult p
         return $ case r of
-          Success _ _ _ -> Good
+          Success{} -> Good
           _ -> Bad
   putStrLn ""
   case r of
