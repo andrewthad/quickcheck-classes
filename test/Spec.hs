@@ -45,7 +45,11 @@ import Test.QuickCheck.Classes
 
 main :: IO ()
 main = do
+#if defined(VERSION_semigroupoids)
+#if MIN_VERSION_containers(0,5,9)
   quickCheck prop_map_apply_equals
+#endif
+#endif
   lawsCheckMany allPropsApplied
 
 allPropsApplied :: [(String,[Laws])]
