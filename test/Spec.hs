@@ -66,8 +66,10 @@ allPropsApplied =
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 #if defined(VERSION_semigroupoids)
+#if MIN_VERSION_containers(0,5,9)
   , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
   , ("Pound", someHigherLaws (Proxy1 :: Proxy1 (Pound Int)))
+#endif
 #endif
 #endif
 #endif
@@ -162,7 +164,7 @@ instance Foldable Rouge where
 #endif
 
 newtype Pound k v = Pound { getPound :: Map k v }
-#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
+#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)) && MIN_VERSION_containers(0,5,9)
   deriving (Eq,Functor,Show,Arbitrary,Arbitrary1,Eq1,Show1)
 #else
   deriving (Eq,Show,Arbitrary)
