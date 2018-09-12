@@ -18,7 +18,7 @@ module Test.QuickCheck.Classes.Common
   , LastNothing(..)
   , Bottom(..)
   , LinearEquation(..)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   , LinearEquationM(..)
 #endif
   , QuadraticEquation(..)
