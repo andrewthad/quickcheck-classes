@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.4.14.1
+version: 0.4.14.2
 synopsis: QuickCheck common typeclasses
 description:
   This library provides QuickCheck properties to ensure
@@ -86,7 +86,7 @@ library
     , QuickCheck >= 2.9
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
-    , containers
+    , containers >= 0.5
     , semigroups
     , tagged
   if flag(aeson)
