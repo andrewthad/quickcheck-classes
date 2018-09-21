@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.4.14.3] - 2018-09-21
+### Change
+- Fix a CPP conditional import problem that caused build failures on GHC 7.10
+- Set an explicit lower bound for containers
+
 ## [0.4.14.2] - 2018-09-12
 ### Change
 - Support QuickCheck-2.12

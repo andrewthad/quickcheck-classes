@@ -18,7 +18,7 @@ module Test.QuickCheck.Classes.Common
   , LastNothing(..)
   , Bottom(..)
   , LinearEquation(..)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
   , LinearEquationM(..)
 #endif
   , QuadraticEquation(..)
@@ -42,7 +42,7 @@ module Test.QuickCheck.Classes.Common
   , func6
   , reverseTriple
   , runLinearEquation
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
   , runLinearEquationM
 #endif
   , runQuadraticEquation
@@ -327,7 +327,7 @@ showLinearList xs = SG.appEndo $ mconcat
   ++ L.intersperse (SG.Endo (showChar ',')) (map (SG.Endo . showLinear 0) xs)
   ++ [SG.Endo (showChar ']')]
 
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
+#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 
 runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
