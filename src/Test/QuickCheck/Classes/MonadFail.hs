@@ -30,7 +30,9 @@ import Control.Monad.Fail (MonadFail(..))
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Test.QuickCheck.Classes.Compat (eq1)
+#endif
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 
