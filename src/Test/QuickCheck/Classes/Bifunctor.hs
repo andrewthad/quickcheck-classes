@@ -18,13 +18,15 @@ module Test.QuickCheck.Classes.Bifunctor
 
 import Data.Bifunctor(Bifunctor(..))
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 import Data.Functor.Classes (Eq2,Show2)
 #endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 import Test.QuickCheck.Classes.Compat (eq2)
+#endif
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 
