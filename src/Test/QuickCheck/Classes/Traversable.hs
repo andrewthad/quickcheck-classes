@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Traversable
@@ -18,7 +22,7 @@ import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes
+import Data.Functor.Classes (Eq1,Show1)
 import Data.Functor.Compose
 import Data.Functor.Identity
 #endif
@@ -27,6 +31,7 @@ import Data.Functor.Identity
 import qualified Data.Set as S
 
 import Test.QuickCheck.Classes.Common
+import Test.QuickCheck.Classes.Compat (eq1)
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 
@@ -61,10 +66,22 @@ import Test.QuickCheck.Classes.Common
 --
 -- * Identity: @t ('pure' x) ≡ 'pure' x@
 -- * Distributivity: @t (x '<*>' y) ≡ t x '<*>' t y@
-traversableLaws :: (Traversable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+traversableLaws ::
+#if MIN_VERSION_base(4,12,0)
+  (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 traversableLaws = traversableLawsInternal
 
-traversableLawsInternal :: forall proxy f. (Traversable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+traversableLawsInternal :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 traversableLawsInternal _ = Laws "Traversable"
   [ (,) "Naturality" $ property $ \(Apply (a :: f Integer)) ->
       propNestedEq1 (apTrans (traverse func4 a)) (traverse (apTrans . func4) a)

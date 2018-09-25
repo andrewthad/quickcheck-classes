@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Applicative
@@ -17,12 +21,13 @@ import Test.QuickCheck hiding ((.&.))
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes
+import Data.Functor.Classes (Eq1,Show1)
 #endif
 #endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
+import Test.QuickCheck.Classes.Compat (eq1)
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 
@@ -40,7 +45,13 @@ import Test.QuickCheck.Classes.Common
 --   @u '<*>' 'pure' y ≡ 'pure' ('$' y) '<*>' u@
 -- [/LiftA2 (1)/]
 --   @('<*>') ≡ 'liftA2' 'id'@
-applicativeLaws :: (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+applicativeLaws ::
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 applicativeLaws p = Laws "Applicative"
   [ ("Identity", applicativeIdentity p)
   , ("Composition", applicativeComposition p)
@@ -50,26 +61,56 @@ applicativeLaws p = Laws "Applicative"
     -- todo: liftA2 part 2, we need an equation of two variables for this
   ]
 
-applicativeIdentity :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+applicativeIdentity :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
 
-applicativeComposition :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+applicativeComposition :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 applicativeComposition _ = property $ \(Apply (u' :: f QuadraticEquation)) (Apply (v' :: f QuadraticEquation)) (Apply (w :: f Integer)) ->
   let u = fmap runQuadraticEquation u'
       v = fmap runQuadraticEquation v'
    in eq1 (pure (.) <*> u <*> v <*> w) (u <*> (v <*> w))
 
-applicativeHomomorphism :: forall proxy f. (Applicative f, Eq1 f, Show1 f) => proxy f -> Property
+applicativeHomomorphism :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f)
+#endif
+  => proxy f -> Property
 applicativeHomomorphism _ = property $ \(e :: QuadraticEquation) (a :: Integer) ->
   let f = runQuadraticEquation e
    in eq1 (pure f <*> pure a) (pure (f a) :: f Integer)
 
-applicativeInterchange :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+applicativeInterchange :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 applicativeInterchange _ = property $ \(Apply (u' :: f QuadraticEquation)) (y :: Integer) ->
   let u = fmap runQuadraticEquation u'
    in eq1 (u <*> pure y) (pure ($ y) <*> u)
 
-applicativeLiftA2_1 :: forall proxy f. (Applicative f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+applicativeLiftA2_1 :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 applicativeLiftA2_1 _ = property $ \(Apply (f' :: f QuadraticEquation)) (Apply (x :: f Integer)) ->
   let f = fmap runQuadraticEquation f'
    in eq1 (liftA2 id f x) (f <*> x)
