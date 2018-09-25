@@ -1,4 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
+
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
 
 {-# OPTIONS_GHC -Wall #-}
 
@@ -102,12 +109,23 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 -- the Functor constraint is needed for transformers-0.4
+#if MIN_VERSION_base(4,12,0)
+nestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a) => f (g a) -> f (g a) -> Bool
+nestedEq1 = (==)
+#else
 nestedEq1 :: (Eq1 f, Eq1 g, Eq a, Functor f) => f (g a) -> f (g a) -> Bool
 nestedEq1 x y = eq1 (Compose x) (Compose y)
+#endif
 
+#if MIN_VERSION_base(4,12,0)
+propNestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a, forall x. Show x => Show (f x), forall x. Show x => Show (g x), Show a)
+  => f (g a) -> f (g a) -> Property
+propNestedEq1 = (===)
+#else
 propNestedEq1 :: (Eq1 f, Eq1 g, Eq a, Show1 f, Show1 g, Show a, Functor f)
   => f (g a) -> f (g a) -> Property
 propNestedEq1 x y = Compose x === Compose y
+#endif
 
 toSpecialApplicative ::
      Compose Triple ((,) (S.Set Integer)) Integer
@@ -269,6 +287,11 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
 
+#if MIN_VERSION_base(4,12,0)
+deriving instance (forall x. Eq x => Eq (f x), Eq a) => Eq (Apply f a)
+deriving instance (forall x. Arbitrary x => Arbitrary (f x), Arbitrary a) => Arbitrary (Apply f a)
+deriving instance (forall x. Show x => Show (f x), Show a) => Show (Apply f a)
+#else
 #if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
@@ -285,6 +308,7 @@ instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   shrink = map Apply . shrink1 . getApply
 #endif
 #endif
+#endif
 
 foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> t a -> f m
 foldMapA f = getApply . foldMap (Apply . f)
@@ -293,6 +317,11 @@ foldMapA f = getApply . foldMap (Apply . f)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
 
+#if MIN_VERSION_base(4,12,0)
+deriving instance (forall x y. (Eq x, Eq y) => Eq (f x y), Eq a, Eq b) => Eq (Apply2 f a b)
+deriving instance (forall x y. (Arbitrary x, Arbitrary y) => Arbitrary (f x y), Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b)
+deriving instance (forall x y. (Show x, Show y) => Show (f x y), Show a, Show b) => Show (Apply2 f a b)
+#else
 instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
   Apply2 a == Apply2 b = eq2 a b
 
@@ -303,6 +332,7 @@ instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
 instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
   arbitrary = fmap Apply2 arbitrary2
   shrink = fmap Apply2 . shrink2 . getApply2
+#endif
 #endif
 #endif
 
@@ -335,6 +365,21 @@ runLinearEquationM (LinearEquationM e1 e2) i = if odd i
   then liftM (flip runLinearEquation i) e1
   else liftM (flip runLinearEquation i) e2
 
+#if MIN_VERSION_base(4,12,0)
+deriving instance (forall x. Eq x => Eq (m x)) => Eq (LinearEquationM m)
+instance (forall a. Show a => Show (m a)) => Show (LinearEquationM m) where
+  show (LinearEquationM a b) = (\f -> f "")
+    $ showString "\\x -> if odd x then "
+    . showsPrec 0 a
+    . showString " else "
+    . showsPrec 0 b
+instance (forall a. Arbitrary a => Arbitrary (m a)) => Arbitrary (LinearEquationM m) where
+  arbitrary = liftA2 LinearEquationM arbitrary arbitrary
+  shrink (LinearEquationM a b) = L.concat
+    [ map (\x -> LinearEquationM x b) (shrink a)
+    , map (\x -> LinearEquationM a x) (shrink b)
+    ]
+#else
 instance Eq1 m => Eq (LinearEquationM m) where
   LinearEquationM a1 b1 == LinearEquationM a2 b2 = eq1 a1 a2 && eq1 b1 b2
 
@@ -352,6 +397,7 @@ instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
     [ map (\x -> LinearEquationM x b) (shrink1 a)
     , map (\x -> LinearEquationM a x) (shrink1 b)
     ]
+#endif
 #endif
 #endif
 

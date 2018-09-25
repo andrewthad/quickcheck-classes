@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Foldable
@@ -21,7 +25,7 @@ import Control.Monad.Trans.Class (lift)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Test.QuickCheck.Monadic (monadicIO)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes
+import Data.Functor.Classes (Eq1,Show1)
 #endif
 #endif
 import Test.QuickCheck.Property (Property)
@@ -30,6 +34,7 @@ import qualified Data.Foldable as F
 import qualified Data.Semigroup as SG
 
 import Test.QuickCheck.Classes.Common
+import Test.QuickCheck.Classes.Compat (eq1)
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 
@@ -62,10 +67,22 @@ import Test.QuickCheck.Classes.Common
 --
 -- Note that this checks to ensure that @foldl\'@ and @foldr\'@
 -- are suitably strict.
-foldableLaws :: (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+foldableLaws :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 foldableLaws = foldableLawsInternal
 
-foldableLawsInternal :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+foldableLawsInternal :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 foldableLawsInternal p = Laws "Foldable"
   [ (,) "fold" $ property $ \(Apply (a :: f (SG.Sum Integer))) ->
       F.fold a == F.foldMap id a
@@ -110,7 +127,13 @@ unsnoc (x:y:xs) = fmap (\(bs,b) -> (x:bs,b)) (unsnoc (y : xs))
 compatToList :: Foldable f => f a -> [a]
 compatToList = foldMap (\x -> [x])
 
-foldableFoldl' :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+foldableFoldl' :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
   monadicIO $ do
     let f :: Integer -> Bottom Integer -> Integer
@@ -133,7 +156,13 @@ foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs
         Right i -> return (Just i)
     return (r1 == r2)
 
-foldableFoldr' :: forall proxy f. (Foldable f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+foldableFoldr' :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs :: f (Bottom Integer))) ->
   monadicIO $ do
     let f :: Bottom Integer -> Integer -> Integer

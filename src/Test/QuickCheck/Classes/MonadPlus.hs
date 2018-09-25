@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.MonadPlus
@@ -15,13 +19,14 @@ module Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 import Test.QuickCheck.Classes.Common
+import Test.QuickCheck.Classes.Compat (eq1)
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Applicative(Alternative(empty))
 import Control.Monad (MonadPlus(mzero,mplus))
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 #if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes
+import Data.Functor.Classes (Eq1,Show1)
 #endif
 #endif
 
@@ -40,7 +45,13 @@ import Data.Functor.Classes
 --   @'mzero' '>>=' f ≡ 'mzero'@
 -- [/Right Zero/]
 --   @m '>>' 'mzero' ≡ 'mzero'@
-monadPlusLaws :: (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Laws
+monadPlusLaws ::
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Laws
 monadPlusLaws p = Laws "MonadPlus"
   [ ("Left Identity", monadPlusLeftIdentity p)
   , ("Right Identity", monadPlusRightIdentity p)
@@ -49,19 +60,49 @@ monadPlusLaws p = Laws "MonadPlus"
   , ("Right Zero", monadPlusRightZero p)
   ]
 
-monadPlusLeftIdentity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusLeftIdentity :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 monadPlusLeftIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus mzero a) a
 
-monadPlusRightIdentity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusRightIdentity :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 monadPlusRightIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus a mzero) a
 
-monadPlusAssociativity :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusAssociativity :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 monadPlusAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (mplus a (mplus b c)) (mplus (mplus a b) c)
 
-monadPlusLeftZero :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusLeftZero :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 monadPlusLeftZero _ = property $ \(k' :: LinearEquationM f) -> eq1 (mzero >>= runLinearEquationM k') mzero
 
-monadPlusRightZero :: forall proxy f. (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f) => proxy f -> Property
+monadPlusRightZero :: forall proxy f.
+#if MIN_VERSION_base(4,12,0)
+  (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
+#else
+  (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
+#endif
+  => proxy f -> Property
 monadPlusRightZero _ = property $ \(Apply (a :: f Integer)) -> eq1 (a >> (mzero :: f Integer)) mzero
 
 #endif
