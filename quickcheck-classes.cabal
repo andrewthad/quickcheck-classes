@@ -83,7 +83,7 @@ library
   build-depends:
       base >= 4.5 && < 5
     , bifunctors 
-    , QuickCheck >= 2.9
+    , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
     , containers >= 0.4.2.1

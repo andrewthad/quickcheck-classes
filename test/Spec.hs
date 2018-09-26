@@ -13,9 +13,8 @@ import Data.Aeson (ToJSON,FromJSON)
 #endif
 import Data.Bits
 import Data.Foldable
-#if defined(VERSION_containers)
 import Data.Map (Map)
-#endif
+import qualified Data.Map as M
 #if MIN_VERSION_containers(0,5,9)
 import qualified Data.Map.Merge.Strict as MM
 #endif
@@ -27,7 +26,7 @@ import Data.Functor.Apply (Apply((<.>)))
 import Data.Functor.Classes
 #endif
 import Data.Int
-import Data.Monoid (Sum,Monoid,mappend,mconcat,mempty)
+import Data.Monoid (Sum(..),Monoid,mappend,mconcat,mempty)
 import Data.Orphans ()
 import Data.Primitive
 import Data.Proxy
@@ -204,3 +203,14 @@ instance Arbitrary a => Arbitrary (Vector a) where
   arbitrary = V.fromList <$> arbitrary
   shrink v = map V.fromList (shrink (V.toList v))
 
+#if !MIN_VERSION_QuickCheck(2,8,2)
+instance (Ord k, Arbitrary k, Arbitrary v) => Arbitrary (Map k v) where
+  arbitrary = M.fromList <$> arbitrary
+  shrink m = map M.fromList (shrink (M.toList m))
+#endif
+
+#if !MIN_VERSION_QuickCheck(2,9,0)
+instance Arbitrary a => Arbitrary (Sum a) where
+  arbitrary = Sum <$> arbitrary
+  shrink = map Sum . shrink . getSum
+#endif

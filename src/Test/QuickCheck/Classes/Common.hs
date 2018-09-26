@@ -94,7 +94,9 @@ myForAllShrink :: (Arbitrary a, Show b, Eq b)
   -> (a -> b)
   -> Property
 myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
+#if MIN_VERSION_QuickCheck(2,9,0)
   again $
+#endif
   MkProperty $
   arbitrary >>= \x ->
     unProperty $
