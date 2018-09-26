@@ -20,16 +20,15 @@ import Data.Map (Map)
 import qualified Data.Map.Merge.Strict as MM
 #endif
 import Data.Traversable
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 #if defined(VERSION_semigroupoids)
 import Data.Functor.Apply (Apply((<.>)))
-#endif
 #endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
 #endif
 import Data.Int
 import Data.Monoid (Sum,Monoid,mappend,mconcat,mempty)
+import Data.Orphans ()
 import Data.Primitive
 import Data.Proxy
 import Data.Vector (Vector)
@@ -64,7 +63,7 @@ allPropsApplied =
 #endif
 #endif
 #if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0)
 #if defined(VERSION_semigroupoids)
 #if MIN_VERSION_containers(0,5,9)
   , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
@@ -164,10 +163,10 @@ instance Foldable Rouge where
 #endif
 
 newtype Pound k v = Pound { getPound :: Map k v }
-#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)) && MIN_VERSION_containers(0,5,9)
+#if MIN_VERSION_QuickCheck(2,10,0) && MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
   deriving (Eq,Functor,Show,Arbitrary,Arbitrary1,Eq1,Show1)
 #else
-  deriving (Eq,Show,Arbitrary)
+  deriving (Eq,Functor,Show,Arbitrary)
 #endif
 
 #if defined(VERSION_semigroupoids)

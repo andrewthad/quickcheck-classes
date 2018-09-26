@@ -103,16 +103,18 @@ test-suite test
   main-is: Spec.hs
   build-depends:
       base
+    , base-orphans >= 0.5
     , quickcheck-classes
     , QuickCheck
     , containers 
     , primitive
     , vector
-    , semigroupoids 
     , transformers
     , tagged
   if flag(aeson)
     build-depends: aeson
+  if flag(semigroupoids)
+    build-depends: semigroupoids
   default-language: Haskell2010
 
 source-repository head
