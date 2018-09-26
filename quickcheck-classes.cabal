@@ -87,7 +87,7 @@ library
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
     , containers >= 0.4.2.1
-    , semigroups
+    , semigroups >= 0.17
     , tagged
   if flag(aeson)
     build-depends: aeson >= 1.1
