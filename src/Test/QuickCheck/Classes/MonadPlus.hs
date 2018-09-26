@@ -10,7 +10,7 @@
 module Test.QuickCheck.Classes.MonadPlus
   (
 #if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
     monadPlusLaws
 #endif
 #endif
@@ -27,13 +27,13 @@ import Test.QuickCheck.Classes.Compat (eq1)
 import Control.Applicative(Alternative(empty))
 import Control.Monad (MonadPlus(mzero,mplus))
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
 #endif
 #endif
 
 #if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 
 -- | Tests the following monad plus properties:
 --

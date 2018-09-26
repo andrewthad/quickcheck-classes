@@ -25,7 +25,7 @@ module Test.QuickCheck.Classes.Common
   , LastNothing(..)
   , Bottom(..)
   , LinearEquation(..)
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , LinearEquationM(..)
 #endif
   , QuadraticEquation(..)
@@ -49,7 +49,7 @@ module Test.QuickCheck.Classes.Common
   , func6
   , reverseTriple
   , runLinearEquation
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
   , runLinearEquationM
 #endif
   , runQuadraticEquation
@@ -291,8 +291,7 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
 deriving instance (forall x. Eq x => Eq (f x), Eq a) => Eq (Apply f a)
 deriving instance (forall x. Arbitrary x => Arbitrary (f x), Arbitrary a) => Arbitrary (Apply f a)
 deriving instance (forall x. Show x => Show (f x), Show a) => Show (Apply f a)
-#else
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,5,0)
+#elif MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
 
@@ -306,7 +305,6 @@ instance (Show1 f, Show a) => Show (Apply f a) where
 instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   arbitrary = fmap Apply arbitrary1
   shrink = map Apply . shrink1 . getApply
-#endif
 #endif
 #endif
 
@@ -357,7 +355,7 @@ showLinearList xs = SG.appEndo $ mconcat
   ++ L.intersperse (SG.Endo (showChar ',')) (map (SG.Endo . showLinear 0) xs)
   ++ [SG.Endo (showChar ']')]
 
-#if MIN_VERSION_base(4,8,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 
 runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
