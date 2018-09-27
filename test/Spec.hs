@@ -5,6 +5,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 import Control.Monad
 import Control.Monad.Zip (MonadZip)
 import Control.Applicative
@@ -13,23 +17,21 @@ import Data.Aeson (ToJSON,FromJSON)
 #endif
 import Data.Bits
 import Data.Foldable
-#if defined(VERSION_containers)
 import Data.Map (Map)
-#endif
+import qualified Data.Map as M
 #if MIN_VERSION_containers(0,5,9)
 import qualified Data.Map.Merge.Strict as MM
 #endif
 import Data.Traversable
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 #if defined(VERSION_semigroupoids)
 import Data.Functor.Apply (Apply((<.>)))
-#endif
 #endif
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes
 #endif
 import Data.Int
-import Data.Monoid (Sum,Monoid,mappend,mconcat,mempty)
+import Data.Monoid (Sum(..),Monoid,mappend,mconcat,mempty)
+import Data.Orphans ()
 import Data.Primitive
 import Data.Proxy
 import Data.Vector (Vector)
@@ -64,7 +66,7 @@ allPropsApplied =
 #endif
 #endif
 #if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if MIN_VERSION_base(4,9,0)
 #if defined(VERSION_semigroupoids)
 #if MIN_VERSION_containers(0,5,9)
   , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
@@ -119,8 +121,16 @@ foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-allHigherLaws :: (Traversable f, MonadZip f, MonadPlus f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
-allHigherLaws p = 
+allHigherLaws ::
+  (Traversable f, MonadZip f, MonadPlus f, Applicative f,
+#if MIN_VERSION_base(4,12,0)
+   forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
+   forall a. Show a => Show (f a)
+#else
+   Eq1 f, Arbitrary1 f, Show1 f
+#endif
+  ) => proxy f -> [Laws]
+allHigherLaws p =
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
@@ -135,8 +145,16 @@ allHigherLaws p =
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 #if defined(VERSION_semigroupoids)
-someHigherLaws :: (Apply f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
-someHigherLaws p = 
+someHigherLaws ::
+  (Apply f,
+#if MIN_VERSION_base(4,12,0)
+   forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
+   forall a. Show a => Show (f a)
+#else
+   Eq1 f, Arbitrary1 f, Show1 f
+#endif
+  ) => proxy f -> [Laws]
+someHigherLaws p =
   [ applyLaws p
   ]
 #endif
@@ -164,10 +182,10 @@ instance Foldable Rouge where
 #endif
 
 newtype Pound k v = Pound { getPound :: Map k v }
-#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)) && MIN_VERSION_containers(0,5,9)
+#if MIN_VERSION_QuickCheck(2,10,0) && MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
   deriving (Eq,Functor,Show,Arbitrary,Arbitrary1,Eq1,Show1)
 #else
-  deriving (Eq,Show,Arbitrary)
+  deriving (Eq,Functor,Show,Arbitrary)
 #endif
 
 #if defined(VERSION_semigroupoids)
@@ -205,3 +223,14 @@ instance Arbitrary a => Arbitrary (Vector a) where
   arbitrary = V.fromList <$> arbitrary
   shrink v = map V.fromList (shrink (V.toList v))
 
+#if !MIN_VERSION_QuickCheck(2,8,2)
+instance (Ord k, Arbitrary k, Arbitrary v) => Arbitrary (Map k v) where
+  arbitrary = M.fromList <$> arbitrary
+  shrink m = map M.fromList (shrink (M.toList m))
+#endif
+
+#if !MIN_VERSION_QuickCheck(2,9,0)
+instance Arbitrary a => Arbitrary (Sum a) where
+  arbitrary = Sum <$> arbitrary
+  shrink = map Sum . shrink . getSum
+#endif

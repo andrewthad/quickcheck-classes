@@ -1,0 +1,7 @@
+packages: .
+with-compiler: ghc-7.10.3
+flags:
+  quickcheck-classes -semigroupoids
+constraints:
+    transformers >= 0.5
+  , QuickCheck   >= 2.10

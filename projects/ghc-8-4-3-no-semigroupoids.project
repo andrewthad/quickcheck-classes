@@ -1,0 +1,4 @@
+packages: .
+with-compiler: ghc-8.4.3
+flags:
+  quickcheck-classes -semigroupoids
