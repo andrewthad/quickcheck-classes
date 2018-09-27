@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.5.x.y] - TBA
+### Change
+- Support QuickCheck 2.7 and 2.8. This adds `Arbitrary` orphan instances
+  to the test suite.
+- Fix CPP that caused build failures on GHC 7.10 and some old 
+  package versions.
+- Fix compiling the test suite without semigroupoids and compiling with old
+  versions of transformers.
+- Add lower bound for semigroups to make sure the `stimes` method is available.
+
 ## [0.5.0.0] - 2018-09-25
 ### Change
 - When compiling with GHC 8.6 and newer, use `QuantifiedConstraints` instead
