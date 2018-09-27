@@ -5,6 +5,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
 
+#if MIN_VERSION_base(4,12,0)
+{-# LANGUAGE QuantifiedConstraints #-}
+#endif
+
 import Control.Monad
 import Control.Monad.Zip (MonadZip)
 import Control.Applicative
@@ -117,8 +121,16 @@ foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-allHigherLaws :: (Traversable f, MonadZip f, MonadPlus f, Applicative f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
-allHigherLaws p = 
+allHigherLaws ::
+  (Traversable f, MonadZip f, MonadPlus f, Applicative f,
+#if MIN_VERSION_base(4,12,0)
+   forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
+   forall a. Show a => Show (f a)
+#else
+   Eq1 f, Arbitrary1 f, Show1 f
+#endif
+  ) => proxy f -> [Laws]
+allHigherLaws p =
   [ functorLaws p
   , applicativeLaws p
   , monadLaws p
@@ -133,8 +145,16 @@ allHigherLaws p =
 #if MIN_VERSION_QuickCheck(2,10,0)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 #if defined(VERSION_semigroupoids)
-someHigherLaws :: (Apply f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> [Laws]
-someHigherLaws p = 
+someHigherLaws ::
+  (Apply f,
+#if MIN_VERSION_base(4,12,0)
+   forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
+   forall a. Show a => Show (f a)
+#else
+   Eq1 f, Arbitrary1 f, Show1 f
+#endif
+  ) => proxy f -> [Laws]
+someHigherLaws p =
   [ applyLaws p
   ]
 #endif
