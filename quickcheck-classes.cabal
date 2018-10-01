@@ -64,6 +64,7 @@ library
     Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Foldable
     Test.QuickCheck.Classes.Functor
+    Test.QuickCheck.Classes.Generic
     Test.QuickCheck.Classes.Integral
     Test.QuickCheck.Classes.Json
     Test.QuickCheck.Classes.Monad
@@ -89,12 +90,14 @@ library
     , containers >= 0.4.2.1
     , semigroups >= 0.17
     , tagged
+  if impl(ghc > 7.4) && impl(ghc < 7.6)
+    build-depends: ghc-prim
   if flag(aeson)
     build-depends: aeson >= 1.1
   if flag(semigroupoids)
     build-depends: semigroupoids 
   if flag(semirings)
-    build-depends: semirings >= 0.2.0.0
+    build-depends: semirings >= 0.2.1.1
   default-language: Haskell2010
 
 test-suite test

@@ -1,0 +1,3 @@
+packages: .
+package semirings
+  flags: -hashable -containers -unordered-containers -vector
