@@ -11,10 +11,9 @@ module Test.QuickCheck.Classes.Generic
   (
 #if MIN_VERSION_base(4,6,0)
     genericLaws
-  , genericLawsU
 #endif
-#if MIN_VERSION_base(4,12,0) 
---  , generic1Laws
+#if MIN_VERSION_base(4,9,0) 
+  , generic1Laws
 #endif
   ) where
 
@@ -34,56 +33,54 @@ import Test.QuickCheck.Classes.Common (Laws(..), Apply(..))
 
 -- | Tests the following properties:
 --
--- [/Conjunction Idempotence/]
---   @n .&. n ≡ n@
--- [/Disjunction Idempotence/]
---   @n .|. n ≡ n@
--- [/Double Complement/]
---   @complement (complement n) ≡ n@
+-- [/From-To Inverse/]
+--   @'from' '.' 'to' ≡  'id'@
+-- [/To-From Inverse/]
+--   @'to' '.' 'from' ≡  'id'@
 --
 -- /Note:/ This property test is only available when
 -- using @base-4.6@ or newer.
-genericLaws :: (Generic a, Eq a, Arbitrary a, Show a, Show (Rep a x), Arbitrary (Rep a x), Eq (Rep a x)) => Proxy a -> Proxy x -> Laws
-genericLaws pa px = Laws "Generic"
-  [ ("From-To idempotence", fromToIdempotence pa px)
-  , ("To-From idempotence", toFromIdempotence pa)
+--
+-- /Note:/ 'from' and 'to' don't actually care about
+-- the type variable @x@ in @'Rep' a x@, so here we instantiate
+-- it to @'()'@ by default. If you would like to instantiate @x@
+-- as something else, please file a bug report.
+genericLaws :: (Generic a, Eq a, Arbitrary a, Show a, Show (Rep a ()), Arbitrary (Rep a ()), Eq (Rep a ())) => Proxy a -> Laws
+genericLaws pa = Laws "Generic"
+  [ ("From-To inverse", fromToInverse pa (Proxy :: Proxy ()))
+  , ("To-From inverse", toFromInverse pa)
   ]
 
-genericLawsU :: (Generic a, Eq a, Arbitrary a, Show a, Show (Rep a ()), Arbitrary (Rep a ()), Eq (Rep a ())) => Proxy a -> Laws
-genericLawsU pa = Laws "Generic"
-  [ ("From-To idempotence", fromToIdempotenceU pa)
-  , ("To-From idempotence", toFromIdempotence pa)
-  ]
+toFromInverse :: forall proxy a. (Generic a, Eq a, Arbitrary a, Show a) => proxy a -> Property
+toFromInverse _ = property $ \(v :: a) -> (to . from $ v) == v
 
-
-toFromIdempotence :: forall proxy a. (Generic a, Eq a, Arbitrary a, Show a) => proxy a -> Property
-toFromIdempotence _ = property $ \(v :: a) -> (to . from $ v) == v
-
-fromToIdempotence ::
+fromToInverse ::
      forall proxy a x.
      (Generic a, Show (Rep a x), Arbitrary (Rep a x), Eq (Rep a x))
   => proxy a
   -> proxy x
   -> Property
-fromToIdempotence _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a)) 
+fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a)) 
 
-fromToIdempotenceU ::
-     forall a.
-     (Generic a, Show (Rep a ()), Arbitrary (Rep a ()), Eq (Rep a ()))
-  => Proxy a
-  -> Property
-fromToIdempotenceU pa = fromToIdempotence pa (Proxy :: Proxy ())
-#if MIN_VERSION_base(4,12,0)
-
+#if MIN_VERSION_base(4,9,0)
+-- | Tests the following properties:
+--
+-- [/From-To Inverse/]
+--   @'from1' '.' 'to1' ≡  'id'@
+-- [/To-From Inverse/]
+--   @'to1' '.' 'from1' ≡  'id'@
+--
+-- /Note:/ This property test is only available when
+-- using @base-4.9@ or newer.
 generic1Laws :: (Generic1 f, Eq1 f, Arbitrary1 f, Show1 f, Eq1 (Rep1 f), Show1 (Rep1 f), Arbitrary1 (Rep1 f))
   => Proxy f -> Laws
 generic1Laws p = Laws "Generic1"
-  [ ("From1-To1 idempotence", fromToIdempotence1 p)
-  , ("To1-From1 idempotence", toFromIdempotence1 p)
+  [ ("From1-To1 inverse", fromToInverse1 p)
+  , ("To1-From1 inverse", toFromInverse1 p)
   ]
 
 -- hack for quantified constraints: under base >= 4.12,
--- our usual 'Apply' wrapper has a {Eq,Show,Arbitrary}
+-- our usual 'Apply' wrapper has Eq, Show, and Arbitrary
 -- instances that are incompatible.
 newtype GApply f a = GApply { getGApply :: f a }
 
@@ -108,11 +105,11 @@ instance (Arbitrary1 f, Arbitrary a) => Arbitrary (GApply f a) where
 #endif
 #endif
 
-toFromIdempotence1 :: forall proxy f. (Generic1 f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> Property
-toFromIdempotence1 _ = property $ \(GApply (v :: f Integer)) -> eq1 v (to1 . from1 $ v)
+toFromInverse1 :: forall proxy f. (Generic1 f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> Property
+toFromInverse1 _ = property $ \(GApply (v :: f Integer)) -> eq1 v (to1 . from1 $ v)
 
-fromToIdempotence1 :: forall proxy f. (Generic1 f, Eq1 (Rep1 f), Arbitrary1 (Rep1 f), Show1 (Rep1 f)) => proxy f -> Property
-fromToIdempotence1 _ = property $ \(GApply (r :: Rep1 f Integer)) -> eq1 r (from1 ((to1 $ r) :: f Integer))
+fromToInverse1 :: forall proxy f. (Generic1 f, Eq1 (Rep1 f), Arbitrary1 (Rep1 f), Show1 (Rep1 f)) => proxy f -> Property
+fromToInverse1 _ = property $ \(GApply (r :: Rep1 f Integer)) -> eq1 r (from1 ((to1 $ r) :: f Integer))
 
 #endif
 
