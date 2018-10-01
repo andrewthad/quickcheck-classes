@@ -9,7 +9,7 @@
 
 module Test.QuickCheck.Classes.Generic
   (
-#if MIN_VERSION_base(4,6,0)
+#if MIN_VERSION_base(4,5,0)
     genericLaws
 #endif
 #if MIN_VERSION_base(4,9,0) 
@@ -17,7 +17,7 @@ module Test.QuickCheck.Classes.Generic
 #endif
   ) where
 
-#if MIN_VERSION_base(4,6,0)
+#if MIN_VERSION_base(4,5,0)
 import Control.Applicative
 import Data.Semigroup
 import Data.Monoid
@@ -39,7 +39,7 @@ import Test.QuickCheck.Classes.Common (Laws(..), Apply(..))
 --   @'to' '.' 'from' ≡  'id'@
 --
 -- /Note:/ This property test is only available when
--- using @base-4.6@ or newer.
+-- using @base-4.5@ or newer.
 --
 -- /Note:/ 'from' and 'to' don't actually care about
 -- the type variable @x@ in @'Rep' a x@, so here we instantiate
