@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -46,7 +46,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- In the laws above, the infix function @'***'@ refers to a typeclass
 -- method of 'Arrow'.
 monadZipLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadZip f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadZip f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -57,7 +57,7 @@ monadZipLaws p = Laws "MonadZip"
   ]
 
 monadZipNaturality :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadZip f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadZip f, Functor f, Eq1 f, Show1 f, Arbitrary1 f)

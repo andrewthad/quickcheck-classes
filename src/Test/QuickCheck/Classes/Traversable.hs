@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -69,7 +69,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- * Identity: @t ('pure' x) ≡ 'pure' x@
 -- * Distributivity: @t (x '<*>' y) ≡ t x '<*>' t y@
 traversableLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -78,7 +78,7 @@ traversableLaws ::
 traversableLaws = traversableLawsInternal
 
 traversableLawsInternal :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)

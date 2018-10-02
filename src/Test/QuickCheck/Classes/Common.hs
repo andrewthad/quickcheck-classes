@@ -3,7 +3,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -111,7 +111,7 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 -- the Functor constraint is needed for transformers-0.4
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 nestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a) => f (g a) -> f (g a) -> Bool
 nestedEq1 = (==)
 #else
@@ -119,7 +119,7 @@ nestedEq1 :: (Eq1 f, Eq1 g, Eq a, Functor f) => f (g a) -> f (g a) -> Bool
 nestedEq1 x y = eq1 (Compose x) (Compose y)
 #endif
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 propNestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a, forall x. Show x => Show (f x), forall x. Show x => Show (g x), Show a)
   => f (g a) -> f (g a) -> Property
 propNestedEq1 = (===)
@@ -289,7 +289,7 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 deriving instance (forall x. Eq x => Eq (f x), Eq a) => Eq (Apply f a)
 deriving instance (forall x. Arbitrary x => Arbitrary (f x), Arbitrary a) => Arbitrary (Apply f a)
 deriving instance (forall x. Show x => Show (f x), Show a) => Show (Apply f a)
@@ -317,7 +317,7 @@ foldMapA f = getApply . foldMap (Apply . f)
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 deriving instance (forall x y. (Eq x, Eq y) => Eq (f x y), Eq a, Eq b) => Eq (Apply2 f a b)
 deriving instance (forall x y. (Arbitrary x, Arbitrary y) => Arbitrary (f x y), Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b)
 deriving instance (forall x y. (Show x, Show y) => Show (f x y), Show a, Show b) => Show (Apply2 f a b)
@@ -365,7 +365,7 @@ runLinearEquationM (LinearEquationM e1 e2) i = if odd i
   then liftM (flip runLinearEquation i) e1
   else liftM (flip runLinearEquation i) e2
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 deriving instance (forall x. Eq x => Eq (m x)) => Eq (LinearEquationM m)
 instance (forall a. Show a => Show (m a)) => Show (LinearEquationM m) where
   show (LinearEquationM a b) = (\f -> f "")

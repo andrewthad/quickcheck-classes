@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -48,7 +48,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 --   @('FunctorApply.<.>') ≡ 'liftF2' 'id'@
 #if defined(VERSION_semigroupoids)
 applyLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (FunctorApply.Apply f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (FunctorApply.Apply f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -59,7 +59,7 @@ applyLaws p = Laws "Apply"
   ]
 
 applyLiftF2_1 :: forall proxy f. 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (FunctorApply.Apply f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (FunctorApply.Apply f, Eq1 f, Show1 f, Arbitrary1 f)

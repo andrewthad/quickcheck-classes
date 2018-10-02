@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -44,7 +44,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- [/Associativity/]
 --   @a '<|>' (b '<|>' c) ≡ (a '<|>' b) '<|>' c)@
 alternativeLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alternative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -57,7 +57,7 @@ alternativeLaws p = Laws "Alternative"
   ]
 
 alternativeLeftIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alternative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -66,7 +66,7 @@ alternativeLeftIdentity :: forall proxy f.
 alternativeLeftIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 (empty <|> a) a)
 
 alternativeRightIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alternative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -75,7 +75,7 @@ alternativeRightIdentity :: forall proxy f.
 alternativeRightIdentity _ = property $ \(Apply (a :: f Integer)) -> (eq1 a (empty <|> a))
 
 alternativeAssociativity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alternative f, Eq1 f, Show1 f, Arbitrary1 f)

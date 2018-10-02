@@ -3,7 +3,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -46,7 +46,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- [/Const/]
 --   @('<$') ≡ 'fmap' 'const'@
 functorLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Functor f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Functor f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -60,7 +60,7 @@ functorLaws p = Laws "Functor"
   ]
 
 functorIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Functor f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Functor f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -69,7 +69,7 @@ functorIdentity :: forall proxy f.
 functorIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (fmap id a) a
 
 functorComposition :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Functor f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Functor f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -79,7 +79,7 @@ functorComposition _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap func2 (fmap func1 a)) (fmap (func2 . func1) a)
 
 functorConst :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Functor f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Functor f, Eq1 f, Show1 f, Arbitrary1 f)

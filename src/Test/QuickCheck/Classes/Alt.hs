@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -51,7 +51,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 --   @f '<$>' (a 'Alt.<!>' b) ≡ (f '<$>' a) 'Alt.<!>' (f '<$>' b)@
 #if defined(VERSION_semigroupoids)
 altLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alt f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alt f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -63,7 +63,7 @@ altLaws p = Laws "Alt"
   ]
 
 altAssociative :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alt f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alt f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -72,7 +72,7 @@ altAssociative :: forall proxy f.
 altAssociative _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 ((a Alt.<!> b) Alt.<!> c) (a Alt.<!> (b Alt.<!> c))
 
 altLeftDistributive :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Alt f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Alt f, Eq1 f, Show1 f, Arbitrary1 f)

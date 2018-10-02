@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -55,7 +55,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 --   @m 'Alt.<!>' 'Plus.zero' ≡ m@
 #if defined(VERSION_semigroupoids)
 plusLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Plus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -71,7 +71,7 @@ plusLaws p = Laws "Plus"
 -- [/Congruency/]
 --   @'Plus.zero' ≡ 'Alternative.empty'@
 extendedPlusLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, Alternative.Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Plus f, Alternative.Alternative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -82,7 +82,7 @@ extendedPlusLaws p = Laws "Plus extended to Alternative" $ lawsProperties (plusL
   ]
 
 extendedPlusLaw :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, Alternative.Alternative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Plus f, Alternative.Alternative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -91,7 +91,7 @@ extendedPlusLaw :: forall proxy f.
 extendedPlusLaw _ = property $ eq1 (Plus.zero :: f Integer) (Alternative.empty :: f Integer)
 
 plusLeftIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Plus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -100,7 +100,7 @@ plusLeftIdentity :: forall proxy f.
 plusLeftIdentity _ = property $ \(Apply (m :: f Integer)) -> eq1 (Plus.zero Alt.<!> m) m
 
 plusRightIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Plus f, Eq1 f, Show1 f, Arbitrary1 f)

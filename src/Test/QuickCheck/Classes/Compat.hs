@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -29,7 +29,7 @@ isTrue# b = b
 #endif
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 eq1 :: (forall a. Eq a => Eq (f a), Eq a) => f a -> f a -> Bool
 eq1 = (==)
 #else
@@ -39,7 +39,7 @@ eq1 = C.eq1
 #endif
 
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 eq2 :: (forall a. (Eq a, Eq b) => Eq (f a b), Eq a, Eq b) => f a b -> f a b -> Bool
 eq2 = (==)
 #else

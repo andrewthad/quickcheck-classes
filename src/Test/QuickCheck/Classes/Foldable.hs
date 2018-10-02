@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -70,7 +70,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- Note that this checks to ensure that @foldl\'@ and @foldr\'@
 -- are suitably strict.
 foldableLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -79,7 +79,7 @@ foldableLaws :: forall proxy f.
 foldableLaws = foldableLawsInternal
 
 foldableLawsInternal :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -130,7 +130,7 @@ compatToList :: Foldable f => f a -> [a]
 compatToList = foldMap (\x -> [x])
 
 foldableFoldl' :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -159,7 +159,7 @@ foldableFoldl' _ = property $ \(_ :: ChooseSecond) (_ :: LastNothing) (Apply (xs
     return (r1 == r2)
 
 foldableFoldr' :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Foldable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Foldable f, Eq1 f, Show1 f, Arbitrary1 f)

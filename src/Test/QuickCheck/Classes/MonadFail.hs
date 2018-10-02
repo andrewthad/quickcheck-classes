@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -43,7 +43,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- [/Left Zero/]
 -- @'fail' s '>>=' f ≡ 'fail' s@
 monadFailLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadFail f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadFail f, Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -54,7 +54,7 @@ monadFailLaws p = Laws "Monad"
   ]
  
 monadFailLeftZero :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadFail f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadFail f, Functor f, Eq1 f, Show1 f, Arbitrary1 f)
