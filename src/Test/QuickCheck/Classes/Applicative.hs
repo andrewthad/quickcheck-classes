@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -48,7 +48,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- [/LiftA2 (1)/]
 --   @('<*>') ≡ 'liftA2' 'id'@
 applicativeLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -64,7 +64,7 @@ applicativeLaws p = Laws "Applicative"
   ]
 
 applicativeIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -73,7 +73,7 @@ applicativeIdentity :: forall proxy f.
 applicativeIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (pure id <*> a) a
 
 applicativeComposition :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -85,7 +85,7 @@ applicativeComposition _ = property $ \(Apply (u' :: f QuadraticEquation)) (Appl
    in eq1 (pure (.) <*> u <*> v <*> w) (u <*> (v <*> w))
 
 applicativeHomomorphism :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a))
 #else
   (Applicative f, Eq1 f, Show1 f)
@@ -96,7 +96,7 @@ applicativeHomomorphism _ = property $ \(e :: QuadraticEquation) (a :: Integer) 
    in eq1 (pure f <*> pure a) (pure (f a) :: f Integer)
 
 applicativeInterchange :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -107,7 +107,7 @@ applicativeInterchange _ = property $ \(Apply (u' :: f QuadraticEquation)) (y ::
    in eq1 (u <*> pure y) (pure ($ y) <*> u)
 
 applicativeLiftA2_1 :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Applicative f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Applicative f, Eq1 f, Show1 f, Arbitrary1 f)

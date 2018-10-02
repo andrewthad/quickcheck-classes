@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -46,7 +46,7 @@ import Test.QuickCheck.Classes.Compat (eq2)
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.
 bifunctorLaws :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else
   (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
@@ -60,7 +60,7 @@ bifunctorLaws p = Laws "Bifunctor"
   ]
 
 bifunctorIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else
   (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
@@ -69,7 +69,7 @@ bifunctorIdentity :: forall proxy f.
 bifunctorIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (bimap id id x) x
 
 bifunctorFirstIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else
   (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
@@ -78,7 +78,7 @@ bifunctorFirstIdentity :: forall proxy f.
 bifunctorFirstIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (first id x) x
 
 bifunctorSecondIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else
   (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
@@ -87,7 +87,7 @@ bifunctorSecondIdentity :: forall proxy f.
 bifunctorSecondIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (second id x) x
 
 bifunctorComposition :: forall proxy f. 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else
   (Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)

@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -48,7 +48,7 @@ import Data.Functor.Classes (Eq1,Show1)
 -- [/Right Zero/]
 --   @m '>>' 'mzero' ≡ 'mzero'@
 monadPlusLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -63,7 +63,7 @@ monadPlusLaws p = Laws "MonadPlus"
   ]
 
 monadPlusLeftIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -72,7 +72,7 @@ monadPlusLeftIdentity :: forall proxy f.
 monadPlusLeftIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus mzero a) a
 
 monadPlusRightIdentity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -81,7 +81,7 @@ monadPlusRightIdentity :: forall proxy f.
 monadPlusRightIdentity _ = property $ \(Apply (a :: f Integer)) -> eq1 (mplus a mzero) a
 
 monadPlusAssociativity :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -90,7 +90,7 @@ monadPlusAssociativity :: forall proxy f.
 monadPlusAssociativity _ = property $ \(Apply (a :: f Integer)) (Apply (b :: f Integer)) (Apply (c :: f Integer)) -> eq1 (mplus a (mplus b c)) (mplus (mplus a b) c)
 
 monadPlusLeftZero :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -99,7 +99,7 @@ monadPlusLeftZero :: forall proxy f.
 monadPlusLeftZero _ = property $ \(k' :: LinearEquationM f) -> eq1 (mzero >>= runLinearEquationM k') mzero
 
 monadPlusRightZero :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadPlus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (MonadPlus f, Eq1 f, Show1 f, Arbitrary1 f)
