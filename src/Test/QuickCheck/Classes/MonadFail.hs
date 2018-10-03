@@ -9,34 +9,24 @@
 
 module Test.QuickCheck.Classes.MonadFail
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) && MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
     monadFailLaws
-#endif
 #endif
   ) where
 
+#if HAVE_UNARY_LAWS
+
 import Control.Applicative
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Monad (ap)
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,9,0) && MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
 import Prelude hiding (fail)
 import Control.Monad.Fail (MonadFail(..))
-#endif
-#endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
-#endif
-
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) && MIN_VERSION_transformers(0,4,0)
 
 -- | Tests the following 'MonadFail' properties:
 -- 
@@ -65,6 +55,3 @@ monadFailLeftZero _ = property $ \(k' :: LinearEquationM f) (s :: String) ->
   in eq1 (fail s >>= k) (fail s)
 
 #endif
-
-#endif
-

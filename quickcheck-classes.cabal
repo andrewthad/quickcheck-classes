@@ -102,6 +102,7 @@ library
     , containers >= 0.4.2.1
     , semigroups >= 0.17
     , tagged
+    , fail
   if impl(ghc > 7.4) && impl(ghc < 7.6)
     build-depends: ghc-prim
   if impl(ghc > 8.5)
