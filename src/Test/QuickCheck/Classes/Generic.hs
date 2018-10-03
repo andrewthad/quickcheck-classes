@@ -12,15 +12,15 @@ module Test.QuickCheck.Classes.Generic
 #if MIN_VERSION_base(4,5,0)
     genericLaws
 #endif
-#if MIN_VERSION_base(4,9,0) 
+#if MIN_VERSION_base(4,9,0) && MIN_VERSION_QuickCheck(2,10,0)
   , generic1Laws
 #endif
   ) where
 
 #if MIN_VERSION_base(4,5,0)
 import Control.Applicative
-import Data.Semigroup
-import Data.Monoid
+import Data.Semigroup as SG
+import Data.Monoid as MD
 import GHC.Generics
 #if MIN_VERSION_base(4,9,0)
 import Data.Functor.Classes
@@ -62,7 +62,7 @@ fromToInverse ::
   -> Property
 fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a)) 
 
-#if MIN_VERSION_base(4,9,0)
+#if MIN_VERSION_base(4,9,0) && MIN_VERSION_QuickCheck(2,10,0)
 -- | Tests the following properties:
 --
 -- [/From-To Inverse/]
@@ -85,25 +85,21 @@ generic1Laws p = Laws "Generic1"
 newtype GApply f a = GApply { getGApply :: f a }
 
 instance (Applicative f, Semigroup a) => Semigroup (GApply f a) where
-  GApply x <> GApply y = GApply $ liftA2 (<>) x y
+  GApply x <> GApply y = GApply $ liftA2 (SG.<>) x y
 
 instance (Applicative f, Monoid a) => Monoid (GApply f a) where
   mempty = GApply $ pure mempty
-  mappend = (<>)
+  mappend (GApply x) (GApply y) = GApply $ liftA2 (MD.<>) x y
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 instance (Eq1 f, Eq a) => Eq (GApply f a) where
   GApply a == GApply b = eq1 a b
 
 instance (Show1 f, Show a) => Show (GApply f a) where
   showsPrec p = showsPrec1 p . getGApply
 
-#if MIN_VERSION_QuickCheck(2,10,0)
 instance (Arbitrary1 f, Arbitrary a) => Arbitrary (GApply f a) where
   arbitrary = fmap GApply arbitrary1
   shrink = map GApply . shrink1 . getGApply
-#endif
-#endif
 
 toFromInverse1 :: forall proxy f. (Generic1 f, Eq1 f, Arbitrary1 f, Show1 f) => proxy f -> Property
 toFromInverse1 _ = property $ \(GApply (v :: f Integer)) -> eq1 v (to1 . from1 $ v)
