@@ -9,12 +9,10 @@
 
 module Test.QuickCheck.Classes.Plus
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 #if defined(VERSION_semigroupoids)
     plusLaws
   , extendedPlusLaws
-#endif
 #endif
 #endif
   ) where
@@ -29,23 +27,19 @@ import qualified Data.Functor.Plus as Plus
 #endif
 
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
 import qualified Control.Applicative as Alternative
-#endif
 #endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 
 -- | Tests the following alt properties:
 --
@@ -110,5 +104,3 @@ plusRightIdentity _ = property $ \(Apply (m :: f Integer)) -> eq1 (m Alt.<!> Plu
 
 #endif
 #endif
-#endif
-

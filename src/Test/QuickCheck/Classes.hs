@@ -38,19 +38,14 @@ module Test.QuickCheck.Classes
 #endif
   , showReadLaws
   , storableLaws
-#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
-    -- ** Higher-Kinded Types
+#if HAVE_UNARY_LAWS
+    -- ** Unary type constructors
   , alternativeLaws
 #if defined(VERSION_semigroupoids)
   , altLaws
   , applyLaws
 #endif
   , applicativeLaws
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-  , bifunctorLaws
-  , categoryLaws
-  , commutativeCategoryLaws
-#endif
   , foldableLaws
   , functorLaws
   , monadLaws
@@ -60,11 +55,17 @@ module Test.QuickCheck.Classes
   , plusLaws
   , extendedPlusLaws
 #endif
-#if defined(VERSION_semigroupoids) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0))
+  , traversableLaws
+#endif
+#if HAVE_BINARY_LAWS
+    -- ** Binary type constructors
+  , bifunctorLaws
+  , categoryLaws
+  , commutativeCategoryLaws
+#if defined(VERSION_semigroupoids)
   , semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
-  , traversableLaws
 #endif
     -- * Types
   , Laws(..)
@@ -97,32 +98,31 @@ import Test.QuickCheck.Classes.Semiring
 import Test.QuickCheck.Classes.ShowRead
 import Test.QuickCheck.Classes.Storable
 
--- Higher-Kinded Types
-
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+-- Unary type constructors
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Alternative
 #if defined(VERSION_semigroupoids)
 import Test.QuickCheck.Classes.Alt
 import Test.QuickCheck.Classes.Apply
 #endif
 import Test.QuickCheck.Classes.Applicative
-#if MIN_VERSION_transformers(0,5,0)
-import Test.QuickCheck.Classes.Bifunctor
-#endif
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Test.QuickCheck.Classes.Category
-#endif
 import Test.QuickCheck.Classes.Foldable
 import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
-#if defined(VERSION_semigroupoids) && MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(VERSION_semigroupoids)
 import Test.QuickCheck.Classes.Plus
-import Test.QuickCheck.Classes.Semigroupoid
 #endif
 import Test.QuickCheck.Classes.Traversable
+#endif
+
+-- Binary type constructors
+#if HAVE_BINARY_LAWS
+import Test.QuickCheck.Classes.Bifunctor
+import Test.QuickCheck.Classes.Category
+#if defined(VERSION_semigroupoids)
+import Test.QuickCheck.Classes.Semigroupoid
 #endif
 #endif
 

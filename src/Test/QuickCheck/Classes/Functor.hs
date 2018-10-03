@@ -11,31 +11,25 @@
 
 module Test.QuickCheck.Classes.Functor
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
     functorLaws
-#endif
 #endif
   ) where
 
 import Data.Functor
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
-#endif
 #endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 
 -- | Tests the following functor properties:
 --
@@ -87,8 +81,6 @@ functorConst :: forall proxy f.
   => proxy f -> Property
 functorConst _ = property $ \(Apply (a :: f Integer)) ->
   eq1 (fmap (const 'X') a) ('X' <$ a)
-
-#endif
 
 #endif
 

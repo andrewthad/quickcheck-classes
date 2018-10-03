@@ -44,6 +44,18 @@ flag semirings
     default: True
     manual: True
 
+flag unary-laws
+  description:
+    Include infrastructure for testing class laws of unary type constructors.
+  default: True
+  manual: False
+
+flag binary-laws
+  description:
+    Include infrastructure for testing class laws of binary type constructors.
+  default: True
+  manual: False
+
 library
   hs-source-dirs: src
   exposed-modules:
@@ -94,10 +106,16 @@ library
     build-depends: ghc-prim
   if impl(ghc > 8.5)
     cpp-options: -DHAVE_QUANTIFIED_CONSTRAINTS
-  if (impl(transformers > 0.5.0) || impl(base > 4.9.0)) && impl(QuickCheck > 2.10.0)
-    cpp-options: -DHAVE_HIGHER_KINDED_2
-  if (impl(transformers > 0.4.0) || impl(base > 4.9.0)) && impl(QuickCheck > 2.10.0)
-    cpp-options: -DHAVE_HIGHER_KINDED_1
+  if flag(unary-laws)
+    build-depends:
+        transformers >= 0.4.0
+      , QuickCheck >= 2.10.0
+    cpp-options: -DHAVE_UNARY_LAWS
+  if flag(binary-laws)
+    build-depends:
+        transformers >= 0.5.0
+      , QuickCheck >= 2.10.0
+    cpp-options: -DHAVE_BINARY_LAWS
   if flag(aeson)
     build-depends: aeson >= 1.1
     cpp-options: -DHAVE_AESON
@@ -123,10 +141,18 @@ test-suite test
     , vector
     , transformers
     , tagged
+  if impl(ghc > 8.5)
+    cpp-options: -DHAVE_QUANTIFIED_CONSTRAINTS
+  if flag(unary-laws)
+    cpp-options: -DHAVE_UNARY_LAWS
+  if flag(binary-laws)
+    cpp-options: -DHAVE_BINARY_LAWS
   if flag(aeson)
     build-depends: aeson
+    cpp-options: -DHAVE_AESON
   if flag(semigroupoids)
     build-depends: semigroupoids
+    cpp-options: -DHAVE_SEMIGROUPOIDS
   default-language: Haskell2010
 
 source-repository head

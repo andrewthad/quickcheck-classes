@@ -7,10 +7,10 @@
 
 module Test.QuickCheck.Classes.Compat
   ( isTrue#
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , eq1
 #endif
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if HAVE_BINARY_LAWS
   , eq2
 #endif
   ) where
@@ -19,7 +19,7 @@ module Test.QuickCheck.Classes.Compat
 import GHC.Exts (isTrue#)
 #endif
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if defined(HAVE_UNARY_LAWS) || defined(HAVE_BINARY_LAWS)
 import qualified Data.Functor.Classes as C
 #endif
 
@@ -28,7 +28,7 @@ isTrue# :: Bool -> Bool
 isTrue# b = b
 #endif
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 #if HAVE_QUANTIFIED_CONSTRAINTS
 eq1 :: (forall a. Eq a => Eq (f a), Eq a) => f a -> f a -> Bool
 eq1 = (==)
@@ -38,7 +38,7 @@ eq1 = C.eq1
 #endif
 #endif
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if HAVE_BINARY_LAWS
 #if HAVE_QUANTIFIED_CONSTRAINTS
 eq2 :: (forall a. (Eq a, Eq b) => Eq (f a b), Eq a, Eq b) => f a b -> f a b -> Bool
 eq2 = (==)

@@ -16,7 +16,7 @@ module Test.QuickCheck.Classes.Common
   
   -- only used for higher-kinded types
   , Apply(..)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if HAVE_BINARY_LAWS
   , Apply2(..)
 #endif
   , Triple(..)
@@ -25,31 +25,31 @@ module Test.QuickCheck.Classes.Common
   , LastNothing(..)
   , Bottom(..)
   , LinearEquation(..)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , LinearEquationM(..)
 #endif
   , QuadraticEquation(..)
   , LinearEquationTwo(..)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , nestedEq1
   , propNestedEq1
   , toSpecialApplicative
 #endif
   , flipPair
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , apTrans
 #endif
   , func1
   , func2
   , func3
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , func4
 #endif
   , func5
   , func6
   , reverseTriple
   , runLinearEquation
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , runLinearEquationM
 #endif
   , runQuadraticEquation
@@ -61,9 +61,12 @@ import Control.Monad
 import Data.Foldable
 import Data.Traversable
 import Data.Monoid
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes
+#if defined(HAVE_UNARY_LAWS)
+import Data.Functor.Classes (Eq1(..),Show1(..),eq1,showsPrec1)
 import Data.Functor.Compose
+#endif
+#if defined(HAVE_BINARY_LAWS)
+import Data.Functor.Classes (Eq2(..),Show2(..),eq2,showsPrec2)
 #endif
 import Data.Semigroup (Semigroup)
 import Test.QuickCheck hiding ((.&.))
@@ -109,7 +112,7 @@ myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
           err = description ++ "\n" ++ unlines (map ("  " ++) (showInputs x')) ++ "  " ++ name1 ++ " = " ++ sb1 ++ (if displayRhs then "\n  " ++ name2 ++ " = " ++ sb2 else "")
        in isValid x' ==> counterexample err (b1 == b2)
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 -- the Functor constraint is needed for transformers-0.4
 #if HAVE_QUANTIFIED_CONSTRAINTS
 nestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a) => f (g a) -> f (g a) -> Bool
@@ -139,7 +142,7 @@ toSpecialApplicative (Compose (Triple a b c)) =
 flipPair :: (a,b) -> (b,a)
 flipPair (x,y) = (y,x)
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 -- Reverse the list and accumulate the writers. We cannot
 -- use Sum or Product or else it wont actually be a valid
 -- applicative transformation.
@@ -158,7 +161,7 @@ func2 (a,b) = (odd a, if even a then Left (compare a b) else Right (b + 2))
 func3 :: Integer -> SG.Sum Integer
 func3 i = SG.Sum (3 * i * i - 7 * i + 4)
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 func4 :: Integer -> Compose Triple (WL.Writer (S.Set Integer)) Integer
 func4 i = Compose $ Triple
   (WL.writer (i * i, S.singleton (i * 7 + 5)))
@@ -179,7 +182,7 @@ tripleLiftEq :: (a -> b -> Bool) -> Triple a -> Triple b -> Bool
 tripleLiftEq p (Triple a1 b1 c1) (Triple a2 b2 c2) =
   p a1 a2 && p b1 b2 && p c1 c2
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 instance Eq1 Triple where
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   liftEq = tripleLiftEq
@@ -197,7 +200,7 @@ tripleLiftShowsPrec elemShowsPrec _ p (Triple a b c) = showParen (p > 10)
   . showString " "
   . elemShowsPrec 11 c
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 instance Show1 Triple where
 #if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
   liftShowsPrec = tripleLiftShowsPrec
@@ -206,7 +209,7 @@ instance Show1 Triple where
 #endif
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 instance Arbitrary1 Triple where
   liftArbitrary x = Triple <$> x <*> x <*> x
 
@@ -289,11 +292,12 @@ instance (Applicative f, Monoid a) => Monoid (Apply f a) where
   mempty = Apply $ pure mempty
   mappend = (SG.<>)
 
+#if HAVE_UNARY_LAWS
 #if HAVE_QUANTIFIED_CONSTRAINTS
 deriving instance (forall x. Eq x => Eq (f x), Eq a) => Eq (Apply f a)
 deriving instance (forall x. Arbitrary x => Arbitrary (f x), Arbitrary a) => Arbitrary (Apply f a)
 deriving instance (forall x. Show x => Show (f x), Show a) => Show (Apply f a)
-#elif MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#else
 instance (Eq1 f, Eq a) => Eq (Apply f a) where
   Apply a == Apply b = eq1 a b
 
@@ -303,7 +307,6 @@ instance (Eq1 f, Eq a) => Eq (Apply f a) where
 instance (Show1 f, Show a) => Show (Apply f a) where
   showsPrec p = showsPrec1 p . getApply
 
-#if MIN_VERSION_QuickCheck(2,10,0)
 instance (Arbitrary1 f, Arbitrary a) => Arbitrary (Apply f a) where
   arbitrary = fmap Apply arbitrary1
   shrink = map Apply . shrink1 . getApply
@@ -314,7 +317,7 @@ foldMapA :: (Foldable t, Monoid m, Semigroup m, Applicative f) => (a -> f m) -> 
 foldMapA f = getApply . foldMap (Apply . f)
 
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
+#if HAVE_BINARY_LAWS
 newtype Apply2 f a b = Apply2 { getApply2 :: f a b }
 
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -328,11 +331,9 @@ instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
 instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
   showsPrec p = showsPrec2 p . getApply2
 
-#if MIN_VERSION_QuickCheck(2,10,0)
 instance (Arbitrary2 f, Arbitrary a, Arbitrary b) => Arbitrary (Apply2 f a b) where
   arbitrary = fmap Apply2 arbitrary2
   shrink = fmap Apply2 . shrink2 . getApply2
-#endif
 #endif
 #endif
 
@@ -357,7 +358,7 @@ showLinearList xs = SG.appEndo $ mconcat
   ++ L.intersperse (SG.Endo (showChar ',')) (map (SG.Endo . showLinear 0) xs)
   ++ [SG.Endo (showChar ']')]
 
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 data LinearEquationM m = LinearEquationM (m LinearEquation) (m LinearEquation)
 
 runLinearEquationM :: Monad m => LinearEquationM m -> Integer -> m Integer
@@ -390,14 +391,12 @@ instance Show1 m => Show (LinearEquationM m) where
     . showString " else "
     . showsPrec1 0 b
 
-#if MIN_VERSION_QuickCheck(2,10,0)
 instance Arbitrary1 m => Arbitrary (LinearEquationM m) where
   arbitrary = liftA2 LinearEquationM arbitrary1 arbitrary1
   shrink (LinearEquationM a b) = L.concat
     [ map (\x -> LinearEquationM x b) (shrink1 a)
     , map (\x -> LinearEquationM a x) (shrink1 b)
     ]
-#endif
 #endif
 #endif
 

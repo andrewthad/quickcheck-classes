@@ -9,24 +9,22 @@
 
 module Test.QuickCheck.Classes.Foldable
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
     foldableLaws
-#endif
 #endif
   ) where
 
 import Data.Monoid
 import Data.Foldable
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
 import Control.Exception (ErrorCall,try,evaluate)
 import Control.Monad.Trans.Class (lift)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-import Test.QuickCheck.Monadic (monadicIO)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-import Data.Functor.Classes (Eq1,Show1)
 #endif
+import Test.QuickCheck.Monadic (monadicIO)
+#if HAVE_UNARY_LAWS
+import Data.Functor.Classes (Eq1,Show1)
 #endif
 import Test.QuickCheck.Property (Property)
 
@@ -34,13 +32,11 @@ import qualified Data.Foldable as F
 import qualified Data.Semigroup as SG
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 
 -- | Tests the following 'Foldable' properties:
 --
@@ -188,6 +184,3 @@ foldableFoldr' _ = property $ \(_ :: ChooseFirst) (_ :: LastNothing) (Apply (xs 
     return (r1 == r2)
 
 #endif
-
-#endif
-

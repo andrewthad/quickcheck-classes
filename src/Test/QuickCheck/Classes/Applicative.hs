@@ -9,31 +9,25 @@
 
 module Test.QuickCheck.Classes.Applicative
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
     applicativeLaws
-#endif
 #endif
   ) where
 
 import Control.Applicative
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
-#endif
 #endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 
 -- | Tests the following applicative properties:
 --
@@ -118,6 +112,3 @@ applicativeLiftA2_1 _ = property $ \(Apply (f' :: f QuadraticEquation)) (Apply (
    in eq1 (liftA2 id f x) (f <*> x)
 
 #endif
-
-#endif
-
