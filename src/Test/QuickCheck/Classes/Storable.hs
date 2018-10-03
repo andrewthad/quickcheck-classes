@@ -43,12 +43,22 @@ storableLaws p = Laws "Storable"
   , ("peekByteOff a i x ≡ poke (plusPtr a i) x ≡ id ", storablePokeByte p)
   ]
 
+arrayArbitrary :: forall a. (Arbitrary a, Storable a) => Int -> IO (Ptr a)
+arrayArbitrary len = do
+  let go ix xs = if ix == len
+        then pure xs
+        else do
+          x <- generate (arbitrary :: Gen a)
+          go (ix + 1) (x : xs)
+  as <- go 0 []
+  newArray as
+
 storablePeekElem :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePeekElem _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   let len = L.length as
   ix <- choose (0, len - 1)
   return $ unsafePerformIO $ do
-    addr :: Ptr a <- mallocArray len
+    addr :: Ptr a <- arrayArbitrary len
     x <- peekElemOff addr ix
     y <- peek (addr `plusPtr` (ix * sizeOf (undefined :: a)))
     free addr
@@ -59,7 +69,7 @@ storablePokeElem _ = property $ \(as :: [a]) (x :: a) -> (not (L.null as)) ==> d
   let len = L.length as
   ix <- choose (0, len - 1)
   return $ unsafePerformIO $ do
-    addr :: Ptr a <- mallocArray len
+    addr :: Ptr a <- arrayArbitrary len
     pokeElemOff addr ix x
     u <- peekElemOff addr ix
     poke (addr `plusPtr` (ix * sizeOf x)) x
@@ -72,7 +82,7 @@ storablePeekByte _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   let len = L.length as
   off <- choose (0, len - 1)
   return $ unsafePerformIO $ do
-    addr :: Ptr a <- mallocArray len
+    addr :: Ptr a <- arrayArbitrary len
     x :: a <- peekByteOff addr off
     y :: a <- peek (addr `plusPtr` off)
     free addr
@@ -83,7 +93,7 @@ storablePokeByte _ = property $ \(as :: [a]) (x :: a) -> (not (L.null as)) ==> d
   let len = L.length as
   off <- choose (0, len - 1)
   return $ unsafePerformIO $ do
-    addr :: Ptr a <- mallocArray len
+    addr :: Ptr a <- arrayArbitrary len
     pokeByteOff addr off x
     u :: a <- peekByteOff addr off
     poke (addr `plusPtr` off) x
@@ -95,7 +105,7 @@ storableSetGet :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -
 storableSetGet _ = property $ \(a :: a) len -> (len > 0) ==> do
   ix <- choose (0,len - 1)
   return $ unsafePerformIO $ do
-    ptr :: Ptr a <- mallocArray len
+    ptr :: Ptr a <- arrayArbitrary len
     pokeElemOff ptr ix a
     a' <- peekElemOff ptr ix
     free ptr
@@ -107,7 +117,7 @@ storableGetSet _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
   ix <- choose (0,len - 1)
   return $ unsafePerformIO $ do
     ptrA <- newArray as
-    ptrB <- mallocArray len
+    ptrB <- arrayArbitrary len
     copyArray ptrB ptrA len
     a <- peekElemOff ptrA ix
     pokeElemOff ptrA ix a
