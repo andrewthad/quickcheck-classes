@@ -5,7 +5,7 @@
 
 module Test.QuickCheck.Classes.Json
   (
-#if defined(VERSION_aeson)
+#if HAVE_AESON
     jsonLaws
 #endif  
   ) where
@@ -14,7 +14,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-#if defined(VERSION_aeson)
+#if HAVE_AESON
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as AE
 #endif
@@ -30,7 +30,7 @@ import Test.QuickCheck.Classes.Common (Laws(..))
 --
 -- Note that in the second property, the type of decode is @ByteString -> Value@,
 -- not @ByteString -> a@
-#if defined(VERSION_aeson)
+#if HAVE_AESON
 jsonLaws :: (ToJSON a, FromJSON a, Show a, Arbitrary a, Eq a) => Proxy a -> Laws
 jsonLaws p = Laws "ToJSON/FromJSON"
   [ ("Partial Isomorphism", jsonEncodingPartialIsomorphism p)

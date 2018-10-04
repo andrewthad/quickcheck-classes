@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -9,36 +9,22 @@
 
 module Test.QuickCheck.Classes.Semigroupoid
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-#if defined(VERSION_semigroupoids)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_BINARY_LAWS)
     semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
-#endif
-#endif
   ) where
 
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_BINARY_LAWS)
 import Prelude hiding (id, (.))
-#if defined(VERSION_semigroupoids)
 import Data.Semigroupoid (Semigroupoid(..))
-#endif
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 import Data.Functor.Classes (Eq2,Show2)
-#endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
 import Test.QuickCheck.Classes.Compat (eq2)
-#endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,5,0)
-
-#if defined (VERSION_semigroupoids)
 -- | Tests the following 'Semigroupoid' properties:
 --
 -- [/Associativity/]
@@ -47,7 +33,7 @@ import Test.QuickCheck.Classes.Compat (eq2)
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.
 semigroupoidLaws :: forall proxy s.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Semigroupoid s, forall a b. (Eq a, Eq b) => Eq (s a b), forall a b. (Show a, Show b) => Show (s a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (s a b))
 #else
   (Semigroupoid s, Eq2 s, Show2 s, Arbitrary2 s)
@@ -65,7 +51,7 @@ semigroupoidLaws p = Laws "Semigroupoid"
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.
 commutativeSemigroupoidLaws :: forall proxy s.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Semigroupoid s, forall a b. (Eq a, Eq b) => Eq (s a b), forall a b. (Show a, Show b) => Show (s a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (s a b))
 #else
   (Semigroupoid s, Eq2 s, Show2 s, Arbitrary2 s)
@@ -76,7 +62,7 @@ commutativeSemigroupoidLaws p = Laws "Commutative Semigroupoid" $ lawsProperties
   ]
 
 semigroupoidAssociativity :: forall proxy s.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Semigroupoid s, forall a b. (Eq a, Eq b) => Eq (s a b), forall a b. (Show a, Show b) => Show (s a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (s a b))
 #else
   (Semigroupoid s, Eq2 s, Show2 s, Arbitrary2 s)
@@ -85,16 +71,12 @@ semigroupoidAssociativity :: forall proxy s.
 semigroupoidAssociativity _ = property $ \(Apply2 (f :: s Integer Integer)) (Apply2 (g :: s Integer Integer)) (Apply2 (h :: s Integer Integer)) -> eq2 (f `o` (g `o` h)) ((f `o` g) `o` h)
 
 semigroupoidCommutativity :: forall proxy s.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Semigroupoid s, forall a b. (Eq a, Eq b) => Eq (s a b), forall a b. (Show a, Show b) => Show (s a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (s a b))
 #else
   (Semigroupoid s, Eq2 s, Show2 s, Arbitrary2 s)
 #endif
   => proxy s -> Property
 semigroupoidCommutativity _ = property $ \(Apply2 (f :: s Integer Integer)) (Apply2 (g :: s Integer Integer)) -> eq2 (f `o` g) (g `o` f)
-
-#endif
-
-#endif
 
 #endif

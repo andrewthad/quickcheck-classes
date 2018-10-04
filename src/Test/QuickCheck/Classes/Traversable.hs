@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -9,35 +9,29 @@
 
 module Test.QuickCheck.Classes.Traversable
   (
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
     traversableLaws
-#endif
 #endif
   ) where
 
 import Data.Foldable (foldMap)
 import Data.Traversable (Traversable,fmapDefault,foldMapDefault,sequenceA,traverse)
 import Test.QuickCheck hiding ((.&.))
-#if MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
 import Data.Functor.Classes (Eq1,Show1)
+#endif
 import Data.Functor.Compose
 import Data.Functor.Identity
-#endif
-#endif
 
 import qualified Data.Set as S
 
 import Test.QuickCheck.Classes.Common
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 
 -- | Tests the following 'Traversable' properties:
 --
@@ -69,7 +63,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- * Identity: @t ('pure' x) ≡ 'pure' x@
 -- * Distributivity: @t (x '<*>' y) ≡ t x '<*>' t y@
 traversableLaws ::
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -78,7 +72,7 @@ traversableLaws ::
 traversableLaws = traversableLawsInternal
 
 traversableLawsInternal :: forall proxy f.
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
   (Traversable f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
 #else
   (Traversable f, Eq1 f, Show1 f, Arbitrary1 f)
@@ -106,6 +100,3 @@ traversableLawsInternal _ = Laws "Traversable"
 
 
 #endif
-
-#endif
-

@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
 
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
@@ -23,10 +23,10 @@ import qualified Data.Map as M
 import qualified Data.Map.Merge.Strict as MM
 #endif
 import Data.Traversable
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 import Data.Functor.Apply (Apply((<.>)))
 #endif
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 import Data.Functor.Classes
 #endif
 import Data.Int
@@ -47,7 +47,7 @@ import Test.QuickCheck.Classes
 
 main :: IO ()
 main = do
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
   quickCheck prop_map_apply_equals
 #endif
@@ -59,20 +59,14 @@ allPropsApplied =
   [ ("Int",allLaws (Proxy :: Proxy Int))
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
 #endif
-#endif
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0)
-#if defined(VERSION_semigroupoids)
-#if MIN_VERSION_containers(0,5,9)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
+#if MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
   , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
   , ("Pound", someHigherLaws (Proxy1 :: Proxy1 (Pound Int)))
-#endif
-#endif
 #endif
 #endif
 #if MIN_VERSION_base(4,7,0)
@@ -119,11 +113,10 @@ allLaws p =
 foldlMapM :: (Foldable t, Monoid b, Monad m) => (a -> m b) -> t a -> m b
 foldlMapM f = foldlM (\b a -> liftM (mappend b) (f a)) mempty
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
+#if HAVE_UNARY_LAWS
 allHigherLaws ::
   (Traversable f, MonadZip f, MonadPlus f, Applicative f,
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
    forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
    forall a. Show a => Show (f a)
 #else
@@ -140,14 +133,11 @@ allHigherLaws p =
   , traversableLaws p
   ]
 #endif
-#endif
 
-#if MIN_VERSION_QuickCheck(2,10,0)
-#if MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0)
-#if defined(VERSION_semigroupoids)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
 someHigherLaws ::
   (Apply f,
-#if MIN_VERSION_base(4,12,0)
+#if HAVE_QUANTIFIED_CONSTRAINTS
    forall a. Eq a => Eq (f a), forall a. Arbitrary a => Arbitrary (f a),
    forall a. Show a => Show (f a)
 #else
@@ -158,18 +148,19 @@ someHigherLaws p =
   [ applyLaws p
   ]
 #endif
-#endif
-#endif
 
 -- This type fails the laws for the strict functions
 -- in Foldable. It is used just to confirm that
 -- those property tests actually work.
 newtype Rouge a = Rouge [a]
-#if MIN_VERSION_QuickCheck(2,10,0) && (MIN_VERSION_base(4,9,0) || MIN_VERSION_transformers(0,4,0))
-  deriving (Eq,Show,Arbitrary,Arbitrary1,Eq1,Show1)
-#else
-  deriving (Eq,Show,Arbitrary)
+  deriving
+  ( Eq, Show, Arbitrary
+#if HAVE_UNARY_LAWS
+  , Arbitrary1
+  , Eq1
+  , Show1
 #endif
+  )
 
 -- Note: when using base < 4.6, the Rouge type does
 -- not really test anything. 
@@ -182,13 +173,20 @@ instance Foldable Rouge where
 #endif
 
 newtype Pound k v = Pound { getPound :: Map k v }
-#if MIN_VERSION_QuickCheck(2,10,0) && MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
-  deriving (Eq,Functor,Show,Arbitrary,Arbitrary1,Eq1,Show1)
-#else
-  deriving (Eq,Functor,Show,Arbitrary)
+  deriving
+  ( Eq, Functor, Show, Arbitrary
+#if HAVE_UNARY_LAWS
+  , Arbitrary1
+  -- The following instances are only available for the variants
+  -- of the type classes in base, not for those in transformers.
+#if MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
+  , Eq1
+  , Show1
 #endif
+#endif
+  )
 
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
 instance Ord k => Apply (Pound k) where
   Pound m1 <.> Pound m2 = Pound $
@@ -201,7 +199,7 @@ instance Ord k => Apply (Pound k) where
 #endif
 #endif
 
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
 prop_map_apply_equals :: Map Int (Int -> Int)
                       -> Map Int Int
