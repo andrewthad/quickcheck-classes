@@ -23,7 +23,7 @@ import qualified Data.Map as M
 import qualified Data.Map.Merge.Strict as MM
 #endif
 import Data.Traversable
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 import Data.Functor.Apply (Apply((<.>)))
 #endif
 #if HAVE_UNARY_LAWS
@@ -47,7 +47,7 @@ import Test.QuickCheck.Classes
 
 main :: IO ()
 main = do
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
   quickCheck prop_map_apply_equals
 #endif
@@ -63,14 +63,10 @@ allPropsApplied =
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
 #endif
-#if HAVE_UNARY_LAWS
-#if MIN_VERSION_base(4,9,0)
-#if defined(VERSION_semigroupoids)
-#if MIN_VERSION_containers(0,5,9)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
+#if MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
   , ("Map", someHigherLaws (Proxy1 :: Proxy1 (Map Int)))
   , ("Pound", someHigherLaws (Proxy1 :: Proxy1 (Pound Int)))
-#endif
-#endif
 #endif
 #endif
 #if MIN_VERSION_base(4,7,0)
@@ -138,8 +134,7 @@ allHigherLaws p =
   ]
 #endif
 
-#if HAVE_UNARY_LAWS
-#if defined(VERSION_semigroupoids)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
 someHigherLaws ::
   (Apply f,
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -152,7 +147,6 @@ someHigherLaws ::
 someHigherLaws p =
   [ applyLaws p
   ]
-#endif
 #endif
 
 -- This type fails the laws for the strict functions
@@ -192,7 +186,7 @@ newtype Pound k v = Pound { getPound :: Map k v }
 #endif
   )
 
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
 instance Ord k => Apply (Pound k) where
   Pound m1 <.> Pound m2 = Pound $
@@ -205,7 +199,7 @@ instance Ord k => Apply (Pound k) where
 #endif
 #endif
 
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 #if MIN_VERSION_containers(0,5,9)
 prop_map_apply_equals :: Map Int (Int -> Int)
                       -> Map Int Int

@@ -9,32 +9,22 @@
 
 module Test.QuickCheck.Classes.Semigroupoid
   (
-#if HAVE_BINARY_LAWS
-#if defined(VERSION_semigroupoids)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_BINARY_LAWS)
     semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
-#endif
   ) where
 
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_BINARY_LAWS)
 import Prelude hiding (id, (.))
-#if defined(VERSION_semigroupoids)
 import Data.Semigroupoid (Semigroupoid(..))
-#endif
 import Test.QuickCheck hiding ((.&.))
-#if HAVE_BINARY_LAWS
 import Data.Functor.Classes (Eq2,Show2)
-#endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if HAVE_BINARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq2)
-#endif
 
-#if HAVE_BINARY_LAWS
-
-#if defined (VERSION_semigroupoids)
 -- | Tests the following 'Semigroupoid' properties:
 --
 -- [/Associativity/]
@@ -88,7 +78,5 @@ semigroupoidCommutativity :: forall proxy s.
 #endif
   => proxy s -> Property
 semigroupoidCommutativity _ = property $ \(Apply2 (f :: s Integer Integer)) (Apply2 (g :: s Integer Integer)) -> eq2 (f `o` g) (g `o` f)
-
-#endif
 
 #endif

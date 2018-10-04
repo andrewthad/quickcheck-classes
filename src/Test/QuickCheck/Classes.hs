@@ -41,7 +41,7 @@ module Test.QuickCheck.Classes
 #if HAVE_UNARY_LAWS
     -- ** Unary type constructors
   , alternativeLaws
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
   , altLaws
   , applyLaws
 #endif
@@ -51,7 +51,7 @@ module Test.QuickCheck.Classes
   , monadLaws
   , monadPlusLaws
   , monadZipLaws
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
   , plusLaws
   , extendedPlusLaws
 #endif
@@ -62,7 +62,7 @@ module Test.QuickCheck.Classes
   , bifunctorLaws
   , categoryLaws
   , commutativeCategoryLaws
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
   , semigroupoidLaws
   , commutativeSemigroupoidLaws
 #endif
@@ -101,7 +101,7 @@ import Test.QuickCheck.Classes.Storable
 -- Unary type constructors
 #if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Alternative
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 import Test.QuickCheck.Classes.Alt
 import Test.QuickCheck.Classes.Apply
 #endif
@@ -111,7 +111,7 @@ import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 import Test.QuickCheck.Classes.Plus
 #endif
 import Test.QuickCheck.Classes.Traversable
@@ -121,7 +121,7 @@ import Test.QuickCheck.Classes.Traversable
 #if HAVE_BINARY_LAWS
 import Test.QuickCheck.Classes.Bifunctor
 import Test.QuickCheck.Classes.Category
-#if defined(VERSION_semigroupoids)
+#if HAVE_SEMIGROUPOIDS
 import Test.QuickCheck.Classes.Semigroupoid
 #endif
 #endif

@@ -9,37 +9,27 @@
 
 module Test.QuickCheck.Classes.Plus
   (
-#if HAVE_UNARY_LAWS
-#if defined(VERSION_semigroupoids)
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
     plusLaws
   , extendedPlusLaws
 #endif
-#endif
   ) where
 
+#if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
 import Data.Functor
-
-#if defined(VERSION_semigroupoids)
 import Data.Functor.Alt (Alt)
 import Data.Functor.Plus (Plus)
 import qualified Data.Functor.Alt as Alt
 import qualified Data.Functor.Plus as Plus
-#endif
 
 import Test.QuickCheck hiding ((.&.))
-#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Data.Functor.Classes (Eq1,Show1)
 import qualified Control.Applicative as Alternative
-#endif
 import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
-#endif
-
-#if HAVE_UNARY_LAWS
 
 -- | Tests the following alt properties:
 --
@@ -47,7 +37,6 @@ import Test.QuickCheck.Classes.Compat (eq1)
 --   @'Plus.zero' 'Alt.<!>' m ≡ m@
 -- [/Right Identity/]
 --   @m 'Alt.<!>' 'Plus.zero' ≡ m@
-#if defined(VERSION_semigroupoids)
 plusLaws :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
   (Plus f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
@@ -102,5 +91,4 @@ plusRightIdentity :: forall proxy f.
   => proxy f -> Property
 plusRightIdentity _ = property $ \(Apply (m :: f Integer)) -> eq1 (m Alt.<!> Plus.zero) m
 
-#endif
 #endif
