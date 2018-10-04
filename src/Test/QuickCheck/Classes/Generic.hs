@@ -11,9 +11,9 @@ module Test.QuickCheck.Classes.Generic
   (
 #if MIN_VERSION_base(4,5,0)
     genericLaws
-#endif
-#if MIN_VERSION_base(4,9,0) && MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
   , generic1Laws
+#endif
 #endif
   ) where
 
@@ -22,7 +22,7 @@ import Control.Applicative
 import Data.Semigroup as SG
 import Data.Monoid as MD
 import GHC.Generics
-#if MIN_VERSION_base(4,9,0)
+#if HAVE_UNARY_LAWS
 import Data.Functor.Classes
 #endif
 import Data.Proxy (Proxy(Proxy))
@@ -62,7 +62,7 @@ fromToInverse ::
   -> Property
 fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a)) 
 
-#if MIN_VERSION_base(4,9,0) && MIN_VERSION_QuickCheck(2,10,0)
+#if HAVE_UNARY_LAWS
 -- | Tests the following properties:
 --
 -- [/From-To Inverse/]
@@ -73,7 +73,7 @@ fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a))
 -- /Note:/ This property test is only available when
 -- using @base-4.9@ or newer.
 generic1Laws :: (Generic1 f, Eq1 f, Arbitrary1 f, Show1 f, Eq1 (Rep1 f), Show1 (Rep1 f), Arbitrary1 (Rep1 f))
-  => Proxy f -> Laws
+  => proxy f -> Laws
 generic1Laws p = Laws "Generic1"
   [ ("From1-To1 inverse", fromToInverse1 p)
   , ("To1-From1 inverse", toFromInverse1 p)
