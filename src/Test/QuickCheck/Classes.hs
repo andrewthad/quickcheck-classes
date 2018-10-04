@@ -33,7 +33,7 @@ module Test.QuickCheck.Classes
   , primLaws
   , semigroupLaws
   , commutativeSemigroupLaws
-#if defined(VERSION_semirings)
+#if HAVE_SEMIRINGS
   , semiringLaws
 #endif
   , showReadLaws
@@ -92,7 +92,7 @@ import Test.QuickCheck.Classes.Monoid
 import Test.QuickCheck.Classes.Ord
 import Test.QuickCheck.Classes.Prim
 import Test.QuickCheck.Classes.Semigroup
-#if defined(VERSION_semirings)
+#if HAVE_SEMIRINGS
 import Test.QuickCheck.Classes.Semiring
 #endif
 import Test.QuickCheck.Classes.ShowRead

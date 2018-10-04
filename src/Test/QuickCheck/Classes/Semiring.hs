@@ -5,12 +5,12 @@
 
 module Test.QuickCheck.Classes.Semiring
   ( 
-#if defined(VERSION_semirings)
+#if HAVE_SEMIRINGS
     semiringLaws
 #endif
   ) where
 
-#if defined(VERSION_semirings)
+#if HAVE_SEMIRINGS
 import Data.Semiring
 import Prelude hiding (Num(..))
 #endif
@@ -21,7 +21,7 @@ import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 
-#if defined(VERSION_semirings)
+#if HAVE_SEMIRINGS
 -- | Tests the following properties:
 --
 -- [/Additive Commutativity/]
