@@ -53,6 +53,8 @@ flag unary-laws
 flag binary-laws
   description:
     Include infrastructure for testing class laws of binary type constructors.
+    Disabling `unary-laws` while keeping `binary-laws` enabled is an unsupported
+    configuration.
   default: True
   manual: False
 

@@ -22,7 +22,7 @@ module Test.QuickCheck.Classes
 #if MIN_VERSION_base(4,7,0)
   , isListLaws
 #endif
-#if defined(VERSION_aeson)
+#if HAVE_AESON
   , jsonLaws
 #endif
   , monoidLaws
@@ -85,7 +85,7 @@ import Test.QuickCheck.Classes.Integral
 #if MIN_VERSION_base(4,7,0)
 import Test.QuickCheck.Classes.IsList
 #endif
-#if defined(VERSION_aeson)
+#if HAVE_AESON
 import Test.QuickCheck.Classes.Json
 #endif
 import Test.QuickCheck.Classes.Monoid
