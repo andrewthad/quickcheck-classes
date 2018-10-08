@@ -13,7 +13,11 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - Fix compiling the test suite without semigroupoids and compiling with old
   versions of transformers.
 - Add lower bound for semigroups to make sure the `stimes` method is available.
+### Added
 - Add `genericLaws` and `generic1Laws`
+- Add `specialSemigroupLaws`, which allow the user to specify various
+  special classes of semigroups. This is more flexible than `commutativeSemigroupLaws`
+  and is intended to one day replace it.
 
 ## [0.5.0.0] - 2018-09-25
 ### Change

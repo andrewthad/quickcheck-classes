@@ -3,8 +3,16 @@
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Semigroup
-  ( semigroupLaws
+  ( -- * Laws
+    semigroupLaws
   , commutativeSemigroupLaws
+  , specialSemigroupLaws
+    -- * Special Semigroups
+  , SpecialSemigroup
+  , commutative
+  , exponential
+  , idempotent
+  , rectangularBand
   ) where
 
 import Prelude hiding (foldr1)
@@ -17,6 +25,8 @@ import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 
 import Data.Foldable (foldr1,toList)
 import Data.List.NonEmpty (NonEmpty((:|)))
+
+import qualified Data.List as L
 
 -- | Tests the following properties:
 --
@@ -40,6 +50,12 @@ semigroupLaws p = Laws "Semigroup"
 commutativeSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 commutativeSemigroupLaws p = Laws "Commutative Semigroup" $ lawsProperties (semigroupLaws p) ++
   [ ("Commutative", semigroupCommutative p)
+  ]
+
+specialSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [SpecialSemigroup] -> Laws
+specialSemigroupLaws p xs = Laws "Special Semigroup" $ concat
+  [ lawsProperties (semigroupLaws p)
+  , map (\x -> (specialName x, specialProperty p x)) (L.nub xs)
   ]
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -74,6 +90,30 @@ semigroupTimes _ = myForAllShrink True (\(_,n) -> n > 0)
   "foldr1 (<>) (replicate n a)"
   (\(a,n) -> foldr1 (<>) (replicate n a))
 
+semigroupExponential :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semigroupExponential _ = myForAllShrink True (\(_,_,n) -> n > 0)
+  (\(a :: a, b, n :: Int) -> ["a = " ++ show a, "b = " ++ show b, "n = " ++ show n])
+  "stimes n (a <> b)"
+  (\(a,b,n) -> stimes n (a <> b))
+  "stimes n a <> stimes n b"
+  (\(a,b,n) -> stimes n a <> stimes n b)
+
+semigroupIdempotent :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semigroupIdempotent _ = myForAllShrink False (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "a <> a"
+  (\a -> a <> a)
+  "a"
+  (\a -> a)
+
+semigroupRectangularBand :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semigroupRectangularBand _ = myForAllShrink False (const True)
+  (\(a :: a, b) -> ["a = " ++ show a, "b = " ++ show b])
+  "a <> b <> a"
+  (\(a,b) -> a <> b <> a)
+  "a"
+  (\(a,_) -> a)
+
 newtype SmallList a = SmallList { getSmallList :: [a] }
   deriving (Eq,Show)
 
@@ -83,4 +123,48 @@ instance Arbitrary a => Arbitrary (SmallList a) where
     xs <- vector n
     return (SmallList xs)
   shrink = map SmallList . shrink . getSmallList
+
+-- | Additional properties that a semigroup may have.
+data SpecialSemigroup
+  = Commutative
+  | Idempotent
+  | RectangularBand
+  | Exponential
+  deriving (Eq)
+
+-- | @a '<>' b ≡ b '<>' a@
+commutative :: SpecialSemigroup
+commutative = Commutative
+
+-- | @stimes n (a '<>' b) ≡ 'stimes' n a '<>' 'stimes' n b@
+exponential :: SpecialSemigroup
+exponential = Exponential
+
+-- | @a '<>' a ≡ a@
+idempotent :: SpecialSemigroup
+idempotent = Idempotent
+
+-- | @a '<>' b ' <> 'a' ≡ a@
+rectangularBand :: SpecialSemigroup
+rectangularBand = RectangularBand
+
+-- Consider adding some approximation of a reductive semigroup law later.
+-- @(∀ x. x '<>' a ≡ x '<>' b) ⇒ (a ≡ b)@
+-- reductive :: SpecialSemigroup
+-- reductive = Reductive
+
+specialName :: SpecialSemigroup -> String
+specialName x = case x of
+  Commutative -> "Commutative"
+  Idempotent -> "Idempotent"
+  RectangularBand -> "Rectangular Band"
+  Exponential -> "Exponential"
+
+specialProperty :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> SpecialSemigroup -> Property
+specialProperty p x = case x of
+  Commutative -> semigroupCommutative p
+  Idempotent -> semigroupIdempotent p
+  RectangularBand -> semigroupRectangularBand p
+  Exponential -> semigroupExponential p
+
 
