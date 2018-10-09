@@ -6,13 +6,9 @@ module Test.QuickCheck.Classes.Semigroup
   ( -- * Laws
     semigroupLaws
   , commutativeSemigroupLaws
-  , specialSemigroupLaws
-    -- * Special Semigroups
-  , SpecialSemigroup
-  , commutative
-  , exponential
-  , idempotent
-  , rectangularBand
+  , exponentialSemigroupLaws
+  , idempotentSemigroupLaws
+  , rectangularBandSemigroupLaws
   ) where
 
 import Prelude hiding (foldr1)
@@ -43,19 +39,53 @@ semigroupLaws p = Laws "Semigroup"
   , ("Times", semigroupTimes p)
   ]
 
--- | Tests everything from 'semigroupLaws', plus the following:
+-- | Tests the following properties:
 --
 -- [/Commutative/]
 --   @a '<>' b ≡ b '<>' a@
+--
+-- Note that this does not test associativity. Make sure to use
+-- 'semigroupLaws' in addition to this set of laws.
 commutativeSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
-commutativeSemigroupLaws p = Laws "Commutative Semigroup" $ lawsProperties (semigroupLaws p) ++
+commutativeSemigroupLaws p = Laws "Commutative Semigroup"
   [ ("Commutative", semigroupCommutative p)
   ]
 
-specialSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> [SpecialSemigroup] -> Laws
-specialSemigroupLaws p xs = Laws "Special Semigroup" $ concat
-  [ lawsProperties (semigroupLaws p)
-  , map (\x -> (specialName x, specialProperty p x)) (L.nub xs)
+-- | Tests the following properties:
+--
+-- [/Idempotent/]
+--   @a '<>' a ≡ a@
+--
+-- Note that this does not test associativity. Make sure to use
+-- 'semigroupLaws' in addition to this set of laws. In literature,
+-- this class of semigroup is known as a band.
+idempotentSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+idempotentSemigroupLaws p = Laws "Idempotent Semigroup"
+  [ ("Idempotent", semigroupIdempotent p)
+  ]
+
+-- | Tests the following properties:
+--
+-- [/Rectangular Band/]
+--   @a '<>' b ' <> 'a' ≡ a@
+--
+-- Note that this does not test associativity. Make sure to use
+-- 'semigroupLaws' in addition to this set of laws.
+rectangularBandSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+rectangularBandSemigroupLaws p = Laws "Rectangular Band Semigroup"
+  [ ("Rectangular Band", semigroupRectangularBand p)
+  ]
+
+-- | Tests the following properties:
+--
+-- [/Exponential/]
+--   @stimes n (a '<>' b) ≡ 'stimes' n a '<>' 'stimes' n b@
+--
+-- Note that this does not test associativity. Make sure to use
+-- 'semigroupLaws' in addition to this set of laws.
+exponentialSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+exponentialSemigroupLaws p = Laws "Exponential Semigroup"
+  [ ("Rectangular Band", semigroupExponential p)
   ]
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -123,48 +153,4 @@ instance Arbitrary a => Arbitrary (SmallList a) where
     xs <- vector n
     return (SmallList xs)
   shrink = map SmallList . shrink . getSmallList
-
--- | Additional properties that a semigroup may have.
-data SpecialSemigroup
-  = Commutative
-  | Idempotent
-  | RectangularBand
-  | Exponential
-  deriving (Eq)
-
--- | @a '<>' b ≡ b '<>' a@
-commutative :: SpecialSemigroup
-commutative = Commutative
-
--- | @stimes n (a '<>' b) ≡ 'stimes' n a '<>' 'stimes' n b@
-exponential :: SpecialSemigroup
-exponential = Exponential
-
--- | @a '<>' a ≡ a@
-idempotent :: SpecialSemigroup
-idempotent = Idempotent
-
--- | @a '<>' b ' <> 'a' ≡ a@
-rectangularBand :: SpecialSemigroup
-rectangularBand = RectangularBand
-
--- Consider adding some approximation of a reductive semigroup law later.
--- @(∀ x. x '<>' a ≡ x '<>' b) ⇒ (a ≡ b)@
--- reductive :: SpecialSemigroup
--- reductive = Reductive
-
-specialName :: SpecialSemigroup -> String
-specialName x = case x of
-  Commutative -> "Commutative"
-  Idempotent -> "Idempotent"
-  RectangularBand -> "Rectangular Band"
-  Exponential -> "Exponential"
-
-specialProperty :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> SpecialSemigroup -> Property
-specialProperty p x = case x of
-  Commutative -> semigroupCommutative p
-  Idempotent -> semigroupIdempotent p
-  RectangularBand -> semigroupRectangularBand p
-  Exponential -> semigroupExponential p
-
 
