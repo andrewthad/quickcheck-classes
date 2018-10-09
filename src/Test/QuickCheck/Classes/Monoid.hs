@@ -32,12 +32,15 @@ monoidLaws p = Laws "Monoid"
   , ("Concatenation", monoidConcatenation p)
   ]
 
--- | Tests everything from 'monoidLaws' plus the following:
+-- | Tests the following properties:
 --
 -- [/Commutative/]
 --   @mappend a b ≡ mappend b a@
+--
+-- Note that this does not test associativity or identity. Make sure to use
+-- 'monoidLaws' in addition to this set of laws.
 commutativeMonoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
-commutativeMonoidLaws p = Laws "Commutative Monoid" $ lawsProperties (monoidLaws p) ++
+commutativeMonoidLaws p = Laws "Commutative Monoid"
   [ ("Commutative", monoidCommutative p)
   ]
 

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.5.x.y] - TBA
+## [0.6.0.0] - TBA
 ### Change
 - Support QuickCheck 2.7 and 2.8. This adds `Arbitrary` orphan instances
   to the test suite.
@@ -13,11 +13,14 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - Fix compiling the test suite without semigroupoids and compiling with old
   versions of transformers.
 - Add lower bound for semigroups to make sure the `stimes` method is available.
+- The laws `commutativeSemigroupLaws` and `commutativeMonoidLaws` no longer
+  check any property other than commutativity. They must now be used in conjunction
+  with, rather than in place of, `semigroupLaws` and `monoidLaws`. This is a breaking
+  change.
 ### Added
 - Add `genericLaws` and `generic1Laws`
-- Add `specialSemigroupLaws`, which allow the user to specify various
-  special classes of semigroups. This is more flexible than `commutativeSemigroupLaws`
-  and is intended to one day replace it.
+- Add property tests for special classes of semigroups. This includes:
+  commutative, idempotent, rectangular band, and exponential. 
 
 ## [0.5.0.0] - 2018-09-25
 ### Change

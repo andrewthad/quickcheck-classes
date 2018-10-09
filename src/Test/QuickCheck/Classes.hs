@@ -33,7 +33,9 @@ module Test.QuickCheck.Classes
   , primLaws
   , semigroupLaws
   , commutativeSemigroupLaws
-  , specialSemigroupLaws
+  , exponentialSemigroupLaws
+  , idempotentSemigroupLaws
+  , rectangularBandSemigroupLaws
 #if HAVE_SEMIRINGS
   , semiringLaws
 #endif
@@ -72,12 +74,6 @@ module Test.QuickCheck.Classes
   , Laws(..)
   , Proxy1(..)
   , Proxy2(..)
-    -- * Special Semigroups
-  , SpecialSemigroup
-  , commutative
-  , exponential
-  , idempotent
-  , rectangularBand
   ) where
 
 --
