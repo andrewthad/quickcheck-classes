@@ -152,7 +152,7 @@ someHigherLaws p =
 -- This type fails the laws for the strict functions
 -- in Foldable. It is used just to confirm that
 -- those property tests actually work.
-newtype Rouge a = Rouge [a]
+newtype Rogue a = Rogue [a]
   deriving
   ( Eq, Show, Arbitrary
 #if HAVE_UNARY_LAWS
@@ -162,14 +162,14 @@ newtype Rouge a = Rouge [a]
 #endif
   )
 
--- Note: when using base < 4.6, the Rouge type does
+-- Note: when using base < 4.6, the Rogue type does
 -- not really test anything. 
-instance Foldable Rouge where
-  foldMap f (Rouge xs) = F.foldMap f xs
-  foldl f x (Rouge xs) = F.foldl f x xs
+instance Foldable Rogue where
+  foldMap f (Rogue xs) = F.foldMap f xs
+  foldl f x (Rogue xs) = F.foldl f x xs
 #if MIN_VERSION_base(4,6,0)
-  foldl' f x (Rouge xs) = F.foldl f x xs
-  foldr' f x (Rouge xs) = F.foldr f x xs
+  foldl' f x (Rogue xs) = F.foldl f x xs
+  foldr' f x (Rogue xs) = F.foldr f x xs
 #endif
 
 newtype Pound k v = Pound { getPound :: Map k v }
