@@ -70,7 +70,7 @@ semiringRightMultiplicationDistributes :: forall a. (Semiring a, Eq a, Arbitrary
 semiringRightMultiplicationDistributes _ = myForAllShrink True (const True)
   (\(a :: a,b,c) -> ["a = " ++ show a, "b = " ++ show b, "c = " ++ show c])
   "(a + b) * c"
-  (\(a,b,c) -> c * (a + b))
+  (\(a,b,c) -> (a + b) * c)
   "(a * c) + (b * c)"
   (\(a,b,c) -> (a * c) + (b * c))
 

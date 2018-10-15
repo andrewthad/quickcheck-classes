@@ -17,6 +17,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   check any property other than commutativity. They must now be used in conjunction
   with, rather than in place of, `semigroupLaws` and `monoidLaws`. This is a breaking
   change.
+- Fix the right distribution law for semirings.
 ### Added
 - Add `genericLaws` and `generic1Laws`
 - Add property tests for special classes of semigroups. This includes:
