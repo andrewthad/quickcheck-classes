@@ -130,7 +130,10 @@ library
     cpp-options: -DHAVE_SEMIRINGS
   default-language: Haskell2010
 
-test-suite test
+-- The basic test suite is compatible with all the versions of GHC that
+-- this library supports. It is useful for confirming whether the laws tests
+-- behave correct. Additionally, it helps catch CPP mistakes.
+test-suite basic 
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Spec.hs
@@ -157,6 +160,29 @@ test-suite test
     build-depends: semigroupoids
     cpp-options: -DHAVE_SEMIGROUPOIDS
   default-language: Haskell2010
+
+-- The advanced test suite only builds with the newest version
+-- of GHC. It is intended to be a sort of regression test for GHC and for
+-- base. It check instances for a number of types in base. It also checks
+-- a bunch of derived instances for data types of varying sizes. And it
+-- does some tests on UnboxedSums.
+test-suite advanced 
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Advanced.hs
+  ghc-options: -O
+  build-depends:
+      QuickCheck
+    , base >= 4.12
+    , base-orphans >= 0.5
+    , containers 
+    , primitive
+    , quickcheck-classes
+    , tagged
+    , tasty
+    , tasty-quickcheck
+    , transformers
+    , vector
 
 source-repository head
   type: git
