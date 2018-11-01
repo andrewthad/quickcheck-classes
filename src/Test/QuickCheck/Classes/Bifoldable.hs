@@ -22,6 +22,7 @@ import Test.QuickCheck hiding ((.&.))
 import Data.Functor.Classes (Eq2,Show2)
 import Test.QuickCheck.Property (Property)
 import Data.Monoid
+import Data.Orphans ()
 import Test.QuickCheck.Classes.Common
 #endif
 

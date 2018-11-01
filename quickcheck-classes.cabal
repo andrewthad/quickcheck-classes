@@ -98,6 +98,7 @@ library
     Test.QuickCheck.Classes.Traversable
   build-depends:
       base >= 4.5 && < 5
+    , base-orphans >= 0.1
     , bifunctors 
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
