@@ -121,7 +121,7 @@ library
       , QuickCheck >= 2.10.0
     cpp-options: -DHAVE_BINARY_LAWS
   if flag(aeson)
-    build-depends: aeson >= 1.1
+    build-depends: aeson >= 0.9
     cpp-options: -DHAVE_AESON
   if flag(semigroupoids)
     build-depends: semigroupoids 
