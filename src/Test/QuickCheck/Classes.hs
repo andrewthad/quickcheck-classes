@@ -139,6 +139,7 @@ import Data.Foldable
 import Data.Monoid (Monoid(..))
 import Data.Proxy (Proxy(..))
 import Data.Semigroup (Semigroup)
+import System.Exit (exitFailure)
 import qualified Data.List as List
 import qualified Data.Semigroup as SG
 
@@ -236,6 +237,9 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 -- Monoid: Right Identity +++ OK, passed 100 tests.
 -- Monoid: Concatenation +++ OK, passed 100 tests.
 -- @
+--
+-- In the case of a failing test, the program terminates with
+-- exit code 1.
 lawsCheckMany ::
      [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
   -> IO ()
@@ -254,8 +258,10 @@ lawsCheckMany xs = do
           _ -> Bad
   putStrLn ""
   case r of
-    Good -> putStrLn "All tests succeeded"
-    Bad -> putStrLn "One or more tests failed"
+    Good -> putStrLn "All tests succeeded" 
+    Bad -> do
+      putStrLn "One or more tests failed" 
+      exitFailure
 
 data Status = Bad | Good
 
