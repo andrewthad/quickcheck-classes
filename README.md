@@ -79,7 +79,7 @@ Monoid: Concatenation +++ OK, passed 100 tests.
 
 ```
 
-### `specialisedLawsCheckMany`
+### `lawsCheckOne`
 
 A convenience function that allows one to check many typeclass
 instances of the same type.
@@ -87,7 +87,7 @@ instances of the same type.
 For example, in GHCi:
 
 ```bash
->>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
+>>> lawsCheckOne (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
 ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
 ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
 Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
