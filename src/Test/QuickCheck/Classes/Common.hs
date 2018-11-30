@@ -90,11 +90,11 @@ myForAllShrink :: (Arbitrary a, Show b, Eq b)
   => Bool -- Should we show the RHS. It's better not to show it
           -- if the RHS is equal to the input.
   -> (a -> Bool) -- is the value a valid input
-  -> (a -> [String])
-  -> String
-  -> (a -> b)
-  -> String
-  -> (a -> b)
+  -> (a -> [String]) -- show the 'a' values
+  -> String -- show the LHS
+  -> (a -> b) -- the function that makes the LHS
+  -> String -- show the RHS
+  -> (a -> b) -- the function that makes the RHS
   -> Property
 myForAllShrink displayRhs isValid showInputs name1 calc1 name2 calc2 =
 #if MIN_VERSION_QuickCheck(2,9,0)
