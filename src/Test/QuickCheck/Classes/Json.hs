@@ -10,6 +10,7 @@ module Test.QuickCheck.Classes.Json
 #endif  
   ) where
 
+import Data.String (fromString)
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
@@ -19,7 +20,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as AE
 #endif
 
-import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 
 -- | Tests the following properties:
 --
@@ -46,7 +47,11 @@ jsonEncodingEqualsValue _ = property $ \(a :: a) ->
     Just (v :: AE.Value) -> v == toJSON a
 
 jsonEncodingPartialIsomorphism :: forall a. (ToJSON a, FromJSON a, Show a, Eq a, Arbitrary a) => Proxy a -> Property
-jsonEncodingPartialIsomorphism _ = property $ \(a :: a) ->
-  AE.decode (AE.encode a) == Just a
+jsonEncodingPartialIsomorphism _ = myForAllShrink True (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "encode a"
+  (\(a :: a) -> Just $ AE.encode a)
+  "decode (encode a)"
+  (\(a :: a) -> (fromString . show) <$> (AE.decode (AE.encode a) :: Maybe a)) --AE.decode (AE.encode a))
 
 #endif
