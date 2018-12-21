@@ -92,7 +92,8 @@ library
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
     Test.QuickCheck.Classes.Semigroupoid
-    Test.QuickCheck.Classes.Semiring 
+    Test.QuickCheck.Classes.Semiring
+    Test.QuickCheck.Classes.Show
     Test.QuickCheck.Classes.ShowRead
     Test.QuickCheck.Classes.Storable
     Test.QuickCheck.Classes.Traversable
