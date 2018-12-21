@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wall #-}
@@ -11,22 +10,16 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-#if MIN_VERSION_base(4,6,0)
-import Text.Read (readMaybe)
-#endif
-
 import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Compat (readMaybe)
 
 -- | Tests the following properties:
 --
 -- [/Partial Isomorphism/]
 --   @'readMaybe' ('show' a) == 'Just' a@
---  
--- /Note:/ When using @base-4.5@ or older, this
--- instead test the following:
 --
--- [/Partial Isomorphism/]
---   @'read' ('show' a) == a@ 
+-- /Note:/ When using @base-4.5@ or older, a shim implementation
+-- of 'readMaybe' is used.
 --
 showReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> Laws
 showReadLaws p = Laws "Show/Read"
@@ -35,9 +28,5 @@ showReadLaws p = Laws "Show/Read"
 
 showReadPartialIsomorphism :: forall a. (Show a, Read a, Arbitrary a, Eq a) => Proxy a -> Property
 showReadPartialIsomorphism _ = property $ \(a :: a) ->
-#if MIN_VERSION_base(4,6,0)
   readMaybe (show a) == Just a
-#else
-  read (show a) == a
-#endif
 
