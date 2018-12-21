@@ -40,7 +40,9 @@ module Test.QuickCheck.Classes
   , semiringLaws
 #endif
   , showLaws
+  , showExpressionLaws
   , showReadLaws
+  , showReadExpressionLaws
   , storableLaws
 #if HAVE_UNARY_LAWS
     -- ** Unary type constructors

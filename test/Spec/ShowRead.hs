@@ -108,7 +108,9 @@ lawsApplied =
 allShowReadLaws :: (Show a, Read a, Eq a, Arbitrary a) => Proxy a -> [Laws]
 allShowReadLaws p = map ($p)
   [ showLaws
+  , showExpressionLaws
   , showReadLaws
+  , showReadExpressionLaws
   ]
 
 allFixedLaws :: HasResolution e => Proxy (Fixed e) -> [Laws]
@@ -118,4 +120,8 @@ allFixedLaws p = map ($p)
   -- Earlier versions of base have a buggy read instance.
   , showReadLaws
 #endif
+  -- TODO: include when/if https://ghc.haskell.org/trac/ghc/ticket/16031#ticket
+  -- is resolved
+  -- , showExpressionLaws
+  -- , showReadExpressionLaws
   ]
