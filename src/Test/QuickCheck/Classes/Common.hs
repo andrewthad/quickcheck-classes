@@ -15,6 +15,7 @@ module Test.QuickCheck.Classes.Common
   , myForAllShrink
   -- Modifiers
   , SmallList(..)
+  , ShowReadPrecedence(..)
 
   -- only used for higher-kinded types
   , Apply(..)
@@ -467,3 +468,18 @@ instance Arbitrary a => Arbitrary (SmallList a) where
     xs <- vector n
     return (SmallList xs)
   shrink = map SmallList . shrink . getSmallList
+
+-- Haskell uses the operator precedences 0..9, the special function application
+-- precedence 10 and the precedence 11 for function arguments. Both show and
+-- read instances have to accept this range. According to the Haskell Language
+-- Report, the output of derived show instances in precedence context 11 has to
+-- be an atomic expression.
+showReadPrecedences :: [Int]
+showReadPrecedences = [0..11]
+
+newtype ShowReadPrecedence = ShowReadPrecedence Int
+  deriving (Eq,Ord,Show)
+instance Arbitrary ShowReadPrecedence where
+  arbitrary = ShowReadPrecedence <$> elements showReadPrecedences
+  shrink (ShowReadPrecedence p) =
+    [ ShowReadPrecedence p' | p' <- showReadPrecedences, p' < p ]
