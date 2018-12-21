@@ -12,8 +12,10 @@
 module Test.QuickCheck.Classes.Common
   ( Laws(..)
   , foldMapA 
-  , myForAllShrink 
-  
+  , myForAllShrink
+  -- Modifiers
+  , SmallList(..)
+
   -- only used for higher-kinded types
   , Apply(..)
 #if HAVE_BINARY_LAWS
@@ -455,3 +457,13 @@ instance Arbitrary LinearEquationTwo where
 
 runLinearEquationTwo :: LinearEquationTwo -> Integer -> Integer -> Integer
 runLinearEquationTwo (LinearEquationTwo a b) x y = a * x + b * y
+
+newtype SmallList a = SmallList { getSmallList :: [a] }
+  deriving (Eq,Show)
+
+instance Arbitrary a => Arbitrary (SmallList a) where
+  arbitrary = do
+    n <- choose (0,6)
+    xs <- vector n
+    return (SmallList xs)
+  shrink = map SmallList . shrink . getSmallList
