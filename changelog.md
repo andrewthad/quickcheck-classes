@@ -20,11 +20,14 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - Fix the right distribution law for semirings.
 - The function `lawsCheckMany` now terminates with exit code 1 if a
   test fails.
+- Extend `showReadLaws` with new properties for `showsPrec`, `readsPrec`,
+  `showList` and `readList`.
 ### Added
 - Add `genericLaws` and `generic1Laws`
 - Add property tests for special classes of semigroups. This includes:
   commutative, idempotent, rectangular band, and exponential. 
 - `bifoldableLaws`, `bifoldableFunctorLaws`
+- Add `showLaws`.
 
 ## [0.5.0.0] - 2018-09-25
 ### Change
