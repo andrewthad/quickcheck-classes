@@ -25,8 +25,6 @@ import Test.QuickCheck.Classes.Compat (readMaybe)
 --   @'readMaybe' ('show' a) ≡ 'Just' a@
 -- [/Partial Isomorphism: 'show' \/ 'read' with initial space/]
 --   @'readMaybe' (" " ++ 'show' a) ≡ 'Just' a@
--- [/Partial Isomorphism: 'show' \/ 'read' in context/]
---   @'readMaybe' (" " ++ 'show' __E__[a]) ≡ 'Just' __E__[a]@
 -- [/Partial Isomorphism: 'showsPrec' \/ 'readsPrec'/]
 --   @(a,"") \`elem\` 'readsPrec' p ('showsPrec' p a "")@
 -- [/Partial Isomorphism: 'showList' \/ 'readList'/]
