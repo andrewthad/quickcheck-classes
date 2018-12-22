@@ -44,6 +44,7 @@ import qualified Data.Vector as V
 import qualified Data.Foldable as F
 
 import Test.QuickCheck.Classes
+import qualified Spec.ShowRead
 
 main :: IO ()
 main = do
@@ -55,7 +56,7 @@ main = do
   lawsCheckMany allPropsApplied
 
 allPropsApplied :: [(String,[Laws])]
-allPropsApplied = 
+allPropsApplied = M.toList . M.fromListWith (++) $
   [ ("Int",allLaws (Proxy :: Proxy Int))
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
@@ -73,6 +74,7 @@ allPropsApplied =
   , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
 #endif
   ]
+  ++ Spec.ShowRead.lawsApplied
 
 allLaws :: forall a.
   ( Integral a
@@ -97,7 +99,6 @@ allLaws p =
   , storableLaws p
   , semigroupLaws (Proxy :: Proxy (Sum a))
   , monoidLaws (Proxy :: Proxy (Sum a))
-  , showReadLaws p
   , boundedEnumLaws p
 #if defined(VERSION_aeson)
   , jsonLaws p

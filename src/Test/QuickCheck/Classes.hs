@@ -39,6 +39,7 @@ module Test.QuickCheck.Classes
 #if HAVE_SEMIRINGS
   , semiringLaws
 #endif
+  , showLaws
   , showReadLaws
   , storableLaws
 #if HAVE_UNARY_LAWS
@@ -98,6 +99,7 @@ import Test.QuickCheck.Classes.Semigroup
 #if HAVE_SEMIRINGS
 import Test.QuickCheck.Classes.Semiring
 #endif
+import Test.QuickCheck.Classes.Show
 import Test.QuickCheck.Classes.ShowRead
 import Test.QuickCheck.Classes.Storable
 

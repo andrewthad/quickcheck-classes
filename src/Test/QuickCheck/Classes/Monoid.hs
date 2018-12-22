@@ -12,7 +12,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Common (Laws(..), SmallList(..), myForAllShrink)
 
 -- | Tests the following properties:
 --
@@ -83,14 +83,3 @@ monoidCommutative _ = myForAllShrink True (const True)
   (\(a,b) -> mappend a b)
   "mappend b a"
   (\(a,b) -> mappend b a)
-
-newtype SmallList a = SmallList { getSmallList :: [a] }
-  deriving (Eq,Show)
-
-instance Arbitrary a => Arbitrary (SmallList a) where
-  arbitrary = do
-    n <- choose (0,6)
-    xs <- vector n
-    return (SmallList xs)
-  shrink = map SmallList . shrink . getSmallList
-

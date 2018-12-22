@@ -17,7 +17,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Common (Laws(..), SmallList(..), myForAllShrink)
 
 import Data.Foldable (foldr1,toList)
 import Data.List.NonEmpty (NonEmpty((:|)))
@@ -143,14 +143,3 @@ semigroupRectangularBand _ = myForAllShrink False (const True)
   (\(a,b) -> a <> b <> a)
   "a"
   (\(a,_) -> a)
-
-newtype SmallList a = SmallList { getSmallList :: [a] }
-  deriving (Eq,Show)
-
-instance Arbitrary a => Arbitrary (SmallList a) where
-  arbitrary = do
-    n <- choose (0,6)
-    xs <- vector n
-    return (SmallList xs)
-  shrink = map SmallList . shrink . getSmallList
-
