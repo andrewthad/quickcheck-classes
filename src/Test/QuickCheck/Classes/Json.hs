@@ -10,7 +10,6 @@ module Test.QuickCheck.Classes.Json
 #endif  
   ) where
 
-import Data.String (fromString)
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property(..))
@@ -20,7 +19,7 @@ import Data.Aeson (FromJSON(..), ToJSON(..))
 import qualified Data.Aeson as AE
 #endif
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Common (Laws(..))
 
 -- | Tests the following properties:
 --
@@ -55,22 +54,15 @@ jsonEncodingPartialIsomorphism _ =
     arbitrary >>= \(x :: a) ->
       unProperty $
       shrinking shrink x $ \x' ->
-        let name1 = "Just a"
-            name2 = "AE.decode (AE.encode a)"
+        let desc1 = "Just"
+            desc2 = "Data.Aeson.decode . Data.Aeson.encode"
+            name1 = "Data.Aeson.encode a"
+            name2 = "Data.Aeson.decode (Data.Aeson.encode a)"
             b1  = AE.encode x'
             b2  = AE.decode (AE.encode x')
             sb1 = show b1
             sb2 = show b2
-            description = "  Description: " ++ name1 ++ " = " ++ name2
+            description = "  Description: " ++ desc1 ++ " ≡  " ++ desc2
             err = description ++ "\n" ++ unlines (map ("  " ++) (["a = " ++ show x'])) ++ "  " ++ name1 ++ " = " ++ sb1 ++ "\n  " ++ name2 ++ " = " ++ sb2
         in counterexample err (Just x' == b2)
-{-
-myForAllShrink True (const True)
-  (\(a :: a) -> ["a = " ++ show a])
-  "encode a"
-  (\(a :: a) -> Just $ AE.encode a)
-  "decode (encode a)"
-  (\(a :: a) -> (fromString . show) <$> (AE.decode (AE.encode a) :: Maybe a)) --AE.decode (AE.encode a))
--}
-
 #endif
