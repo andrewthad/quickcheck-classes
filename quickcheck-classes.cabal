@@ -8,6 +8,11 @@ description:
   similar things, such as `genvalidity-hspec` and `checkers`.
   This library differs from other solutions by not introducing
   any new typeclasses that the user needs to learn.
+  .
+  /Note:/ on GHC < 8.5, this library uses the higher-kinded typeclasses
+  ('Data.Functor.Classes.Show1', 'Data.Functor.Classes.Eq1', 'Data.Functor.Classes.Ord1', etc.),
+  but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
+  constraints more cleanly.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
 license: BSD3
 license-file: LICENSE
