@@ -62,7 +62,7 @@ jsonEncodingPartialIsomorphism _ =
             b2  = AE.decode (AE.encode x')
             sb1 = show b1
             sb2 = show b2
-            description = "  Description: " ++ desc1 ++ " ≡  " ++ desc2
+            description = "  Description: " ++ desc1 ++ " == " ++ desc2
             err = description ++ "\n" ++ unlines (map ("  " ++) (["a = " ++ show x'])) ++ "  " ++ name1 ++ " = " ++ sb1 ++ "\n  " ++ name2 ++ " = " ++ sb2
         in counterexample err (Just x' == b2)
 #endif
