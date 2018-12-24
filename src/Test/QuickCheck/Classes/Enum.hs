@@ -16,9 +16,9 @@ import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 -- | Tests the following properties:
 --
 -- [/Succ Pred Identity/]
---   @succ (pred x) ≡ x@
+--   @'succ' ('pred' x) ≡ x@
 -- [/Pred Succ Identity/]
---   @pred (succ x) ≡ x@
+--   @'pred' ('succ' x) ≡ x@
 --
 -- This only works for @Enum@ types that are not bounded, meaning
 -- that 'succ' and 'pred' must be total. This means that these property

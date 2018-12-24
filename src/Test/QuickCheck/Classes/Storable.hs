@@ -29,9 +29,9 @@ import Test.QuickCheck.Classes.Common (Laws(..))
 -- | Tests the following alternative properties:
 --
 -- [/Set-Get/]
---   @'runST' ('pokeElemOff' ptr ix a >> 'peekElemOff' ptr ix') ≡  a@
+--   @('pokeElemOff' ptr ix a >> 'peekElemOff' ptr ix') ≡ 'pure' a@
 -- [/Get-Set/]
---   @'runST' ('peekElemOff' ptr ix >> 'pokeElemOff' ptr ix a) ≡ a@
+--   @('peekElemOff' ptr ix >> 'pokeElemOff' ptr ix a) ≡ 'pure' a@
 storableLaws :: (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 storableLaws p = Laws "Storable"
   [ ("Set-Get (you get back what you put in)", storableSetGet p)

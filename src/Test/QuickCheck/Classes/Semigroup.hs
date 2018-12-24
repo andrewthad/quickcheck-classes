@@ -31,7 +31,7 @@ import qualified Data.List as L
 -- [/Concatenation/]
 --   @'sconcat' as ≡ 'foldr1' ('<>') as@
 -- [/Times/]
---   @'stimes' n a ≡ 'foldr1' ('<>') (replicate n a)@
+--   @'stimes' n a ≡ 'foldr1' ('<>') ('replicate' n a)@
 semigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 semigroupLaws p = Laws "Semigroup"
   [ ("Associative", semigroupAssociative p)
@@ -67,7 +67,7 @@ idempotentSemigroupLaws p = Laws "Idempotent Semigroup"
 -- | Tests the following properties:
 --
 -- [/Rectangular Band/]
---   @a '<>' b ' <> 'a' ≡ a@
+--   @a '<>' b '<>' a ≡ a@
 --
 -- Note that this does not test associativity. Make sure to use
 -- 'semigroupLaws' in addition to this set of laws.
@@ -79,7 +79,7 @@ rectangularBandSemigroupLaws p = Laws "Rectangular Band Semigroup"
 -- | Tests the following properties:
 --
 -- [/Exponential/]
---   @stimes n (a '<>' b) ≡ 'stimes' n a '<>' 'stimes' n b@
+--   @'stimes' n (a '<>' b) ≡ 'stimes' n a '<>' 'stimes' n b@
 --
 -- Note that this does not test associativity. Make sure to use
 -- 'semigroupLaws' in addition to this set of laws.

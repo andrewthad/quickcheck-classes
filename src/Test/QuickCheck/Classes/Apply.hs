@@ -28,7 +28,7 @@ import Test.QuickCheck.Classes.Compat (eq1)
 -- | Tests the following alt properties:
 --
 -- [/LiftF2 (1)/]
---   @('FunctorApply.<.>') ≡ 'liftF2' 'id'@
+--   @('FunctorApply.<.>') ≡ 'FunctorApply.liftF2' 'id'@
 applyLaws ::
 #if HAVE_QUANTIFIED_CONSTRAINTS
   (FunctorApply.Apply f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
