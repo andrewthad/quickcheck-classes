@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.6.0.0] - TBA
+## [0.6.0.0] - 2018-12-24
 ### Change
 - Support QuickCheck 2.7 and 2.8. This adds `Arbitrary` orphan instances
   to the test suite.
