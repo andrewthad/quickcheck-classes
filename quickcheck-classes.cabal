@@ -92,7 +92,8 @@ library
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
     Test.QuickCheck.Classes.Semigroupoid
-    Test.QuickCheck.Classes.Semiring 
+    Test.QuickCheck.Classes.Semiring
+    Test.QuickCheck.Classes.Show
     Test.QuickCheck.Classes.ShowRead
     Test.QuickCheck.Classes.Storable
     Test.QuickCheck.Classes.Traversable
@@ -139,6 +140,8 @@ test-suite basic
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Spec.hs
+  other-modules:
+    Spec.ShowRead
   build-depends:
       base
     , base-orphans >= 0.5
