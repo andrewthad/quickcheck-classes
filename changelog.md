@@ -22,6 +22,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   test fails.
 - Extend `showReadLaws` with new properties for `showsPrec`, `readsPrec`,
   `showList` and `readList`.
+- Prettify JSON partial isomorphism test failure.
 ### Added
 - Add `genericLaws` and `generic1Laws`
 - Add property tests for special classes of semigroups. This includes:
