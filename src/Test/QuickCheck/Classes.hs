@@ -16,7 +16,6 @@ module Test.QuickCheck.Classes
     lawsCheck
   , lawsCheckMany
   , lawsCheckOne
-  , specialisedLawsCheckMany
     -- * Properties
     -- ** Ground types
 #if MIN_VERSION_base(4,7,0)
@@ -166,17 +165,6 @@ lawsCheck (Laws className properties) = do
   flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
     quickCheck p
-
--- | A convenience function that allows one to check many typeclass
--- instances of the same type.
---
--- >>> specialisedLawsCheckMany (Proxy :: Proxy Word) [jsonLaws, showReadLaws]
--- ToJSON/FromJSON: Encoding Equals Value +++ OK, passed 100 tests.
--- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
--- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
-{-# DEPRECATED specialisedLawsCheckMany "Use the better-named 'Test.QuickCheck.Classes.lawsCheckOne' instead" #-}
-specialisedLawsCheckMany :: Proxy a -> [Proxy a -> Laws] -> IO ()
-specialisedLawsCheckMany p ls = foldlMapM (lawsCheck . ($ p)) ls
 
 -- | A convenience function that allows one to check many typeclass
 -- instances of the same type.
