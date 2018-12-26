@@ -102,6 +102,7 @@ library
     Test.QuickCheck.Classes.Show
     Test.QuickCheck.Classes.ShowRead
     Test.QuickCheck.Classes.Storable
+    Test.QuickCheck.Classes.Ring
     Test.QuickCheck.Classes.Traversable
   build-depends:
       base >= 4.5 && < 5

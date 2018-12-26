@@ -42,6 +42,7 @@ module Test.QuickCheck.Classes
   , rectangularBandSemigroupLaws
 #if HAVE_SEMIRINGS
   , semiringLaws
+  , ringLaws
 #endif
   , showLaws
   , showReadLaws
@@ -102,6 +103,7 @@ import Test.QuickCheck.Classes.Prim
 import Test.QuickCheck.Classes.Semigroup
 #if HAVE_SEMIRINGS
 import Test.QuickCheck.Classes.Semiring
+import Test.QuickCheck.Classes.Ring
 #endif
 import Test.QuickCheck.Classes.Show
 import Test.QuickCheck.Classes.ShowRead
