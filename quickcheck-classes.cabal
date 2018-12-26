@@ -46,8 +46,8 @@ flag semirings
     You can disable the use of the `semirings` package using `-f-semirings`.
     .
     This may be useful for accelerating builds in sandboxes for expert users.
-    default: True
-    manual: True
+  default: True
+  manual: True
 
 flag unary-laws
   description:
