@@ -85,7 +85,7 @@ rectangularBandSemigroupLaws p = Laws "Rectangular Band Semigroup"
 -- 'semigroupLaws' in addition to this set of laws.
 exponentialSemigroupLaws :: (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 exponentialSemigroupLaws p = Laws "Exponential Semigroup"
-  [ ("Rectangular Band", semigroupExponential p)
+  [ ("Exponential", semigroupExponential p)
   ]
 
 semigroupAssociative :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
