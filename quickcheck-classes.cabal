@@ -87,6 +87,7 @@ library
     Test.QuickCheck.Classes.Functor
     Test.QuickCheck.Classes.Generic
     Test.QuickCheck.Classes.Integral
+    Test.QuickCheck.Classes.Ix
     Test.QuickCheck.Classes.Json
     Test.QuickCheck.Classes.Monad
     Test.QuickCheck.Classes.MonadFail

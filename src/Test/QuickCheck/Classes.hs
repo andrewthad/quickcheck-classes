@@ -23,6 +23,7 @@ module Test.QuickCheck.Classes
 #endif
   , eqLaws
   , integralLaws
+  , ixLaws
 #if MIN_VERSION_base(4,7,0)
   , isListLaws
 #endif
@@ -91,6 +92,7 @@ import Test.QuickCheck.Classes.Bits
 import Test.QuickCheck.Classes.Enum
 import Test.QuickCheck.Classes.Eq
 import Test.QuickCheck.Classes.Integral
+import Test.QuickCheck.Classes.Ix
 #if MIN_VERSION_base(4,7,0)
 import Test.QuickCheck.Classes.IsList
 #endif
