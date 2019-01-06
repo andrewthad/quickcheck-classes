@@ -68,6 +68,7 @@ module Test.QuickCheck.Classes
 #endif
 #if HAVE_BINARY_LAWS
     -- ** Binary type constructors
+  , arrowLaws
   , bifunctorLaws
   , categoryLaws
   , commutativeCategoryLaws
@@ -130,6 +131,7 @@ import Test.QuickCheck.Classes.Traversable
 
 -- Binary type constructors
 #if HAVE_BINARY_LAWS
+import Test.QuickCheck.Classes.Arrow
 import Test.QuickCheck.Classes.Bifunctor
 import Test.QuickCheck.Classes.Category
 #if HAVE_SEMIGROUPOIDS
