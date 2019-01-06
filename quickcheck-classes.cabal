@@ -81,6 +81,7 @@ library
     Test.QuickCheck.Classes.Category
     Test.QuickCheck.Classes.Common
     Test.QuickCheck.Classes.Compat
+    Test.QuickCheck.Classes.Contravariant
     Test.QuickCheck.Classes.Enum
     Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Foldable
@@ -107,7 +108,8 @@ library
   build-depends:
       base >= 4.5 && < 5
     , base-orphans >= 0.1
-    , bifunctors 
+    , bifunctors
+    , contravariant
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.1 && < 0.7
