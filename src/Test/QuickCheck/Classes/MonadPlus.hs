@@ -20,7 +20,6 @@ import Test.QuickCheck.Classes.Common
 #if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Compat (eq1)
 #endif
-import Control.Applicative(Alternative(empty))
 import Control.Monad (MonadPlus(mzero,mplus))
 
 #if HAVE_UNARY_LAWS
@@ -33,9 +32,9 @@ import Data.Functor.Classes (Eq1,Show1)
 -- | Tests the following monad plus properties:
 --
 -- [/Left Identity/]
---   @'mplus' 'empty' x ≡ x@
+--   @'mplus' 'mzero' x ≡ x@
 -- [/Right Identity/]
---   @'mplus' x 'empty' ≡ x@
+--   @'mplus' x 'mzero' ≡ x@
 -- [/Associativity/]
 --   @'mplus' a ('mplus' b c) ≡ 'mplus' ('mplus' a b) c)@ 
 -- [/Left Zero/]
