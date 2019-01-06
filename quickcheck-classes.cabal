@@ -90,6 +90,7 @@ library
     Test.QuickCheck.Classes.Json
     Test.QuickCheck.Classes.Monad
     Test.QuickCheck.Classes.MonadFail
+    Test.QuickCheck.Classes.MonadIO
     Test.QuickCheck.Classes.MonadPlus
     Test.QuickCheck.Classes.MonadZip
     Test.QuickCheck.Classes.Monoid
