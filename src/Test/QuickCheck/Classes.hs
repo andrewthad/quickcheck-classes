@@ -58,6 +58,7 @@ module Test.QuickCheck.Classes
   , foldableLaws
   , functorLaws
   , monadLaws
+  , monadFixLaws
   , monadPlusLaws
   , monadZipLaws
 #if HAVE_SEMIGROUPOIDS
@@ -120,6 +121,7 @@ import Test.QuickCheck.Classes.Applicative
 import Test.QuickCheck.Classes.Foldable
 import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
+import Test.QuickCheck.Classes.MonadFix
 import Test.QuickCheck.Classes.MonadPlus
 import Test.QuickCheck.Classes.MonadZip
 #if HAVE_SEMIGROUPOIDS
