@@ -182,6 +182,9 @@ test-suite basic
   if flag(semigroupoids)
     build-depends: semigroupoids
     cpp-options: -DHAVE_SEMIGROUPOIDS
+  if flag(vector)
+    build-depends: vector >= 0.12
+    cpp-options: -DHAVE_VECTOR
   default-language: Haskell2010
 
 -- The advanced test suite only builds with the newest version
