@@ -47,6 +47,10 @@ module Test.QuickCheck.Classes
   , showLaws
   , showReadLaws
   , storableLaws
+#if MIN_VERSION_base(4,5,0)
+  , genericLaws
+  , generic1Laws
+#endif
 #if HAVE_UNARY_LAWS
     -- ** Unary type constructors
   , alternativeLaws
@@ -111,7 +115,9 @@ import Test.QuickCheck.Classes.Ring
 import Test.QuickCheck.Classes.Show
 import Test.QuickCheck.Classes.ShowRead
 import Test.QuickCheck.Classes.Storable
-
+#if MIN_VERSION_base(4,5,0)
+import Test.QuickCheck.Classes.Generic
+#endif
 -- Unary type constructors
 #if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Alternative
