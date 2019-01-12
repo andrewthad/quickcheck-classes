@@ -11,8 +11,10 @@ module Test.QuickCheck.Classes.MVector
   ( muvectorLaws
   ) where
 
+import Control.Applicative
 import Control.Monad (when)
 import Control.Monad.ST
+import Data.Functor
 import Data.Proxy (Proxy)
 import qualified Data.Vector.Generic.Mutable as MU (basicInitialize)
 import qualified Data.Vector.Unboxed.Mutable as MU
