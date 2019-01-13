@@ -71,7 +71,13 @@ allPropsApplied = M.toList . M.fromListWith (++) $
 #endif
 #endif
 #if MIN_VERSION_base(4,7,0)
-  , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
+  , ("Vector",
+    [ isListLaws (Proxy :: Proxy (Vector Word))
+#if HAVE_VECTOR
+    , muvectorLaws (Proxy :: Proxy Word8)
+    , muvectorLaws (Proxy :: Proxy (Int, Word))
+#endif
+    ])
 #endif
   ]
   ++ Spec.ShowRead.lawsApplied
