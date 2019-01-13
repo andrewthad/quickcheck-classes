@@ -12,7 +12,7 @@
     constraints more cleanly.
 -}
 module Test.QuickCheck.Classes
-  ( -- * Running 
+  ( -- * Running
     lawsCheck
   , lawsCheckMany
   , lawsCheckOne
@@ -31,7 +31,7 @@ module Test.QuickCheck.Classes
   , jsonLaws
 #endif
   , monoidLaws
-  , commutativeMonoidLaws 
+  , commutativeMonoidLaws
   , ordLaws
   , enumLaws
   , boundedEnumLaws
@@ -48,6 +48,10 @@ module Test.QuickCheck.Classes
   , showLaws
   , showReadLaws
   , storableLaws
+#if MIN_VERSION_base(4,5,0)
+  , genericLaws
+  , generic1Laws
+#endif
 #if HAVE_UNARY_LAWS
     -- ** Unary type constructors
   , alternativeLaws
@@ -75,6 +79,9 @@ module Test.QuickCheck.Classes
 #if HAVE_SEMIGROUPOIDS
   , semigroupoidLaws
   , commutativeSemigroupoidLaws
+#endif
+#if HAVE_VECTOR
+  , muvectorLaws
 #endif
 #endif
     -- * Types
@@ -110,7 +117,9 @@ import Test.QuickCheck.Classes.Ring
 import Test.QuickCheck.Classes.Show
 import Test.QuickCheck.Classes.ShowRead
 import Test.QuickCheck.Classes.Storable
-
+#if MIN_VERSION_base(4,5,0)
+import Test.QuickCheck.Classes.Generic
+#endif
 -- Unary type constructors
 #if HAVE_UNARY_LAWS
 import Test.QuickCheck.Classes.Alternative
@@ -137,6 +146,10 @@ import Test.QuickCheck.Classes.Category
 #if HAVE_SEMIGROUPOIDS
 import Test.QuickCheck.Classes.Semigroupoid
 #endif
+#endif
+
+#if HAVE_VECTOR
+import Test.QuickCheck.Classes.MVector
 #endif
 
 --
@@ -188,14 +201,14 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 -- import Data.Map (Map)
 -- import Data.Set (Set)
 --
--- -- A 'Proxy' for 'Set' 'Int'. 
+-- -- A 'Proxy' for 'Set' 'Int'.
 -- setInt :: Proxy (Set Int)
 -- setInt = Proxy
--- 
+--
 -- -- A 'Proxy' for 'Map' 'Int' 'Int'.
 -- mapInt :: Proxy (Map Int Int)
 -- mapInt = Proxy
--- 
+--
 -- myLaws :: Proxy a -> [Laws]
 -- myLaws p = [eqLaws p, monoidLaws p]
 --
@@ -205,7 +218,7 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 --   , ("Map Int Int", myLaws mapInt)
 --   ]
 -- @
---   
+--
 -- Now, in GHCi:
 --
 -- >>> lawsCheckMany namedTests
@@ -215,7 +228,7 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 -- -------------
 -- -- Set Int --
 -- -------------
--- 
+--
 -- Eq: Transitive +++ OK, passed 100 tests.
 -- Eq: Symmetric +++ OK, passed 100 tests.
 -- Eq: Reflexive +++ OK, passed 100 tests.
@@ -223,11 +236,11 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 -- Monoid: Left Identity +++ OK, passed 100 tests.
 -- Monoid: Right Identity +++ OK, passed 100 tests.
 -- Monoid: Concatenation +++ OK, passed 100 tests.
--- 
+--
 -- -----------------
 -- -- Map Int Int --
 -- -----------------
--- 
+--
 -- Eq: Transitive +++ OK, passed 100 tests.
 -- Eq: Symmetric +++ OK, passed 100 tests.
 -- Eq: Reflexive +++ OK, passed 100 tests.
@@ -257,9 +270,9 @@ lawsCheckMany xs = do
           _ -> Bad
   putStrLn ""
   case r of
-    Good -> putStrLn "All tests succeeded" 
+    Good -> putStrLn "All tests succeeded"
     Bad -> do
-      putStrLn "One or more tests failed" 
+      putStrLn "One or more tests failed"
       exitFailure
 
 data Status = Bad | Good
