@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.2.0] - TBA
+### Added
+- `ixLaws`
+
 ## [0.6.1.0] - 2019-01-12
 ### Change
 - `genericLaws` and `generic1Laws` were not exported. Now they are.
