@@ -34,9 +34,12 @@ muvectorLaws p = Laws "Vector.Unboxed.MVector"
 
   , ("Write-Read", writeRead p)
   , ("Set-Read", setRead p)
+  , ("Sliced-Set-Read", slicedSetRead p)
   , ("Replicate-Read", replicateRead p)
 
   , ("Slice-Overlaps", sliceOverlaps p)
+  , ("Slice-Copy", sliceCopy p)
+  , ("Slice-Move", sliceMove p)
 
   , ("Write-Copy-Read", writeCopyRead p)
   , ("Write-Move-Read", writeMoveRead p)
@@ -51,6 +54,12 @@ muvectorLaws p = Laws "Vector.Unboxed.MVector"
   , ("Write-WriteAround-Read", writeWriteAroundRead p)
   , ("Write-CopyAround-Read", writeCopyAroundRead p)
   , ("Write-MoveAround-Read", writeMoveAroundRead p)
+
+  , ("Write-InitializeBetween-Read", writeInitializeBetweenRead p)
+  , ("Write-ClearBetween-Read", writeClearBetweenRead p)
+  , ("Write-SetBetween-Read", writeSetBetweenRead p)
+  , ("Write-CopyBetween-Read", writeCopyBetweenRead p)
+  , ("Write-MoveBetween-Read", writeMoveBetweenRead p)
   ]
 
 -------------------------------------------------------------------------------
@@ -91,6 +100,13 @@ setRead _ = property $ \(a :: a) (NonNegative ix) (Positive excess) -> do
     MU.set arr a
     MU.read arr ix
 
+slicedSetRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+slicedSetRead _ = property $ \(a :: a) (NonNegative ix) (Positive excess) before after -> do
+  (=== a) $ runST $ do
+    arr <- newSlice before after (ix + excess)
+    MU.set arr a
+    MU.read arr ix
+
 replicateRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
 replicateRead _ = property $ \(a :: a) (NonNegative ix) (Positive excess) -> do
   (=== a) $ runST $ do
@@ -111,6 +127,33 @@ sliceOverlaps _ = property $ \(NonNegative i) (NonNegative ij) (NonNegative jk) 
     let slice1 = MU.slice i (k - i + 1) arr
         slice2 = MU.slice j (l - j + 1) arr
     pure $ MU.overlaps slice1 slice2
+
+sliceCopy :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+sliceCopy _ = property $ \(a :: a) (NonNegative i) (NonNegative ix) (Positive excess) (NonNegative ij) (NonNegative jk) -> do
+  let j = i + ix + excess + ij
+      k = j + ix + excess + jk
+  runST $ do
+    arr <- MU.new k :: ST s (MU.MVector s a)
+    let src = MU.slice i (ix + excess) arr
+        dst = MU.slice j (ix + excess) arr
+    if MU.overlaps src dst then pure (property True) else do
+      MU.write src ix a
+      MU.copy dst src
+      valSrc <- MU.read src ix
+      valDst <- MU.read dst ix
+      pure (valSrc === a .&&. valDst === a)
+
+sliceMove :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+sliceMove _ = property $ \(a :: a) (NonNegative i) (NonNegative ix) (Positive excess) (NonNegative ij) (NonNegative jk) -> do
+  let j = i + ix + excess + ij
+      k = j + ix + excess + jk
+  (=== a) $ runST $ do
+    arr <- MU.new k :: ST s (MU.MVector s a)
+    let src = MU.slice i (ix + excess) arr
+        dst = MU.slice j (ix + excess) arr
+    MU.write src ix a
+    MU.move dst src
+    MU.read dst ix
 
 -------------------------------------------------------------------------------
 -- Write + copy/move/grow
@@ -243,6 +286,56 @@ writeMoveAroundRead _ = property $ \(a :: a) (NonNegative ix) (Positive excess) 
     when (excess > 1) $
       MU.move (MU.slice (ix + 1) (excess - 1) dst) (MU.slice (ix + 1) (excess - 1) src)
     MU.read dst ix
+
+-------------------------------------------------------------------------------
+-- Two writes + overwrite in between
+
+writeInitializeBetweenRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+writeInitializeBetweenRead _ = property $ \(a :: a) (b :: a) (NonNegative ix) (Positive dix) (Positive excess) -> do
+  (=== (a, b)) $ runST $ do
+    arr <- MU.new (ix + dix + excess)
+    MU.write arr ix a
+    MU.write arr (ix + dix) b
+    MU.basicInitialize (MU.slice (ix + 1) (dix - 1) arr)
+    (,) <$> MU.read arr ix <*> MU.read arr (ix + dix)
+
+writeClearBetweenRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+writeClearBetweenRead _ = property $ \(a :: a) (b :: a) (NonNegative ix) (Positive dix) (Positive excess) -> do
+  (=== (a, b)) $ runST $ do
+    arr <- MU.new (ix + dix + excess)
+    MU.write arr ix a
+    MU.write arr (ix + dix) b
+    MU.clear (MU.slice (ix + 1) (dix - 1) arr)
+    (,) <$> MU.read arr ix <*> MU.read arr (ix + dix)
+
+writeSetBetweenRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+writeSetBetweenRead _ = property $ \(a :: a) (b :: a) (c :: a) (NonNegative ix) (Positive dix) (Positive excess) -> do
+  (=== (a, b)) $ runST $ do
+    arr <- MU.new (ix + dix + excess)
+    MU.write arr ix a
+    MU.write arr (ix + dix) b
+    MU.set (MU.slice (ix + 1) (dix - 1) arr) c
+    (,) <$> MU.read arr ix <*> MU.read arr (ix + dix)
+
+writeCopyBetweenRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+writeCopyBetweenRead _ = property $ \(a :: a) (b :: a) (NonNegative ix) (Positive dix) (Positive excess) -> do
+  (=== (a, b)) $ runST $ do
+    src <- MU.new (ix + dix + excess)
+    dst <- MU.new (ix + dix + excess)
+    MU.write dst ix a
+    MU.write dst (ix + dix) b
+    MU.copy (MU.slice (ix + 1) (dix - 1) dst) (MU.slice (ix + 1) (dix - 1) src)
+    (,) <$> MU.read dst ix <*> MU.read dst (ix + dix)
+
+writeMoveBetweenRead :: forall a. (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Property
+writeMoveBetweenRead _ = property $ \(a :: a) (b :: a) (NonNegative ix) (Positive dix) (Positive excess) -> do
+  (=== (a, b)) $ runST $ do
+    src <- MU.new (ix + dix + excess)
+    dst <- MU.new (ix + dix + excess)
+    MU.write dst ix a
+    MU.write dst (ix + dix) b
+    MU.move (MU.slice (ix + 1) (dix - 1) dst) (MU.slice (ix + 1) (dix - 1) src)
+    (,) <$> MU.read dst ix <*> MU.read dst (ix + dix)
 
 -------------------------------------------------------------------------------
 -- Utils
