@@ -60,6 +60,7 @@ module Test.QuickCheck.Classes
   , applyLaws
 #endif
   , applicativeLaws
+  , contravariantLaws 
   , foldableLaws
   , functorLaws
   , monadLaws
@@ -128,6 +129,7 @@ import Test.QuickCheck.Classes.Alt
 import Test.QuickCheck.Classes.Apply
 #endif
 import Test.QuickCheck.Classes.Applicative
+import Test.QuickCheck.Classes.Contravariant
 import Test.QuickCheck.Classes.Foldable
 import Test.QuickCheck.Classes.Functor
 import Test.QuickCheck.Classes.Monad
