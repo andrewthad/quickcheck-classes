@@ -5,8 +5,10 @@
 module Test.QuickCheck.Classes.Monoid
   ( monoidLaws
   , commutativeMonoidLaws
+  , semigroupMonoidLaws
   ) where
 
+import Data.Semigroup
 import Data.Monoid
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
@@ -43,6 +45,19 @@ commutativeMonoidLaws :: (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Law
 commutativeMonoidLaws p = Laws "Commutative Monoid"
   [ ("Commutative", monoidCommutative p)
   ]
+
+semigroupMonoidLaws :: forall a. (Semigroup a, Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
+semigroupMonoidLaws p = Laws "Semigroup/Monoid"
+  [ ("mappend == <>", semigroupMonoid p)
+  ]
+
+semigroupMonoid :: forall a. (Semigroup a, Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semigroupMonoid _ = myForAllShrink True (const True)
+  (\(a :: a,b) -> ["a = " ++ show a, "b = " ++ show b])
+  "mappend a b"
+  (\(a,b) -> mappend a b)
+  "a <> b"
+  (\(a,b) -> a <> b)
 
 monoidConcatenation :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidConcatenation _ = myForAllShrink True (const True)

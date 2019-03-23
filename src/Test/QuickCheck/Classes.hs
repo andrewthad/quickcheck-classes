@@ -32,6 +32,7 @@ module Test.QuickCheck.Classes
 #endif
   , monoidLaws
   , commutativeMonoidLaws
+  , semigroupMonoidLaws
   , ordLaws
   , enumLaws
   , boundedEnumLaws
