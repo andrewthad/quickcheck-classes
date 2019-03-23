@@ -1,4 +1,7 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -82,10 +85,10 @@ foldableLawsInternal :: forall proxy f.
 #endif
   => proxy f -> Laws
 foldableLawsInternal p = Laws "Foldable"
-  [ (,) "fold" $ property $ \(Apply (a :: f (SG.Sum Integer))) ->
+  [ (,) "fold" $ property $ \(Apply (a :: f (VerySmallList Integer))) ->
       F.fold a == F.foldMap id a
   , (,) "foldMap" $ property $ \(Apply (a :: f Integer)) (e :: QuadraticEquation) ->
-      let f = SG.Sum . runQuadraticEquation e
+      let f = VerySmallList . return . runQuadraticEquation e
        in F.foldMap f a == F.foldr (mappend . f) mempty a
   , (,) "foldr" $ property $ \(e :: LinearEquationTwo) (z :: Integer) (Apply (t :: f Integer)) ->
       let f = runLinearEquationTwo e

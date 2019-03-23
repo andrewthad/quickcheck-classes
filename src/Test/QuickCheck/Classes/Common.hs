@@ -15,6 +15,7 @@ module Test.QuickCheck.Classes.Common
   , myForAllShrink
   -- Modifiers
   , SmallList(..)
+  , VerySmallList(..)
   , ShowReadPrecedence(..)
 
   -- only used for higher-kinded types
@@ -468,6 +469,16 @@ instance Arbitrary a => Arbitrary (SmallList a) where
     xs <- vector n
     return (SmallList xs)
   shrink = map SmallList . shrink . getSmallList
+
+newtype VerySmallList a = VerySmallList { getVerySmallList :: [a] }
+  deriving (Eq, Show, Semigroup, Monoid)
+
+instance Arbitrary a => Arbitrary (VerySmallList a) where
+  arbitrary = do
+    n <- choose (0,2)
+    xs <- vector n
+    return (VerySmallList xs)
+  shrink = map VerySmallList . shrink . getVerySmallList
 
 -- Haskell uses the operator precedences 0..9, the special function application
 -- precedence 10 and the precedence 11 for function arguments. Both show and
