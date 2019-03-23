@@ -7,6 +7,13 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.6.2.0] - TBA
 ### Added
 - `ixLaws`
+- `contravariantLaws`
+- `semigroupMonoidLaws`
+### Changed
+- extend `mvectorLaws`
+### Fixed
+- bug in `foldableLaws` which could fail to catch implementations of `foldMap` or `fold`
+  that evaluate in the wrong order
 
 ## [0.6.1.0] - 2019-01-12
 ### Change
