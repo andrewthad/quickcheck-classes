@@ -190,7 +190,7 @@ newtype BadList a = BadList [a]
 
 instance Foldable BadList where
   foldMap f (BadList xs) = F.foldMap f xs
-  fold (BadList xs) = fold (reverse xs) -- oops
+  fold (BadList xs) = fold (reverse xs)
 
 newtype Pound k v = Pound { getPound :: Map k v }
   deriving
