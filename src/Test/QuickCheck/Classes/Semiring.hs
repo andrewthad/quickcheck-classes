@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Semiring
-  ( 
+  (
 #if HAVE_SEMIRINGS
     semiringLaws
 #endif
@@ -13,6 +13,7 @@ module Test.QuickCheck.Classes.Semiring
 #if HAVE_SEMIRINGS
 import Data.Semiring
 import Prelude hiding (Num(..))
+import Prelude (fromInteger)
 #endif
 
 import Data.Proxy (Proxy)
@@ -56,6 +57,9 @@ semiringLaws p = Laws "Semiring"
   , ("Multiplication Right Distributes Over Addition", semiringRightMultiplicationDistributes p)
   , ("Multiplicative Left Annihilation", semiringLeftAnnihilation p)
   , ("Multiplicative Right Annihilation", semiringRightAnnihilation p)
+  , ("FromNatural Maps Zero", semiringFromNaturalMapsZero p)
+  , ("FromNatural Maps One", semiringFromNaturalMapsOne p)
+  , ("FromNatural Maps Plus", semiringFromNaturalMapsPlus p)
   ]
 
 semiringLeftMultiplicationDistributes :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -137,5 +141,31 @@ semiringAssociativeTimes _ = myForAllShrink True (const True)
   (\(a,b,c) -> a * (b * c))
   "(a * b) * c"
   (\(a,b,c) -> (a * b) * c)
+
+semiringFromNaturalMapsZero :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semiringFromNaturalMapsZero _ = myForAllShrink False (const True)
+  (\_ -> [""])
+  "fromNatural 0"
+  (\() -> fromNatural 0 :: a)
+  "zero"
+  (\() -> zero)
+
+semiringFromNaturalMapsOne :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semiringFromNaturalMapsOne _ = myForAllShrink False (const True)
+  (\_ -> [""])
+  "fromNatural 1"
+  (\() -> fromNatural 1 :: a)
+  "one"
+  (\() -> one)
+
+-- | There is no Arbitrary instance for Natural in QuickCheck,
+-- so we use NonNegative Integer instead.
+semiringFromNaturalMapsPlus :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semiringFromNaturalMapsPlus _ = myForAllShrink True (const True)
+  (\(NonNegative a, NonNegative b) -> ["a = " ++ show a, "b = " ++ show b])
+  "fromNatural (a + b)"
+  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a + b)) :: a)
+  "fromNatural a + fromNatural b"
+  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) + fromNatural (fromInteger b))
 
 #endif
