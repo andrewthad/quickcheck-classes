@@ -46,6 +46,8 @@ module Test.QuickCheck.Classes
 #if HAVE_SEMIRINGS
   , semiringLaws
   , ringLaws
+  , gcdDomainLaws
+  , euclideanLaws
 #endif
   , showLaws
   , showReadLaws
@@ -62,7 +64,7 @@ module Test.QuickCheck.Classes
   , applyLaws
 #endif
   , applicativeLaws
-  , contravariantLaws 
+  , contravariantLaws
   , foldableLaws
   , functorLaws
   , monadLaws
@@ -117,6 +119,7 @@ import Test.QuickCheck.Classes.Ord
 import Test.QuickCheck.Classes.Prim
 import Test.QuickCheck.Classes.Semigroup
 #if HAVE_SEMIRINGS
+import Test.QuickCheck.Classes.Euclidean
 import Test.QuickCheck.Classes.Semiring
 import Test.QuickCheck.Classes.Ring
 #endif

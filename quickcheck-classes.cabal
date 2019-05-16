@@ -93,6 +93,7 @@ library
     Test.QuickCheck.Classes.Contravariant
     Test.QuickCheck.Classes.Enum
     Test.QuickCheck.Classes.Eq
+    Test.QuickCheck.Classes.Euclidean
     Test.QuickCheck.Classes.Foldable
     Test.QuickCheck.Classes.Functor
     Test.QuickCheck.Classes.Generic
