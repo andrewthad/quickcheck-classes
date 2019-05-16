@@ -57,7 +57,7 @@ semigroupMonoid _ = myForAllShrink True (const True)
   "mappend a b"
   (\(a,b) -> mappend a b)
   "a <> b"
-  (\(a,b) -> a <> b)
+  (\(a,b) -> a Data.Semigroup.<> b)
 
 monoidConcatenation :: forall a. (Monoid a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 monoidConcatenation _ = myForAllShrink True (const True)
