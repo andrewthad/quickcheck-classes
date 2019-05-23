@@ -122,7 +122,7 @@ library
     , contravariant
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
-    , primitive >= 0.6.1 && < 0.7
+    , primitive >= 0.6.4 && < 0.8
     , containers >= 0.4.2.1
     , semigroups >= 0.17
     , tagged
