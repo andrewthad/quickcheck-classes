@@ -4,13 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.6.2.0] - TBA
+## [0.6.2.1] - 2019-05-23
+### Fixed
+- Removal of BadList test that was causing the test suite to fail
+
+## [0.6.2.0] - 2019-05-23
 ### Added
 - `ixLaws`
 - `contravariantLaws`
 - `semigroupMonoidLaws`
 ### Changed
 - extend `mvectorLaws`
+- extend `applyLaws` to include associativity
 ### Fixed
 - bug in `foldableLaws` which could fail to catch implementations of `foldMap` or `fold`
   that evaluate in the wrong order
