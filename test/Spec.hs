@@ -64,7 +64,7 @@ allPropsApplied = M.toList . M.fromListWith (++) $
 #if HAVE_UNARY_LAWS
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
-  , ("BadList",allHigherLaws (Proxy1 :: Proxy1 BadList))
+--  , ("BadList",allHigherLaws (Proxy1 :: Proxy1 BadList))
 #endif
 #if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
 #if MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
