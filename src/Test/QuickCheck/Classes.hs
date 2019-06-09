@@ -46,8 +46,10 @@ module Test.QuickCheck.Classes
 #if HAVE_SEMIRINGS
   , semiringLaws
   , ringLaws
+#if MIN_VERSION_semirings(0,4,2)
   , gcdDomainLaws
   , euclideanLaws
+#endif
 #endif
   , showLaws
   , showReadLaws
@@ -119,7 +121,9 @@ import Test.QuickCheck.Classes.Ord
 import Test.QuickCheck.Classes.Prim
 import Test.QuickCheck.Classes.Semigroup
 #if HAVE_SEMIRINGS
+#if MIN_VERSION_semirings(0,4,2)
 import Test.QuickCheck.Classes.Euclidean
+#endif
 import Test.QuickCheck.Classes.Semiring
 import Test.QuickCheck.Classes.Ring
 #endif

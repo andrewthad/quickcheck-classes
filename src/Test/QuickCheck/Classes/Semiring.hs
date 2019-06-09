@@ -13,7 +13,9 @@ module Test.QuickCheck.Classes.Semiring
 #if HAVE_SEMIRINGS
 import Data.Semiring
 import Prelude hiding (Num(..))
+#if MIN_VERSION_semirings(0,4,0)
 import Prelude (fromInteger)
+#endif
 #endif
 
 import Data.Proxy (Proxy)
@@ -57,9 +59,11 @@ semiringLaws p = Laws "Semiring"
   , ("Multiplication Right Distributes Over Addition", semiringRightMultiplicationDistributes p)
   , ("Multiplicative Left Annihilation", semiringLeftAnnihilation p)
   , ("Multiplicative Right Annihilation", semiringRightAnnihilation p)
+#if MIN_VERSION_semirings(0,4,0)
   , ("FromNatural Maps Zero", semiringFromNaturalMapsZero p)
   , ("FromNatural Maps One", semiringFromNaturalMapsOne p)
   , ("FromNatural Maps Plus", semiringFromNaturalMapsPlus p)
+#endif
   ]
 
 semiringLeftMultiplicationDistributes :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -142,6 +146,8 @@ semiringAssociativeTimes _ = myForAllShrink True (const True)
   "(a * b) * c"
   (\(a,b,c) -> (a * b) * c)
 
+#if MIN_VERSION_semirings(0,4,0)
+
 semiringFromNaturalMapsZero :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semiringFromNaturalMapsZero _ = myForAllShrink False (const True)
   (\_ -> [""])
@@ -167,5 +173,7 @@ semiringFromNaturalMapsPlus _ = myForAllShrink True (const True)
   (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a + b)) :: a)
   "fromNatural a + fromNatural b"
   (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) + fromNatural (fromInteger b))
+
+#endif
 
 #endif
