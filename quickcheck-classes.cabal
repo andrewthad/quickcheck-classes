@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.6.2.1
+version: 0.6.2.2
 synopsis: QuickCheck common typeclasses
 description:
   This library provides QuickCheck properties to ensure
@@ -104,6 +104,7 @@ library
     Test.QuickCheck.Classes.MonadZip
     Test.QuickCheck.Classes.Monoid
     Test.QuickCheck.Classes.MVector
+    Test.QuickCheck.Classes.Num
     Test.QuickCheck.Classes.Ord
     Test.QuickCheck.Classes.Plus
     Test.QuickCheck.Classes.Prim

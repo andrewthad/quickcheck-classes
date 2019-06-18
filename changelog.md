@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.2.2] - 2019-06-18
+### Added
+- `numLaws`
+
 ## [0.6.2.1] - 2019-05-23
 ### Fixed
 - Removal of BadList test that was causing the test suite to fail
