@@ -61,6 +61,8 @@ allPropsApplied = M.toList . M.fromListWith (++) $
   [ ("Int",allLaws (Proxy :: Proxy Int))
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
+  , ("Tuple",[bitraversableLaws (Proxy :: Proxy (,))])
+  , ("Either",[bitraversableLaws (Proxy :: Proxy Either)])
 #if HAVE_UNARY_LAWS
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))

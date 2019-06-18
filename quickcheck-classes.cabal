@@ -85,6 +85,7 @@ library
     -- Test.QuickCheck.Classes.Arrow
     Test.QuickCheck.Classes.Bifoldable
     Test.QuickCheck.Classes.Bifunctor
+    Test.QuickCheck.Classes.Bitraversable
     Test.QuickCheck.Classes.Bits
     Test.QuickCheck.Classes.Category
     Test.QuickCheck.Classes.Common

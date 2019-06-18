@@ -76,7 +76,9 @@ module Test.QuickCheck.Classes
 #endif
 #if HAVE_BINARY_LAWS
     -- ** Binary type constructors
+  , bifoldableLaws
   , bifunctorLaws
+  , bitraversableLaws 
   , categoryLaws
   , commutativeCategoryLaws
 #if HAVE_SEMIGROUPOIDS
@@ -147,6 +149,8 @@ import Test.QuickCheck.Classes.Traversable
 -- Binary type constructors
 #if HAVE_BINARY_LAWS
 import Test.QuickCheck.Classes.Bifunctor
+import Test.QuickCheck.Classes.Bifoldable
+import Test.QuickCheck.Classes.Bitraversable
 import Test.QuickCheck.Classes.Category
 #if HAVE_SEMIGROUPOIDS
 import Test.QuickCheck.Classes.Semigroupoid
