@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnboxedTuples #-}
@@ -16,8 +17,8 @@ import Control.Monad.Primitive (PrimMonad, PrimState,primitive,primitive_)
 import Control.Monad.ST
 import Data.Proxy (Proxy)
 import Data.Primitive.ByteArray
-import Data.Primitive.Types
-import Data.Primitive.Addr
+import Data.Primitive.Types (Prim(..))
+import "primitive-addr" Data.Primitive.Addr
 import Foreign.Marshal.Alloc
 import GHC.Exts
   (State#,Int#,Addr#,Int(I#),(*#),(+#),(<#),newByteArray#,unsafeFreezeByteArray#,
