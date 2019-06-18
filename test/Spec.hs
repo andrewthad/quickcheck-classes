@@ -86,6 +86,7 @@ allPropsApplied = M.toList . M.fromListWith (++) $
 
 allLaws :: forall a.
   ( Integral a
+  , Num a
   , Prim a
   , Storable a
   , Ord a
@@ -113,6 +114,7 @@ allLaws p =
 #endif
   , eqLaws p
   , ordLaws p
+  , numLaws p
   , integralLaws p
 #if MIN_VERSION_base(4,7,0)
   , bitsLaws p
