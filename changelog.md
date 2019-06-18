@@ -7,6 +7,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.6.2.2] - 2019-06-18
 ### Added
 - `numLaws`
+- `bitraversableLaws`
 
 ## [0.6.2.1] - 2019-05-23
 ### Fixed
