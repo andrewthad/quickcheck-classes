@@ -12,6 +12,7 @@ module Test.QuickCheck.Classes.Compat
 #endif
 #if HAVE_BINARY_LAWS
   , eq2
+  , eq1_2
 #endif
   , readMaybe
   ) where
@@ -52,11 +53,22 @@ isTrue# b = b
 
 #if HAVE_UNARY_LAWS
 #if HAVE_QUANTIFIED_CONSTRAINTS
-eq1 :: (forall a. Eq a => Eq (f a), Eq a) => f a -> f a -> Bool
+eq1 :: (forall x. Eq x => Eq (f x), Eq a) => f a -> f a -> Bool
 eq1 = (==)
 #else
 eq1 :: (C.Eq1 f, Eq a) => f a -> f a -> Bool
 eq1 = C.eq1
+#endif
+#endif
+
+#if HAVE_UNARY_LAWS
+#if HAVE_QUANTIFIED_CONSTRAINTS
+eq1_2 :: (forall a. Eq a => Eq (f a), forall a b. (Eq a, Eq b) => Eq (g a b), Eq x, Eq y)
+  => f (g x y) -> f (g x y) -> Bool
+eq1_2 = (==)
+#else
+eq1_2 :: (C.Eq1 f, C.Eq2 g, Eq a, Eq b) => f (g a b) -> f (g a b) -> Bool
+eq1_2 = C.liftEq C.eq2
 #endif
 #endif
 

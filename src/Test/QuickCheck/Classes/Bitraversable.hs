@@ -25,7 +25,7 @@ import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Common
 #if HAVE_BINARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq2)
+import Test.QuickCheck.Classes.Compat (eq1_2)
 #endif
 
 #if HAVE_BINARY_LAWS
@@ -35,9 +35,9 @@ import Test.QuickCheck.Classes.Compat (eq2)
 -- [/Naturality/]
 --   @'bitraverse' (t '.' f) (t '.' g) ≡ t '.' 'bitraverse' f g@ for every applicative transformation @t@
 -- [/Identity/]
---   @'bitraverse' 'Identity' 'Identity' ≡ 'Identity'
+--   @'bitraverse' 'Identity' 'Identity' ≡ 'Identity'@
 -- [/Composition/] 
---   @'Compose' '.' 'fmap' ('bitraverse' g1 g2) '.' 'bitraverse' f1 f2 ≡ 'bitraverse' ('Compose' '.' 'fmap' g1 g2 '.' f1) ('Compose' '.' 'fmap' g2 '.' f2)
+--   @'Compose' '.' 'fmap' ('bitraverse' g1 g2) '.' 'bitraverse' f1 f2 ≡ 'bitraverse' ('Compose' '.' 'fmap' g1 g2 '.' f1) ('Compose' '.' 'fmap' g2 '.' f2)@
 --
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.
@@ -49,7 +49,7 @@ bitraversableLaws :: forall proxy f.
 #endif
   => proxy f -> Laws
 bitraversableLaws p = Laws "Bitraversable"
-  [ ("Naturality", bitraversableIdentity p)
+  [ ("Naturality", bitraversableNaturality p)
   , ("Identity", bitraversableIdentity p)
   , ("Composition", bitraversableComposition p)
   ]
@@ -67,7 +67,7 @@ bitraversableNaturality _ = property $ \(Apply2 (x :: f Integer Integer)) ->
       g = func4
       x' = bitraverse (t . f) (t . g) x
       y' = t (bitraverse f g x)
-  in x' == y'
+  in eq1_2 x' y'
 
 bitraversableIdentity :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -76,7 +76,7 @@ bitraversableIdentity :: forall proxy f.
   (Bitraversable f, Eq2 f, Show2 f, Arbitrary2 f)
 #endif
   => proxy f -> Property
-bitraversableIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> (bitraverse Identity Identity x) == (Identity x)
+bitraversableIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq1_2 (bitraverse Identity Identity x) (Identity x)
 
 bitraversableComposition :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -92,6 +92,6 @@ bitraversableComposition _ = property $ \(Apply2 (x :: f Integer Integer)) ->
       g2 = func4
       x' = Compose . fmap (bitraverse g1 g2) . bitraverse f1 f2 $ x
       y' = bitraverse (Compose . fmap g1 . f1) (Compose . fmap g2 . f2) x
-  in x' == y'
+  in eq1_2 x' y'
 
 #endif
