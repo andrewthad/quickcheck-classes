@@ -4,6 +4,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
 
 #if HAVE_QUANTIFIED_CONSTRAINTS
 {-# LANGUAGE QuantifiedConstraints #-}
@@ -63,6 +64,7 @@ allPropsApplied = M.toList . M.fromListWith (++) $
 #if HAVE_UNARY_LAWS
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
+--  , ("BadList",allHigherLaws (Proxy1 :: Proxy1 BadList))
 #endif
 #if defined(HAVE_SEMIGROUPOIDS) && defined(HAVE_UNARY_LAWS)
 #if MIN_VERSION_base(4,9,0) && MIN_VERSION_containers(0,5,9)
@@ -71,13 +73,20 @@ allPropsApplied = M.toList . M.fromListWith (++) $
 #endif
 #endif
 #if MIN_VERSION_base(4,7,0)
-  , ("Vector",[isListLaws (Proxy :: Proxy (Vector Word))])
+  , ("Vector",
+    [ isListLaws (Proxy :: Proxy (Vector Word))
+#if HAVE_VECTOR
+    , muvectorLaws (Proxy :: Proxy Word8)
+    , muvectorLaws (Proxy :: Proxy (Int, Word))
+#endif
+    ])
 #endif
   ]
   ++ Spec.ShowRead.lawsApplied
 
 allLaws :: forall a.
   ( Integral a
+  , Num a
   , Prim a
   , Storable a
   , Ord a
@@ -105,6 +114,7 @@ allLaws p =
 #endif
   , eqLaws p
   , ordLaws p
+  , numLaws p
   , integralLaws p
 #if MIN_VERSION_base(4,7,0)
   , bitsLaws p
@@ -172,6 +182,17 @@ instance Foldable Rogue where
   foldl' f x (Rogue xs) = F.foldl f x xs
   foldr' f x (Rogue xs) = F.foldr f x xs
 #endif
+
+newtype BadList a = BadList [a]
+  deriving
+  ( Eq, Show, Arbitrary
+  , Arbitrary1, Eq1, Show1
+  , Traversable, Functor, MonadZip, Monad, Applicative, MonadPlus, Alternative
+  )
+
+instance Foldable BadList where
+  foldMap f (BadList xs) = F.foldMap f xs
+  fold (BadList xs) = fold (reverse xs)
 
 newtype Pound k v = Pound { getPound :: Map k v }
   deriving

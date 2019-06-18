@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.6.0.0
+version: 0.6.2.2
 synopsis: QuickCheck common typeclasses
 description:
   This library provides QuickCheck properties to ensure
@@ -49,6 +49,14 @@ flag semirings
   default: True
   manual: True
 
+flag vector
+  description:
+    You can disable the use of the `vector` package using `-f-vector`.
+    .
+    This may be useful for accelerating builds in sandboxes for expert users.
+  default: True
+  manual: True
+
 flag unary-laws
   description:
     Include infrastructure for testing class laws of unary type constructors.
@@ -82,20 +90,24 @@ library
     Test.QuickCheck.Classes.Category
     Test.QuickCheck.Classes.Common
     Test.QuickCheck.Classes.Compat
+    Test.QuickCheck.Classes.Contravariant
     Test.QuickCheck.Classes.Enum
     Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Foldable
     Test.QuickCheck.Classes.Functor
     Test.QuickCheck.Classes.Generic
     Test.QuickCheck.Classes.Integral
+    Test.QuickCheck.Classes.Ix
     Test.QuickCheck.Classes.Json
     Test.QuickCheck.Classes.Monad
     Test.QuickCheck.Classes.MonadFail
     Test.QuickCheck.Classes.MonadPlus
     Test.QuickCheck.Classes.MonadZip
     Test.QuickCheck.Classes.Monoid
+    Test.QuickCheck.Classes.MVector
+    Test.QuickCheck.Classes.Num
     Test.QuickCheck.Classes.Ord
-    Test.QuickCheck.Classes.Plus 
+    Test.QuickCheck.Classes.Plus
     Test.QuickCheck.Classes.Prim
     Test.QuickCheck.Classes.Semigroup
     Test.QuickCheck.Classes.Semigroupoid
@@ -108,10 +120,12 @@ library
   build-depends:
       base >= 4.5 && < 5
     , base-orphans >= 0.1
-    , bifunctors 
+    , bifunctors
+    , contravariant
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
-    , primitive >= 0.6.1 && < 0.7
+    , primitive >= 0.7 && < 0.8
+    , primitive-addr >= 0.1 && < 0.2
     , containers >= 0.4.2.1
     , semigroups >= 0.17
     , tagged
@@ -134,16 +148,19 @@ library
     build-depends: aeson >= 0.9
     cpp-options: -DHAVE_AESON
   if flag(semigroupoids)
-    build-depends: semigroupoids 
+    build-depends: semigroupoids
     cpp-options: -DHAVE_SEMIGROUPOIDS
   if flag(semirings)
-    build-depends: semirings >= 0.2.1.1
+    build-depends: semirings >= 0.3.1.1
     cpp-options: -DHAVE_SEMIRINGS
+  if flag(vector)
+    build-depends: vector >= 0.12
+    cpp-options: -DHAVE_VECTOR
 
 -- The basic test suite is compatible with all the versions of GHC that
 -- this library supports. It is useful for confirming whether the laws tests
 -- behave correct. Additionally, it helps catch CPP mistakes.
-test-suite basic 
+test-suite basic
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Spec.hs
@@ -154,7 +171,7 @@ test-suite basic
     , base-orphans >= 0.5
     , quickcheck-classes
     , QuickCheck
-    , containers 
+    , containers
     , primitive
     , vector
     , transformers
@@ -171,6 +188,9 @@ test-suite basic
   if flag(semigroupoids)
     build-depends: semigroupoids
     cpp-options: -DHAVE_SEMIGROUPOIDS
+  if flag(vector)
+    build-depends: vector >= 0.12
+    cpp-options: -DHAVE_VECTOR
   default-language: Haskell2010
 
 -- The advanced test suite only builds with the newest version
@@ -178,7 +198,7 @@ test-suite basic
 -- base. It check instances for a number of types in base. It also checks
 -- a bunch of derived instances for data types of varying sizes. And it
 -- does some tests on UnboxedSums.
-test-suite advanced 
+test-suite advanced
   type: exitcode-stdio-1.0
   hs-source-dirs: test
   main-is: Advanced.hs
@@ -187,7 +207,7 @@ test-suite advanced
       QuickCheck
     , base >= 4.12
     , base-orphans >= 0.5
-    , containers 
+    , containers
     , primitive
     , quickcheck-classes
     , tagged
