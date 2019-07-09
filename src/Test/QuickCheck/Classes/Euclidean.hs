@@ -25,6 +25,25 @@ import Test.QuickCheck.Property (Property)
 import Test.QuickCheck.Classes.Common (Laws(..))
 
 -- | Test that a 'GcdDomain' instance obey several laws.
+--
+-- Check that 'divide' is an inverse of times:
+--
+-- * @y \/= 0 => (x * y) \`divide\` y == Just x@,
+-- * @y \/= 0, x \`divide\` y == Just z => x == z * y@.
+--
+-- Check that 'gcd' is a common divisor and is a multiple of any common divisor:
+--
+-- * @x \/= 0, y \/= 0 => isJust (x \`divide\` gcd x y) && isJust (y \`divide\` gcd x y)@,
+-- * @z \/= 0 => isJust (gcd (x * z) (y * z) \`divide\` z)@.
+--
+-- Check that 'lcm' is a common multiple and is a factor of any common multiple:
+--
+-- * @x \/= 0, y \/= 0 => isJust (lcm x y \`divide\` x) && isJust (lcm x y \`divide\` y)@,
+-- * @x \/= 0, y \/= 0, isJust (z \`divide\` x), isJust (z \`divide\` y) => isJust (z \`divide\` lcm x y)@.
+--
+-- Check that 'gcd' of 'coprime' numbers is a unit of the semiring (has an inverse):
+--
+-- * @y \/= 0, coprime x y => isJust (1 \`divide\` gcd x y)@.
 gcdDomainLaws :: (Eq a, GcdDomain a, Arbitrary a, Show a) => Proxy a -> Laws
 gcdDomainLaws p = Laws "GcdDomain"
   [ ("divide1", divideLaw1 p)
@@ -64,7 +83,12 @@ coprimeLaw :: forall a. (Eq a, GcdDomain a, Arbitrary a, Show a) => Proxy a -> P
 coprimeLaw _ = property $ \(x :: a) y ->
   y /= zero ==> coprime x y === isJust (one `divide` gcd x y)
 
--- | Test that a 'Euclidean' instance obey several laws.
+-- | Test that a 'Euclidean' instance obey laws of a Euclidean domain.
+--
+-- * @y \/= 0, r == x \`rem\` y => r == 0 || degree r < degree y@,
+-- * @y \/= 0, (q, r) == x \`quotRem\` y => x == q * y + r@,
+-- * @y \/= 0 => x \`quot\` x y == fst (x \`quotRem\` y)@,
+-- * @y \/= 0 => x \`rem\` x y == snd (x \`quotRem\` y)@.
 euclideanLaws :: (Eq a, Euclidean a, Arbitrary a, Show a) => Proxy a -> Laws
 euclideanLaws p = Laws "Euclidean"
   [ ("degree", degreeLaw p)
