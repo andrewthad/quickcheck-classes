@@ -47,6 +47,17 @@ import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
 --   @0 * a ≡ 0@
 -- [/Multiplicative Right Annihilation/]
 --   @a * 0 ≡ 0@
+--
+-- Also tests that 'fromNatural' is a homomorphism of semirings:
+--
+-- [/FromNatural Maps Zero/]
+--   'fromNatural' 0 = 'zero'
+-- [/FromNatural Maps One/]
+--   'fromNatural' 1 = 'one'
+-- [/FromNatural Maps Plus/]
+--   'fromNatural' (@a@ + @b@) = 'fromNatural' @a@ + 'fromNatural' @b@
+-- [/FromNatural Maps Times/]
+--   'fromNatural' (@a@ * @b@) = 'fromNatural' @a@ * 'fromNatural' @b@
 semiringLaws :: (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 semiringLaws p = Laws "Semiring"
   [ ("Additive Commutativity", semiringCommutativePlus p)
@@ -63,6 +74,7 @@ semiringLaws p = Laws "Semiring"
   , ("FromNatural Maps Zero", semiringFromNaturalMapsZero p)
   , ("FromNatural Maps One", semiringFromNaturalMapsOne p)
   , ("FromNatural Maps Plus", semiringFromNaturalMapsPlus p)
+  , ("FromNatural Maps Times", semiringFromNaturalMapsTimes p)
 #endif
   ]
 
@@ -173,6 +185,14 @@ semiringFromNaturalMapsPlus _ = myForAllShrink True (const True)
   (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a + b)) :: a)
   "fromNatural a + fromNatural b"
   (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) + fromNatural (fromInteger b))
+
+semiringFromNaturalMapsTimes :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+semiringFromNaturalMapsTimes _ = myForAllShrink True (const True)
+  (\(NonNegative a, NonNegative b) -> ["a = " ++ show a, "b = " ++ show b])
+  "fromNatural (a * b)"
+  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a * b)) :: a)
+  "fromNatural a * fromNatural b"
+  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) * fromNatural (fromInteger b))
 
 #endif
 
