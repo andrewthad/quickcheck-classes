@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.X.X] - 2019-XX-XX
+### Added
+- `gcdDomainLaws`
+- `euclideanLaws`
+### Changed
+- extend `semiringLaws` to cover `fromNatural`
+
 ## [0.6.3.0] - 2019-06-18
 ### Changed
 - Emergency release with the purpose of replacing 0.6.2.2.
@@ -42,7 +49,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ### Change
 - Support QuickCheck 2.7 and 2.8. This adds `Arbitrary` orphan instances
   to the test suite.
-- Fix CPP that caused build failures on GHC 7.10 and some old 
+- Fix CPP that caused build failures on GHC 7.10 and some old
   package versions.
 - Fix compiling the test suite without semigroupoids and compiling with old
   versions of transformers.
@@ -60,7 +67,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ### Added
 - Add `genericLaws` and `generic1Laws`
 - Add property tests for special classes of semigroups. This includes:
-  commutative, idempotent, rectangular band, and exponential. 
+  commutative, idempotent, rectangular band, and exponential.
 - `bifoldableLaws`, `bifoldableFunctorLaws`
 - Add `showLaws`.
 
@@ -176,7 +183,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ## [0.4.4] - 2018-03-23
 ### Added
 - Cabal flags for controlling whether or not `aeson` and `semigroupoids`
-  are used. These are mostly provided to accelerate builds `primitive`'s 
+  are used. These are mostly provided to accelerate builds `primitive`'s
   test suite.
 
 ## [0.4.3] - 2018-03-23
