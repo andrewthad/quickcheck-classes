@@ -152,7 +152,7 @@ library
     build-depends: semigroupoids
     cpp-options: -DHAVE_SEMIGROUPOIDS
   if flag(semirings)
-    build-depends: semirings >= 0.3.1.1
+    build-depends: semirings >= 0.4.2
     cpp-options: -DHAVE_SEMIRINGS
   if flag(vector)
     build-depends: vector >= 0.12

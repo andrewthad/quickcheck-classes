@@ -4,7 +4,7 @@
 
 {-# OPTIONS_GHC -Wall #-}
 
-#if !HAVE_SEMIRINGS || !MIN_VERSION_semirings(0,4,2)
+#if !HAVE_SEMIRINGS
 module Test.QuickCheck.Classes.Euclidean where
 #else
 

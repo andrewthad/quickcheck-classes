@@ -1,16 +1,27 @@
 #!/bin/bash
 set -e
 
+# TODO: This is in a kind of weird state right now, but it works
+# on at least one machine, and it is only used to test backwards
+# compatibility before a release.
+
 # To use this script on Ubuntu, you will need to first run the following:
 # 
-# sudo apt install ghc-7.4.2 ghc-7.6.3 ghc-7.8.4 ghc-7.10.3 ghc-8.0.2 ghc-8.2.2 ghc-8.4.3 ghc-8.6.5
+# sudo apt install ghc-7.4.2 ghc-7.6.3 ghc-7.8.4 ghc-7.10.3 ghc-8.0.2 ghc-8.2.2 ghc-8.4.4 ghc-8.6.5
 
-declare -a ghcs=("7.4.2" "7.6.3" "7.8.4" "7.10.3" "8.0.2" "8.2.2" "8.4.4" "8.6.5")
+declare -a ghcs_old=("7.4.2" "7.6.3" "7.8.4" "7.10.3")
+declare -a ghcs_new=("8.0.2" "8.2.2" "8.4.4" "8.6.5")
 
-## now loop through the above array
-for g in "${ghcs[@]}"
+## now loop through the above arrays
+for g in "${ghcs_old[@]}"
 do
-   cabal new-build --builddir "dist-$g" -w "/opt/ghc/bin/ghc-$g"
-   cabal new-build --builddir "dist-$g-minimal" -w "/opt/ghc/bin/ghc-$g" -f-semigroupoids -f-aeson -f-semirings
+   cabal-2.4 --config-file="$HOME/.cabal-2.4/config" new-build -w "/opt/ghc/bin/ghc-$g" --builddir="dist-$g" all
+   cabal-2.4 --config-file="$HOME/.cabal-2.4/config" new-build -w "/opt/ghc/bin/ghc-$g" --builddir="dist-$g-minimal" all -f-semigroupoids -f-aeson -f-semirings
+done
+
+for g in "${ghcs_new[@]}"
+do
+   cabal v2-build all --builddir "dist-$g" -w "/opt/ghc/bin/ghc-$g"
+   cabal v2-build all --builddir "dist-$g-minimal" -w "/opt/ghc/bin/ghc-$g" -f-semigroupoids -f-aeson -f-semirings
 done
 
