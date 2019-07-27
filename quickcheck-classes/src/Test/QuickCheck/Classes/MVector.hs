@@ -1,3 +1,9 @@
+-- |
+-- Module:      Test.QuickCheck.Classes.MVector
+-- Copyright:   (c) 2019 Andrew Lelechenko
+-- Licence:     BSD3
+--
+
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 

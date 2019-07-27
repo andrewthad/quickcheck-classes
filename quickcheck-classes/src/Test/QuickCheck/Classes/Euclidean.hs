@@ -1,3 +1,9 @@
+-- |
+-- Module:      Test.QuickCheck.Classes.Euclidean
+-- Copyright:   (c) 2019 Andrew Lelechenko
+-- Licence:     BSD3
+--
+
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
