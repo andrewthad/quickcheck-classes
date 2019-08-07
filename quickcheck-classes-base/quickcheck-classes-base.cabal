@@ -1,0 +1,112 @@
+name: quickcheck-classes-base
+version: 0.6.0.0
+synopsis: QuickCheck common typeclasses from `base`
+description:
+  This libary is a minimal variant of `quickcheck-classes` that
+  only provides laws for typeclasses from `base`. The main purpose
+  of splitting this out is so that `primitive` can depend on
+  `quickcheck-classes-base` in its test suite, avoiding the circular
+  dependency that arises if `quickcheck-classes` is used instead.
+  .
+  This library provides QuickCheck properties to ensure
+  that typeclass instances adhere to the set of laws that
+  they are supposed to. There are other libraries that do
+  similar things, such as `genvalidity-hspec` and `checkers`.
+  This library differs from other solutions by not introducing
+  any new typeclasses that the user needs to learn.
+  .
+  /Note:/ on GHC < 8.5, this library uses the higher-kinded typeclasses
+  ('Data.Functor.Classes.Show1', 'Data.Functor.Classes.Eq1', 'Data.Functor.Classes.Ord1', etc.),
+  but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
+  constraints more cleanly.
+homepage: https://github.com/andrewthad/quickcheck-classes#readme
+license: BSD3
+license-file: LICENSE
+author: Andrew Martin, chessai
+maintainer: andrew.thaddeus@gmail.com
+copyright: 2019 Andrew Martin
+category: Testing
+build-type: Simple
+extra-source-files: README.md
+cabal-version: >=1.10
+extra-source-files: changelog.md
+
+flag unary-laws
+  description:
+    Include infrastructure for testing class laws of unary type constructors.
+  default: True
+  manual: True
+
+flag binary-laws
+  description:
+    Include infrastructure for testing class laws of binary type constructors.
+    Disabling `unary-laws` while keeping `binary-laws` enabled is an unsupported
+    configuration.
+  default: True
+  manual: True
+
+library
+  default-language: Haskell2010
+  hs-source-dirs: src
+  exposed-modules:
+    Test.QuickCheck.Classes.Base
+    Test.QuickCheck.Classes.Base.IsList
+    Test.QuickCheck.Classes.Common
+    Test.QuickCheck.Classes.Compat
+  other-modules:
+    Test.QuickCheck.Classes.Alternative
+    Test.QuickCheck.Classes.Applicative
+    Test.QuickCheck.Classes.Bifoldable
+    Test.QuickCheck.Classes.Bifunctor
+    Test.QuickCheck.Classes.Bitraversable
+    Test.QuickCheck.Classes.Bits
+    Test.QuickCheck.Classes.Category
+    Test.QuickCheck.Classes.Contravariant
+    Test.QuickCheck.Classes.Enum
+    Test.QuickCheck.Classes.Eq
+    Test.QuickCheck.Classes.Foldable
+    Test.QuickCheck.Classes.Functor
+    Test.QuickCheck.Classes.Generic
+    Test.QuickCheck.Classes.Integral
+    Test.QuickCheck.Classes.Ix
+    Test.QuickCheck.Classes.Monad
+    Test.QuickCheck.Classes.MonadFail
+    Test.QuickCheck.Classes.MonadPlus
+    Test.QuickCheck.Classes.MonadZip
+    Test.QuickCheck.Classes.Monoid
+    Test.QuickCheck.Classes.Num
+    Test.QuickCheck.Classes.Ord
+    Test.QuickCheck.Classes.Semigroup
+    Test.QuickCheck.Classes.Show
+    Test.QuickCheck.Classes.ShowRead
+    Test.QuickCheck.Classes.Storable
+    Test.QuickCheck.Classes.Traversable
+  build-depends:
+      base >= 4.5 && < 5
+    , base-orphans >= 0.1
+    , bifunctors
+    , contravariant
+    , QuickCheck >= 2.7
+    , transformers >= 0.3 && < 0.6
+    , containers >= 0.4.2.1
+    , semigroups >= 0.17
+    , tagged
+    , fail
+  if impl(ghc > 7.4) && impl(ghc < 7.6)
+    build-depends: ghc-prim
+  if impl(ghc > 8.5)
+    cpp-options: -DHAVE_QUANTIFIED_CONSTRAINTS
+  if flag(unary-laws)
+    build-depends:
+        transformers >= 0.4.0
+      , QuickCheck >= 2.10.0
+    cpp-options: -DHAVE_UNARY_LAWS
+  if flag(binary-laws)
+    build-depends:
+        transformers >= 0.5.0
+      , QuickCheck >= 2.10.0
+    cpp-options: -DHAVE_BINARY_LAWS
+
+source-repository head
+  type: git
+  location: https://github.com/andrewthad/quickcheck-classes

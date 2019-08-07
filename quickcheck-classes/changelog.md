@@ -4,19 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.6.X.X] - 2019-XX-XX
+## [0.6.3.0] - 2019-08-07
 ### Added
 - `gcdDomainLaws`
 - `euclideanLaws`
 ### Changed
-- extend `semiringLaws` to cover `fromNatural`
-
-## [0.6.3.0] - 2019-06-18
-### Changed
-- Emergency release with the purpose of replacing 0.6.2.2.
-  That release should have been a minor version bump since
-  it added new features.
+- Replaces 0.6.2.2. That release should have been a minor version
+  bump since it added new features.
 - Support `primitive-0.6.4.0`.
+- Extend `semiringLaws` to cover `fromNatural`
+- Factor out a subset of laws tests into `quickcheck-classes-base`
+  and depend on this library.
 
 ## [0.6.2.2] - 2019-06-18
 ### Added

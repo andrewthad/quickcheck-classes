@@ -8,7 +8,11 @@
 #endif
 
 {-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_HADDOCK hide #-}
 
+-- | This module is exported, but it is not part of the stable
+-- public API. It is used internally and by the @quickcheck-classes@
+-- library.
 module Test.QuickCheck.Classes.Common
   ( Laws(..)
   , foldMapA 
