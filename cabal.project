@@ -1,3 +1,3 @@
-packages: ./quickcheck-classes
+packages: ./quickcheck-classes ./quickcheck-classes-base
 package semirings
   flags: -hashable -containers -unordered-containers -vector

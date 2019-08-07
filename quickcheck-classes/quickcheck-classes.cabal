@@ -1,5 +1,5 @@
 name: quickcheck-classes
-version: 0.6.2.2
+version: 0.6.3.0
 synopsis: QuickCheck common typeclasses
 description:
   This library provides QuickCheck properties to ensure
@@ -60,14 +60,17 @@ flag vector
 flag unary-laws
   description:
     Include infrastructure for testing class laws of unary type constructors.
+    It is required that this flag match the value that the `unary-laws` flag
+    was given when building `quickcheck-classes-base`.
   default: True
   manual: True
 
 flag binary-laws
   description:
     Include infrastructure for testing class laws of binary type constructors.
-    Disabling `unary-laws` while keeping `binary-laws` enabled is an unsupported
-    configuration.
+    It is required that this flag match the value that the `unary-laws` flag
+    was given when building `quickcheck-classes-base`. Disabling `unary-laws`
+    while keeping `binary-laws` enabled is an unsupported configuration.
   default: True
   manual: True
 
@@ -79,45 +82,15 @@ library
     Test.QuickCheck.Classes.IsList
   other-modules:
     Test.QuickCheck.Classes.Alt
-    Test.QuickCheck.Classes.Alternative
-    Test.QuickCheck.Classes.Applicative
     Test.QuickCheck.Classes.Apply
-    -- Test.QuickCheck.Classes.Arrow
-    Test.QuickCheck.Classes.Bifoldable
-    Test.QuickCheck.Classes.Bifunctor
-    Test.QuickCheck.Classes.Bitraversable
-    Test.QuickCheck.Classes.Bits
-    Test.QuickCheck.Classes.Category
-    Test.QuickCheck.Classes.Common
-    Test.QuickCheck.Classes.Compat
-    Test.QuickCheck.Classes.Contravariant
-    Test.QuickCheck.Classes.Enum
-    Test.QuickCheck.Classes.Eq
     Test.QuickCheck.Classes.Euclidean
-    Test.QuickCheck.Classes.Foldable
-    Test.QuickCheck.Classes.Functor
-    Test.QuickCheck.Classes.Generic
-    Test.QuickCheck.Classes.Integral
-    Test.QuickCheck.Classes.Ix
     Test.QuickCheck.Classes.Json
-    Test.QuickCheck.Classes.Monad
-    Test.QuickCheck.Classes.MonadFail
-    Test.QuickCheck.Classes.MonadPlus
-    Test.QuickCheck.Classes.MonadZip
-    Test.QuickCheck.Classes.Monoid
     Test.QuickCheck.Classes.MVector
-    Test.QuickCheck.Classes.Num
-    Test.QuickCheck.Classes.Ord
     Test.QuickCheck.Classes.Plus
     Test.QuickCheck.Classes.Prim
-    Test.QuickCheck.Classes.Semigroup
     Test.QuickCheck.Classes.Semigroupoid
     Test.QuickCheck.Classes.Semiring
-    Test.QuickCheck.Classes.Show
-    Test.QuickCheck.Classes.ShowRead
-    Test.QuickCheck.Classes.Storable
     Test.QuickCheck.Classes.Ring
-    Test.QuickCheck.Classes.Traversable
   build-depends:
       base >= 4.5 && < 5
     , base-orphans >= 0.1
@@ -131,6 +104,7 @@ library
     , semigroups >= 0.17
     , tagged
     , fail
+    , quickcheck-classes-base >=0.6 && <0.7
   if impl(ghc > 7.4) && impl(ghc < 7.6)
     build-depends: ghc-prim
   if impl(ghc > 8.5)

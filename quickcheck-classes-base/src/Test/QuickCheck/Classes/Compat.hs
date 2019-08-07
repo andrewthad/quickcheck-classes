@@ -5,6 +5,11 @@
 {-# LANGUAGE QuantifiedConstraints #-}
 #endif
 
+{-# OPTIONS_HADDOCK hide #-}
+
+-- | This module is exported, but it is not part of the stable
+-- public API. It is used internally and by the @quickcheck-classes@
+-- library.
 module Test.QuickCheck.Classes.Compat
   ( isTrue#
 #if HAVE_UNARY_LAWS
