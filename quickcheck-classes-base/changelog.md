@@ -10,4 +10,5 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
   from `quickcheck-classes` and depend on this library that
   have a more minimal dependency footprint.
 - Add laws for left rotate and right rotate.
-
+- Add law that checks that subtraction is the same thing as
+  adding the negation of a number.
