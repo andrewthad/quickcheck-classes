@@ -22,8 +22,7 @@ import Test.QuickCheck hiding ((.&.))
 import Data.Functor.Classes (Eq2,Show2)
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-import Test.QuickCheck.Classes.Compat (eq2)
+import Test.QuickCheck.Classes.Internal
 
 -- | Tests the following 'Semigroupoid' properties:
 --

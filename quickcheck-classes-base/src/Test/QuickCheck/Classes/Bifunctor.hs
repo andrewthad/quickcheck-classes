@@ -21,10 +21,7 @@ import Data.Functor.Classes (Eq2,Show2)
 #endif
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-#if HAVE_BINARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq2)
-#endif
+import Test.QuickCheck.Classes.Internal
 
 #if HAVE_BINARY_LAWS
 

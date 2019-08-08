@@ -123,7 +123,7 @@ import Test.QuickCheck.Classes.Semigroupoid
 -- used below
 --
 import Test.QuickCheck
-import Test.QuickCheck.Classes.Common (foldMapA, Laws(..))
+import Test.QuickCheck.Classes.Internal (foldMapA, Laws(..))
 import Control.Monad
 import Data.Foldable
 import Data.Monoid (Monoid(..))

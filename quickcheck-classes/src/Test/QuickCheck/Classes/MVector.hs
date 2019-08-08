@@ -28,7 +28,7 @@ import qualified Data.Vector.Unboxed.Mutable as MU
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Internal (Laws(..))
 
 -- | Test that a 'Vector.Unboxed.MVector' instance obey several laws.
 muvectorLaws :: (Eq a, MU.Unbox a, Arbitrary a, Show a) => Proxy a -> Laws

@@ -11,7 +11,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Internal (Laws(..))
 
 -- | Tests the various 'Ix' properties:
 --

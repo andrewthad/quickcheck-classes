@@ -51,8 +51,7 @@ library
   exposed-modules:
     Test.QuickCheck.Classes.Base
     Test.QuickCheck.Classes.Base.IsList
-    Test.QuickCheck.Classes.Common
-    Test.QuickCheck.Classes.Compat
+    Test.QuickCheck.Classes.Internal
   other-modules:
     Test.QuickCheck.Classes.Alternative
     Test.QuickCheck.Classes.Applicative

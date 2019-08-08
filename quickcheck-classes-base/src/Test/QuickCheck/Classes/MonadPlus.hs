@@ -16,10 +16,7 @@ module Test.QuickCheck.Classes.MonadPlus
 
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
-import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq1)
-#endif
+import Test.QuickCheck.Classes.Internal
 import Control.Monad (MonadPlus(mzero,mplus))
 
 #if HAVE_UNARY_LAWS

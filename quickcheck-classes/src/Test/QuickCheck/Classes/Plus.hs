@@ -28,8 +28,7 @@ import Data.Functor.Classes (Eq1,Show1)
 import qualified Control.Applicative as Alternative
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-import Test.QuickCheck.Classes.Compat (eq1)
+import Test.QuickCheck.Classes.Internal
 
 -- | Tests the following alt properties:
 --

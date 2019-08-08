@@ -15,9 +15,8 @@ import Test.QuickCheck
 import Text.Read (readListDefault)
 import Text.Show (showListWith)
 
-import Test.QuickCheck.Classes.Common (Laws(..), ShowReadPrecedence(..),
-  SmallList(..), myForAllShrink)
-import Test.QuickCheck.Classes.Compat (readMaybe)
+import Test.QuickCheck.Classes.Internal (Laws(..), ShowReadPrecedence(..),
+  SmallList(..), myForAllShrink,readMaybe)
 
 -- | Tests the following properties:
 --
