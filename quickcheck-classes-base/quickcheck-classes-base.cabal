@@ -27,7 +27,6 @@ maintainer: andrew.thaddeus@gmail.com
 copyright: 2019 Andrew Martin
 category: Testing
 build-type: Simple
-extra-source-files: README.md
 cabal-version: >=1.10
 extra-source-files: changelog.md
 
