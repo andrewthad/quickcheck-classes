@@ -29,7 +29,7 @@ import Data.Proxy (Proxy(Proxy))
 import Test.QuickCheck
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), Apply(..))
+import Test.QuickCheck.Classes.Internal (Laws(..), Apply(..))
 
 -- | Tests the following properties:
 --

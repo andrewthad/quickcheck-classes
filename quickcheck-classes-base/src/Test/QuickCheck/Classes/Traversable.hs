@@ -26,10 +26,7 @@ import Data.Functor.Identity
 
 import qualified Data.Set as S
 
-import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq1)
-#endif
+import Test.QuickCheck.Classes.Internal
 
 #if HAVE_UNARY_LAWS
 

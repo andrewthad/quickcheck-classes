@@ -24,10 +24,7 @@ import Data.Functor.Classes (Eq1,Show1)
 #endif
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq1)
-#endif
+import Test.QuickCheck.Classes.Internal
 
 #if HAVE_UNARY_LAWS
 

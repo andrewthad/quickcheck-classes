@@ -12,7 +12,7 @@ module Test.QuickCheck.Classes.Show
 import Data.Proxy (Proxy)
 import Test.QuickCheck (Arbitrary, Property, property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), ShowReadPrecedence(..))
+import Test.QuickCheck.Classes.Internal (Laws(..), ShowReadPrecedence(..))
 
 -- | Tests the following properties:
 --

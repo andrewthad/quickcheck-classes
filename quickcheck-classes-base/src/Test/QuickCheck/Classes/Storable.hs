@@ -24,7 +24,7 @@ import Test.QuickCheck.Property (Property)
 
 import qualified Data.List as L
 
-import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Internal (Laws(..))
 
 -- | Tests the following alternative properties:
 --

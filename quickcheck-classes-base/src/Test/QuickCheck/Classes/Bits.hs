@@ -18,7 +18,7 @@ import Test.QuickCheck.Property (Property)
 
 import qualified Data.Set as S
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 
 -- | Tests the following properties:
 --

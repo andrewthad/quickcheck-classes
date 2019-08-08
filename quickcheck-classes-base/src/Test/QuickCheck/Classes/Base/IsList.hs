@@ -62,7 +62,7 @@ import Test.QuickCheck.Function (Function,Fun,apply)
 #endif
 import qualified Data.List as L
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 
 -- | Tests the following properties:
 --

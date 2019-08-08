@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -11,10 +12,16 @@
 {-# OPTIONS_HADDOCK hide #-}
 
 -- | This module is exported, but it is not part of the stable
--- public API. It is used internally and by the @quickcheck-classes@
--- library.
-module Test.QuickCheck.Classes.Common
-  ( Laws(..)
+-- public API and is not subject to PVP. It is used by other
+-- modules in @quickcheck-classes-base@ and by modules in the
+-- @quickcheck-classes@ library as well. Functions and types
+-- in this module are either auxiliary functions that are reused 
+-- by many different laws tests, or they are compatibility shims
+-- that make it possible to build with older versions GHC and
+-- transformers.
+module Test.QuickCheck.Classes.Internal
+  ( -- * Common Types and Functions
+    Laws(..)
   , foldMapA 
   , myForAllShrink
   -- Modifiers
@@ -62,6 +69,16 @@ module Test.QuickCheck.Classes.Common
 #endif
   , runQuadraticEquation
   , runLinearEquationTwo
+    -- * Compatibility Shims
+  , isTrue#
+#if HAVE_UNARY_LAWS
+  , eq1
+#endif
+#if HAVE_BINARY_LAWS
+  , eq2
+  , eq1_2
+#endif
+  , readMaybe
   ) where
 
 import Control.Applicative
@@ -70,11 +87,11 @@ import Data.Foldable
 import Data.Traversable
 import Data.Monoid
 #if defined(HAVE_UNARY_LAWS)
-import Data.Functor.Classes (Eq1(..),Show1(..),eq1,showsPrec1)
+import Data.Functor.Classes (Eq1(..),Show1(..),showsPrec1)
 import Data.Functor.Compose
 #endif
 #if defined(HAVE_BINARY_LAWS)
-import Data.Functor.Classes (Eq2(..),Show2(..),eq2,showsPrec2)
+import Data.Functor.Classes (Eq2(..),Show2(..),showsPrec2)
 #endif
 import Data.Semigroup (Semigroup)
 import Test.QuickCheck hiding ((.&.))
@@ -85,6 +102,22 @@ import qualified Data.List as L
 import qualified Data.Monoid as MND
 import qualified Data.Semigroup as SG
 import qualified Data.Set as S
+
+#if MIN_VERSION_base(4,6,0)
+import Text.Read (readMaybe)
+#else
+import Text.ParserCombinators.ReadP (skipSpaces)
+import Text.ParserCombinators.ReadPrec (lift, minPrec, readPrec_to_S)
+import Text.Read (readPrec)
+#endif
+
+#if MIN_VERSION_base(4,7,0)
+import GHC.Exts (isTrue#)
+#endif
+
+#if defined(HAVE_UNARY_LAWS) || defined(HAVE_BINARY_LAWS)
+import qualified Data.Functor.Classes as C
+#endif
 
 -- | A set of laws associated with a typeclass.
 data Laws = Laws
@@ -127,7 +160,7 @@ nestedEq1 :: (forall x. Eq x => Eq (f x), forall x. Eq x => Eq (g x), Eq a) => f
 nestedEq1 = (==)
 #else
 nestedEq1 :: (Eq1 f, Eq1 g, Eq a, Functor f) => f (g a) -> f (g a) -> Bool
-nestedEq1 x y = eq1 (Compose x) (Compose y)
+nestedEq1 x y = C.eq1 (Compose x) (Compose y)
 #endif
 
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -334,7 +367,7 @@ deriving instance (forall x y. (Arbitrary x, Arbitrary y) => Arbitrary (f x y), 
 deriving instance (forall x y. (Show x, Show y) => Show (f x y), Show a, Show b) => Show (Apply2 f a b)
 #else
 instance (Eq2 f, Eq a, Eq b) => Eq (Apply2 f a b) where
-  Apply2 a == Apply2 b = eq2 a b
+  Apply2 a == Apply2 b = C.eq2 a b
 
 instance (Show2 f, Show a, Show b) => Show (Apply2 f a b) where
   showsPrec p = showsPrec2 p . getApply2
@@ -498,3 +531,53 @@ instance Arbitrary ShowReadPrecedence where
   arbitrary = ShowReadPrecedence <$> elements showReadPrecedences
   shrink (ShowReadPrecedence p) =
     [ ShowReadPrecedence p' | p' <- showReadPrecedences, p' < p ]
+
+#if !MIN_VERSION_base(4,6,0)
+readMaybe :: Read a => String -> Maybe a
+readMaybe s =
+  case [ x | (x,"") <- readPrec_to_S read' minPrec s ] of
+    [x] -> Just x
+    _   -> Nothing
+ where
+  read' =
+    do x <- readPrec
+       lift skipSpaces
+       return x
+#endif
+
+#if !MIN_VERSION_base(4,7,0)
+isTrue# :: Bool -> Bool
+isTrue# b = b
+#endif
+
+#if HAVE_UNARY_LAWS
+#if HAVE_QUANTIFIED_CONSTRAINTS
+eq1 :: (forall x. Eq x => Eq (f x), Eq a) => f a -> f a -> Bool
+eq1 = (==)
+#else
+eq1 :: (C.Eq1 f, Eq a) => f a -> f a -> Bool
+eq1 = C.eq1
+#endif
+#endif
+
+#if HAVE_UNARY_LAWS
+#if HAVE_QUANTIFIED_CONSTRAINTS
+eq1_2 :: (forall a. Eq a => Eq (f a), forall a b. (Eq a, Eq b) => Eq (g a b), Eq x, Eq y)
+  => f (g x y) -> f (g x y) -> Bool
+eq1_2 = (==)
+#else
+eq1_2 :: (C.Eq1 f, C.Eq2 g, Eq a, Eq b) => f (g a b) -> f (g a b) -> Bool
+eq1_2 = C.liftEq C.eq2
+#endif
+#endif
+
+#if HAVE_BINARY_LAWS
+#if HAVE_QUANTIFIED_CONSTRAINTS
+eq2 :: (forall a. (Eq a, Eq b) => Eq (f a b), Eq a, Eq b) => f a b -> f a b -> Bool
+eq2 = (==)
+#else
+eq2 :: (C.Eq2 f, Eq a, Eq b) => f a b -> f a b -> Bool
+eq2 = C.eq2
+#endif
+#endif
+

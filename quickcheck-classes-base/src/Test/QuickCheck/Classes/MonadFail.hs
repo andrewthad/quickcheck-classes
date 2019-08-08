@@ -25,8 +25,7 @@ import Prelude hiding (fail)
 import Control.Monad.Fail (MonadFail(..))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-import Test.QuickCheck.Classes.Compat (eq1)
+import Test.QuickCheck.Classes.Internal
 
 -- | Tests the following 'MonadFail' properties:
 -- 

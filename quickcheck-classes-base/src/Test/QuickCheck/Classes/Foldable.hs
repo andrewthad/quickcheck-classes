@@ -32,10 +32,7 @@ import Test.QuickCheck.Property (Property)
 import qualified Data.Foldable as F
 import qualified Data.Semigroup as SG
 
-import Test.QuickCheck.Classes.Common
-#if HAVE_UNARY_LAWS
-import Test.QuickCheck.Classes.Compat (eq1)
-#endif
+import Test.QuickCheck.Classes.Internal
 
 #if HAVE_UNARY_LAWS
 

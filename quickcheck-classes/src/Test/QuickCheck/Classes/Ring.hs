@@ -19,7 +19,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), myForAllShrink)
+import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 
 #if HAVE_SEMIRINGS
 -- | Tests the following properties:

@@ -23,8 +23,7 @@ import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Data.Functor.Classes (Eq1,Show1)
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common
-import Test.QuickCheck.Classes.Compat (eq1)
+import Test.QuickCheck.Classes.Internal
 
 type ApplyProp proxy f =
 #if HAVE_QUANTIFIED_CONSTRAINTS

@@ -14,7 +14,7 @@ import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..), SmallList(..), myForAllShrink)
+import Test.QuickCheck.Classes.Internal (Laws(..), SmallList(..), myForAllShrink)
 
 -- | Tests the following properties:
 --

@@ -22,7 +22,7 @@ import Data.Semiring (Semiring(..))
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Property (Property)
 
-import Test.QuickCheck.Classes.Common (Laws(..))
+import Test.QuickCheck.Classes.Internal (Laws(..))
 
 -- | Test that a 'GcdDomain' instance obey several laws.
 --

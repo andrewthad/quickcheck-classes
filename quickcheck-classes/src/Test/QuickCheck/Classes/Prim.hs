@@ -37,8 +37,7 @@ import Test.QuickCheck.Property (Property)
 import qualified Data.List as L
 import qualified Data.Primitive as P
 
-import Test.QuickCheck.Classes.Common (Laws(..))
-import Test.QuickCheck.Classes.Compat (isTrue#)
+import Test.QuickCheck.Classes.Internal (Laws(..),isTrue#)
 
 -- | Test that a 'Prim' instance obey the several laws.
 primLaws :: (Prim a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
