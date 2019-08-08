@@ -36,6 +36,8 @@ import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 --   @a * 0 ≡ 0@
 -- [/Additive Inverse/]
 --   @'negate' a '+' a ≡ 0@
+-- [/Subtraction/]
+--   @a '+' 'negate' b ≡ a '-' b@
 numLaws :: (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 numLaws p = Laws "Num"
   [ ("Additive Commutativity", numCommutativePlus p)
@@ -49,6 +51,7 @@ numLaws p = Laws "Num"
   , ("Multiplicative Left Annihilation", numLeftAnnihilation p)
   , ("Multiplicative Right Annihilation", numRightAnnihilation p)
   , ("Additive Inverse", numAdditiveInverse p)
+  , ("Subtraction", numSubtraction p)
   ]
 
 numLeftMultiplicationDistributes :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -138,3 +141,11 @@ numAdditiveInverse _ = myForAllShrink True (const True)
   (\a -> (-a) + a)
   "0"
   (const 0)
+
+numSubtraction :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+numSubtraction _ = myForAllShrink True (const True)
+  (\(a :: a, b :: a) -> ["a = " ++ show a, "b = " ++ show b])
+  "a + negate b"
+  (\(a,b) -> a + negate b)
+  "a - b"
+  (\(a,b) -> a - b)
