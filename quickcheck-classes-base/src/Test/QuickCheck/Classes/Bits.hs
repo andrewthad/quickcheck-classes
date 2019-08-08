@@ -42,6 +42,10 @@ import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 --   @testBit zeroBits i ≡ False@
 -- [/Pop Zero/]
 --   @popCount zeroBits ≡ 0@
+-- [/Right Rotation/]
+--   @no sign extension → (rotateR n i ≡ (shiftR n i) .|. (shiftL n (finiteBitSize ⊥ - i)))@
+-- [/Left Rotation/]
+--   @no sign extension → (rotateL n i ≡ (shiftL n i) .|. (shiftR n (finiteBitSize ⊥ - i)))@
 -- [/Count Leading Zeros of Zero/]
 --   @countLeadingZeros zeroBits ≡ finiteBitSize ⊥@
 -- [/Count Trailing Zeros of Zero/]
@@ -66,6 +70,8 @@ bitsLaws p = Laws "Bits"
   , ("Set Zero", bitsSetZero p)
   , ("Test Zero", bitsTestZero p)
   , ("Pop Zero", bitsPopZero p)
+  , ("Right Rotation", bitsRightRotation p)
+  , ("Left Rotation", bitsLeftRotation p)
 #if MIN_VERSION_base(4,8,0)
   , ("Count Leading Zeros of Zero", bitsCountLeadingZeros p)
   , ("Count Trailing Zeros of Zero", bitsCountTrailingZeros p)
@@ -161,6 +167,28 @@ bitsPopZero _ = myForAllShrink True (const True)
   (\() -> popCount (zeroBits :: a))
   "0"
   (\() -> 0)
+
+bitsRightRotation :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsRightRotation _ = myForAllShrink True
+  (\(n :: a, BitIndex _ :: BitIndex a) ->
+    not (testBit (shiftR n 1) (finiteBitSize (undefined :: a) - 1))
+  )
+  (\(n, BitIndex i) -> ["n = " ++ show n, "i = " ++ show i])
+  "rotateR n i"
+  (\(n,BitIndex i) -> rotateR n i)
+  "shiftR n i .|. shiftL n (finiteBitSize ⊥ - i)"
+  (\(n,BitIndex i) -> shiftR n i .|. shiftL n (finiteBitSize (undefined :: a) - i))
+
+bitsLeftRotation :: forall a. (FiniteBits a, Arbitrary a, Show a) => Proxy a -> Property
+bitsLeftRotation _ = myForAllShrink True
+  (\(n :: a, BitIndex _ :: BitIndex a) ->
+    not (testBit (shiftR n 1) (finiteBitSize (undefined :: a) - 1))
+  )
+  (\(n, BitIndex i) -> ["n = " ++ show n, "i = " ++ show i])
+  "rotateL n i"
+  (\(n,BitIndex i) -> rotateL n i)
+  "shiftL n i .|. shiftR n (finiteBitSize ⊥ - i)"
+  (\(n,BitIndex i) -> shiftL n i .|. shiftR n (finiteBitSize (undefined :: a) - i))
 #endif
 
 #if MIN_VERSION_base(4,8,0)
