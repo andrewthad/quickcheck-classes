@@ -38,6 +38,12 @@ import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 --   @'negate' a '+' a ≡ 0@
 -- [/Subtraction/]
 --   @a '+' 'negate' b ≡ a '-' b@
+-- [/Abs Is Idempotent/]
+--   @'abs' ('abs' a) ≡ 'abs' a
+-- [/Signum Is Idempotent/]
+--   @'signum' ('signum' a) ≡ 'signum' a
+-- [/Product Of Abs And Signum Is Id/]
+--   @'abs' a * 'signum' a ≡ a@
 numLaws :: (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 numLaws p = Laws "Num"
   [ ("Additive Commutativity", numCommutativePlus p)
@@ -52,6 +58,9 @@ numLaws p = Laws "Num"
   , ("Multiplicative Right Annihilation", numRightAnnihilation p)
   , ("Additive Inverse", numAdditiveInverse p)
   , ("Subtraction", numSubtraction p)
+  , ("Abs Is Idempotent", absIdempotence p)
+  , ("Signum Is Idempotent", signumIdempotence p)
+  , ("Product Of Abs And Signum Is Id", absSignumId p)
   ]
 
 numLeftMultiplicationDistributes :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
@@ -149,3 +158,27 @@ numSubtraction _ = myForAllShrink True (const True)
   (\(a,b) -> a + negate b)
   "a - b"
   (\(a,b) -> a - b)
+
+absIdempotence :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+absIdempotence _ = myForAllShrink True (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "abs (abs a)"
+  (abs . abs)
+  "abs a"
+  abs
+
+signumIdempotence :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+signumIdempotence _ = myForAllShrink True (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "signum (signum a)"
+  (signum . signum)
+  "signum a"
+  signum
+
+absSignumId :: forall a. (Num a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+absSignumId _ = myForAllShrink True (const True)
+  (\(a :: a) -> ["a = " ++ show a])
+  "abs a * signum a"
+  (\a -> abs a * signum a)
+  "a"
+  id

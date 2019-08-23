@@ -1,8 +1,6 @@
-resolver: 'nightly-2017-12-01'
+resolver: lts-14.2
 packages:
-- '.'
+- quickcheck-classes-base
+- quickcheck-classes
 extra-deps:
-- 'semirings-0.1.3.0'
-flags: {}
-extra-package-dbs: []
-
+- primitive-addr-0.1.0.2
