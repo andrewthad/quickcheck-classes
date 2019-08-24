@@ -13,7 +13,7 @@ module Test.QuickCheck.Classes.Semiring
 #if HAVE_SEMIRINGS
 import Data.Semiring
 import Prelude hiding (Num(..))
-import Prelude (fromInteger)
+import qualified Prelude as P (fromInteger)
 #endif
 
 import Data.Proxy (Proxy)
@@ -176,16 +176,16 @@ semiringFromNaturalMapsPlus :: forall a. (Semiring a, Eq a, Arbitrary a, Show a)
 semiringFromNaturalMapsPlus _ = myForAllShrink True (const True)
   (\(NonNegative a, NonNegative b) -> ["a = " ++ show a, "b = " ++ show b])
   "fromNatural (a + b)"
-  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a + b)) :: a)
+  (\(NonNegative a, NonNegative b) -> fromNatural (P.fromInteger (a + b)) :: a)
   "fromNatural a + fromNatural b"
-  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) + fromNatural (fromInteger b))
+  (\(NonNegative a, NonNegative b) -> fromNatural (P.fromInteger a) + fromNatural (P.fromInteger b))
 
 semiringFromNaturalMapsTimes :: forall a. (Semiring a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semiringFromNaturalMapsTimes _ = myForAllShrink True (const True)
   (\(NonNegative a, NonNegative b) -> ["a = " ++ show a, "b = " ++ show b])
   "fromNatural (a * b)"
-  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger (a * b)) :: a)
+  (\(NonNegative a, NonNegative b) -> fromNatural (P.fromInteger (a * b)) :: a)
   "fromNatural a * fromNatural b"
-  (\(NonNegative a, NonNegative b) -> fromNatural (fromInteger a) * fromNatural (fromInteger b))
+  (\(NonNegative a, NonNegative b) -> fromNatural (P.fromInteger a) * fromNatural (P.fromInteger b))
 
 #endif
