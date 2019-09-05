@@ -11,7 +11,7 @@ module Test.QuickCheck.Classes.Semiring
   ) where
 
 #if HAVE_SEMIRINGS
-import Data.Semiring
+import Data.Semiring hiding (fromInteger)
 import Prelude hiding (Num(..))
 import Prelude (fromInteger)
 #endif
