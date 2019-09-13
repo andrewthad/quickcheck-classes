@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.4.0] - 2019-09-13
+### Added
+- laws for `abs` and `signum`
+### Changed
+- Use newer semirings
+
 ## [0.6.3.0] - 2019-08-08
 ### Added
 - `gcdDomainLaws`
