@@ -36,6 +36,7 @@ storableLaws :: (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Laws
 storableLaws p = Laws "Storable"
   [ ("Set-Get (you get back what you put in)", storableSetGet p)
   , ("Get-Set (putting back what you got out has no effect)", storableGetSet p)
+  , ("Set-Set (if you set something twice, the first set is inconsequential", storableSetSet p)
   , ("List Conversion Roundtrips", storableList p)
   , ("peekElemOff a i ≡ peek (plusPtr a (i * sizeOf undefined))", storablePeekElem p)
   , ("peekElemOff a i x ≡ poke (plusPtr a (i * sizeOf undefined)) x ≡ id ", storablePokeElem p)
@@ -125,6 +126,18 @@ storableGetSet _ = property $ \(as :: [a]) -> (not (L.null as)) ==> do
     free ptrA
     free ptrB
     return res
+
+storableSetSet :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
+storableSetSet _ = property $ \(x :: a) (y :: a) (as :: [a]) -> (not (L.null as)) ==> do
+  let len = L.length as
+  ix <- choose (0,len-1)
+  return $ unsafePerformIO $ do
+    ptr <- arrayArbitrary len
+    pokeElemOff ptr ix x
+    pokeElemOff ptr ix y
+    atIx <- peekElemOff ptr ix
+    free ptr
+    return $ atIx == y
 
 storableList :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storableList _ = property $ \(as :: [a]) -> unsafePerformIO $ do
