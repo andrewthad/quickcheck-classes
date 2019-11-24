@@ -11,6 +11,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 - Use non-commutative monoid for bifoldable tests (resolves issue 98)
 - `substitutiveEqLaws`, which tests for Eq substitutivity.
 - Negation law check for `Eq`.
+- Document that users can provide their own `Laws`.
 
 ## [0.6.4.0] - 2019-09-13
 ### Added

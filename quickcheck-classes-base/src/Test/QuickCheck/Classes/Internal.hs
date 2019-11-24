@@ -15,14 +15,14 @@
 -- public API and is not subject to PVP. It is used by other
 -- modules in @quickcheck-classes-base@ and by modules in the
 -- @quickcheck-classes@ library as well. Functions and types
--- in this module are either auxiliary functions that are reused 
+-- in this module are either auxiliary functions that are reused
 -- by many different laws tests, or they are compatibility shims
 -- that make it possible to build with older versions GHC and
 -- transformers.
 module Test.QuickCheck.Classes.Internal
   ( -- * Common Types and Functions
     Laws(..)
-  , foldMapA 
+  , foldMapA
   , myForAllShrink
   -- Modifiers
   , SmallList(..)
@@ -120,6 +120,12 @@ import qualified Data.Functor.Classes as C
 #endif
 
 -- | A set of laws associated with a typeclass.
+--
+--   /Note/: Most of the top-level functions provided
+--   by this library have the shape
+--   `forall a. (Ctx a) => Proxy a -> Laws`. You can just
+--   as easily provide your own `Laws` in libraries/test suites
+--   using regular QuickCheck machinery.
 data Laws = Laws
   { lawsTypeclass :: String
     -- ^ Name of the typeclass whose laws are tested
