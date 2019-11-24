@@ -22,6 +22,7 @@ module Test.QuickCheck.Classes.Base
   , bitsLaws
 #endif
   , eqLaws
+  , substitutiveEqLaws
   , numLaws
   , integralLaws
   , ixLaws
@@ -62,7 +63,7 @@ module Test.QuickCheck.Classes.Base
     -- ** Binary type constructors
   , bifoldableLaws
   , bifunctorLaws
-  , bitraversableLaws 
+  , bitraversableLaws
   , categoryLaws
   , commutativeCategoryLaws
 #endif

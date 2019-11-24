@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## [0.6.5.0] - 2019-XX-XX
+### Added
+- Storable Set-Set Law (resolves issue 101).
+- Add laws for `quotRem` and `divMod`.
+- Use non-commutative monoid for bifoldable tests (resolves issue 98)
+- `substitutiveEqLaws`, which tests for Eq substitutivity.
+- Negation law check for `Eq`.
+
 ## [0.6.4.0] - 2019-09-13
 ### Added
 - laws for `abs` and `signum`

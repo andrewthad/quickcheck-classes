@@ -22,6 +22,7 @@ module Test.QuickCheck.Classes
   , QCB.bitsLaws
 #endif
   , QCB.eqLaws
+  , QCB.substitutiveEqLaws
   , QCB.numLaws
   , QCB.integralLaws
   , QCB.ixLaws
@@ -80,7 +81,7 @@ module Test.QuickCheck.Classes
     -- ** Binary type constructors
   , QCB.bifoldableLaws
   , QCB.bifunctorLaws
-  , QCB.bitraversableLaws 
+  , QCB.bitraversableLaws
   , QCB.categoryLaws
   , QCB.commutativeCategoryLaws
 #if HAVE_SEMIGROUPOIDS
