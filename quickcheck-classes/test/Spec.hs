@@ -27,6 +27,9 @@ import Data.Traversable
 #if HAVE_SEMIGROUPOIDS
 import Data.Functor.Apply (Apply((<.>)))
 #endif
+#if HAVE_BINARY_LAWS
+import Data.Functor.Const (Const(..))
+#endif
 #if HAVE_UNARY_LAWS
 import Data.Functor.Classes
 #endif
@@ -61,8 +64,23 @@ allPropsApplied = M.toList . M.fromListWith (++) $
   [ ("Int",allLaws (Proxy :: Proxy Int))
   , ("Int64",allLaws (Proxy :: Proxy Int64))
   , ("Word",allLaws (Proxy :: Proxy Word))
-  , ("Tuple",[bitraversableLaws (Proxy :: Proxy (,))])
-  , ("Either",[bitraversableLaws (Proxy :: Proxy Either)])
+#if HAVE_BINARY_LAWS
+  , ("Tuple"
+    , [ bitraversableLaws (Proxy :: Proxy (,))
+      , bifoldableLaws (Proxy :: Proxy (,))
+      ]
+    )
+  , ("Const"
+    , [ bifoldableLaws (Proxy :: Proxy Const)
+      , bitraversableLaws (Proxy :: Proxy Const)
+      ]
+    )
+  , ("Either"
+    , [ bitraversableLaws (Proxy :: Proxy Either)
+      , bifoldableLaws (Proxy :: Proxy Either)
+      ]
+    )
+#endif
 #if HAVE_UNARY_LAWS
   , ("Maybe",allHigherLaws (Proxy1 :: Proxy1 Maybe))
   , ("List",allHigherLaws (Proxy1 :: Proxy1 []))
@@ -105,7 +123,7 @@ allLaws :: forall a.
   , FiniteBits a
 #endif
   ) => Proxy a -> [Laws]
-allLaws p = 
+allLaws p =
   [ primLaws p
   , storableLaws p
   , semigroupLaws (Proxy :: Proxy (Sum a))
@@ -176,7 +194,7 @@ newtype Rogue a = Rogue [a]
   )
 
 -- Note: when using base < 4.6, the Rogue type does
--- not really test anything. 
+-- not really test anything.
 instance Foldable Rogue where
   foldMap f (Rogue xs) = F.foldMap f xs
   foldl f x (Rogue xs) = F.foldl f x xs

@@ -8,6 +8,7 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 ### Added
 - Storable Set-Set Law (resolves issue 101).
 - Add laws for `quotRem` and `divMod`.
+- Use non-commutative monoid for bifoldable tests (resolves issue 98)
 
 ## [0.6.0.0] - 2019-08-08
 ### Added

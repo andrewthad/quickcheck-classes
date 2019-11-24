@@ -31,10 +31,10 @@ import Test.QuickCheck.Classes.Internal
 -- | Tests the following 'Bifunctor' properties:
 --
 -- [/Bifold Identity/]
---   @'bifold' ≡ 'bifoldMap' 'id' 'id'@  
+--   @'bifold' ≡ 'bifoldMap' 'id' 'id'@
 -- [/BifoldMap Identity/]
 --   @'bifoldMap' f g ≡ 'bifoldr' ('mappend' '.' f) ('mappend' '.' g) 'mempty'@
--- [/Bifoldr Identity/] 
+-- [/Bifoldr Identity/]
 --   @'bifoldr' f g z t ≡ 'appEndo' ('bifoldMap' ('Endo' '.' f) ('Endo' '.' g) t) z@
 --
 -- /Note/: This property test is only available when this package is built with
@@ -80,7 +80,7 @@ bifoldableFunctorLaw :: forall proxy f.
   (Bifoldable f, Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
 #endif
   => proxy f -> Property
-bifoldableFunctorLaw _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap Sum Sum x == (bifold (bimap Sum Sum x))
+bifoldableFunctorLaw _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap mkMonoid mkMonoid x == (bifold (bimap mkMonoid mkMonoid x))
 
 bifoldableFunctorImplication :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -89,7 +89,7 @@ bifoldableFunctorImplication :: forall proxy f.
   (Bifoldable f, Bifunctor f, Eq2 f, Show2 f, Arbitrary2 f)
 #endif
   => proxy f -> Property
-bifoldableFunctorImplication _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap Sum Sum (bimap Product Product x) == bifoldMap (Sum . Product) (Sum . Product) x
+bifoldableFunctorImplication _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap mkMonoid mkMonoid (bimap mkMonoid mkMonoid x) == bifoldMap (mkMonoid . mkMonoid) (mkMonoid . mkMonoid) x
 
 bifoldIdentity :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -98,7 +98,7 @@ bifoldIdentity :: forall proxy f.
   (Bifoldable f, Eq2 f, Show2 f, Arbitrary2 f)
 #endif
   => proxy f -> Property
-bifoldIdentity _ = property $ \(Apply2 (x :: f (Sum Integer) (Sum Integer))) -> (bifold x) == (bifoldMap id id x)
+bifoldIdentity _ = property $ \(Apply2 (x :: f [Integer] [Integer])) -> (bifold x) == (bifoldMap id id x)
 
 bifoldMapIdentity :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -107,7 +107,7 @@ bifoldMapIdentity :: forall proxy f.
   (Bifoldable f, Eq2 f, Show2 f, Arbitrary2 f)
 #endif
   => proxy f -> Property
-bifoldMapIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap Sum Sum x == bifoldr (mappend . Sum) (mappend . Sum) mempty x
+bifoldMapIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> bifoldMap mkMonoid mkMonoid x == bifoldr (mappend . mkMonoid) (mappend . mkMonoid) mempty x
 
 bifoldrIdentity :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
@@ -119,6 +119,8 @@ bifoldrIdentity :: forall proxy f.
 bifoldrIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) ->
   let f _ _ = mempty
       g _ _ = mempty
-  in bifoldr f g (mempty :: Sum Integer) x == appEndo (bifoldMap (Endo . f) (Endo . g) x) mempty
+  in bifoldr f g (mempty :: [Integer]) x == appEndo (bifoldMap (Endo . f) (Endo . g) x) mempty
 
+mkMonoid :: a -> [a]
+mkMonoid x = [x]
 #endif
