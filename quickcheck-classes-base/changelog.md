@@ -4,9 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## [0.6.1.0] - ???
+## [0.6.X.X] - 2019-XX-XX
 ### Added
-- Storable Set-Set Law (resolves issue 101)
+- Storable Set-Set Law (resolves issue 101).
+- Add laws for `quotRem` and `divMod`.
 
 ## [0.6.0.0] - 2019-08-08
 ### Added
