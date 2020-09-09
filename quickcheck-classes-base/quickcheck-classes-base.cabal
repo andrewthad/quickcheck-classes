@@ -1,5 +1,5 @@
 name: quickcheck-classes-base
-version: 0.6.0.0
+version: 0.6.1.0
 synopsis: QuickCheck common typeclasses from `base`
 description:
   This libary is a minimal variant of `quickcheck-classes` that
