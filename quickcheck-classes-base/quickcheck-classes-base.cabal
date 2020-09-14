@@ -88,9 +88,10 @@ library
     , transformers >= 0.3 && < 0.6
     , containers >= 0.4.2.1
     , tagged
-    , fail
   if impl(ghc < 8.0)
-    build-depends: semigroups >= 0.17
+    build-depends:
+        semigroups >= 0.17
+      , fail
   if impl(ghc > 7.4) && impl(ghc < 7.6)
     build-depends: ghc-prim
   if impl(ghc > 8.5)
