@@ -61,7 +61,7 @@ storablePokeElem _ = property $ \(Positive len) (x :: a) ix' -> ioProperty $ do
 
 storablePeekByte :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePeekByte _ = property $ \(Positive len) off' -> ioProperty $ do
-  let off = off' `mod` len
+  let off = (off' `mod` len) * sizeOf (undefined :: a)
   addr :: Ptr a <- arrayArbitrary len
   x :: a <- peekByteOff addr off
   y :: a <- peek (addr `plusPtr` off)
@@ -70,7 +70,7 @@ storablePeekByte _ = property $ \(Positive len) off' -> ioProperty $ do
 
 storablePokeByte :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePokeByte _ = property $ \(Positive len) (x :: a) off' -> ioProperty $ do
-  let off = off' `mod` len
+  let off = (off' `mod` len) * sizeOf (undefined :: a)
   addr :: Ptr a <- arrayArbitrary len
   pokeByteOff addr off x
   u :: a <- peekByteOff addr off
