@@ -46,7 +46,7 @@ storablePeekElem _ = property $ \(Positive len) ix' -> ioProperty $ do
   x <- peekElemOff addr ix
   y <- peek (addr `advancePtr` ix)
   free addr
-  return (x === y)
+  return (x ==== y)
 
 storablePokeElem :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePokeElem _ = property $ \(Positive len) (x :: a) ix' -> ioProperty $ do
@@ -57,7 +57,7 @@ storablePokeElem _ = property $ \(Positive len) (x :: a) ix' -> ioProperty $ do
   poke (addr `advancePtr` ix) x
   v <- peekElemOff addr ix
   free addr
-  return (u === v)
+  return (u ==== v)
 
 storablePeekByte :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePeekByte _ = property $ \(Positive len) off' -> ioProperty $ do
@@ -66,7 +66,7 @@ storablePeekByte _ = property $ \(Positive len) off' -> ioProperty $ do
   x :: a <- peekByteOff addr off
   y :: a <- peek (addr `plusPtr` off)
   free addr
-  return (x === y)
+  return (x ==== y)
 
 storablePokeByte :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storablePokeByte _ = property $ \(Positive len) (x :: a) off' -> ioProperty $ do
@@ -77,7 +77,7 @@ storablePokeByte _ = property $ \(Positive len) (x :: a) off' -> ioProperty $ do
   poke (addr `plusPtr` off) x
   v :: a <- peekByteOff addr off
   free addr
-  return (u === v)
+  return (u ==== v)
 
 storableSetGet :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storableSetGet _ = property $ \(a :: a) (Positive len) ix' -> ioProperty $ do
@@ -86,7 +86,7 @@ storableSetGet _ = property $ \(a :: a) (Positive len) ix' -> ioProperty $ do
   pokeElemOff ptr ix a
   a' <- peekElemOff ptr ix
   free ptr
-  return (a === a')
+  return (a ==== a')
 
 storableGetSet :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storableGetSet _ = property $ \(NonEmpty (as :: [a])) ix' -> ioProperty $ do
@@ -112,7 +112,7 @@ storableSetSet _ = property $ \(x :: a) (y :: a) (Positive len) ix' -> ioPropert
   pokeElemOff ptr ix y
   atIx <- peekElemOff ptr ix
   free ptr
-  return $ atIx === y
+  return $ atIx ==== y
 
 storableList :: forall a. (Storable a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 storableList _ = property $ \(as :: [a]) -> ioProperty $ do
@@ -123,4 +123,9 @@ storableList _ = property $ \(as :: [a]) -> ioProperty $ do
         else return []
   asNew <- rebuild 0
   free ptr
-  return (as === asNew)
+  return (as ==== asNew)
+
+(====) :: (Eq a, Show a) => a -> a -> Property
+x ==== y
+  | x /= x && y /= y = discard
+  | otherwise = x === y
