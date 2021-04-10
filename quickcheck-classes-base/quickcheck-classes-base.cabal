@@ -82,12 +82,14 @@ library
   build-depends:
       base >= 4.5 && < 5
     , base-orphans >= 0.1
-    , bifunctors
-    , contravariant
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
     , containers >= 0.4.2.1
     , tagged
+  if impl(ghc < 8.6)
+    build-depends: contravariant
+  if impl(ghc < 8.2)
+    build-depends: bifunctors
   if impl(ghc < 8.0)
     build-depends:
         semigroups >= 0.17
