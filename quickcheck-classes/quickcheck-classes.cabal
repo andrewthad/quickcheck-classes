@@ -1,3 +1,4 @@
+cabal-version: 2.4
 name: quickcheck-classes
 version: 0.6.5.0
 synopsis: QuickCheck common typeclasses
@@ -14,7 +15,7 @@ description:
   but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
   constraints more cleanly.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
-license: BSD3
+license: BSD-3-Clause
 license-file: LICENSE
 author: Andrew Martin, chessai
 maintainer: andrew.thaddeus@gmail.com
@@ -22,7 +23,6 @@ copyright: 2018 Andrew Martin
 category: Testing
 build-type: Simple
 extra-source-files: README.md
-cabal-version: >=1.10
 extra-source-files: changelog.md
 
 flag aeson
@@ -92,16 +92,16 @@ library
     Test.QuickCheck.Classes.Semiring
     Test.QuickCheck.Classes.Ring
   build-depends:
-      base >= 4.5 && < 5
+    , base >= 4.5 && < 5
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
     , primitive >= 0.6.4 && < 0.8
     , primitive-addr >= 0.1.0.2 && < 0.2
     , containers >= 0.4.2.1
-    , quickcheck-classes-base >=0.6.1 && <0.7
+    , quickcheck-classes-base >=0.6.2 && <0.7
   if impl(ghc < 8.0)
     build-depends:
-        semigroups >= 0.17
+      , semigroups >= 0.17
       , fail
   if impl(ghc < 7.8)
     build-depends: tagged
@@ -111,12 +111,12 @@ library
     cpp-options: -DHAVE_QUANTIFIED_CONSTRAINTS
   if flag(unary-laws)
     build-depends:
-        transformers >= 0.4.0
+      , transformers >= 0.4.0
       , QuickCheck >= 2.10.0
     cpp-options: -DHAVE_UNARY_LAWS
   if flag(binary-laws)
     build-depends:
-        transformers >= 0.5.0
+      , transformers >= 0.5.0
       , QuickCheck >= 2.10.0
     cpp-options: -DHAVE_BINARY_LAWS
   if flag(aeson)
@@ -142,7 +142,7 @@ test-suite basic
   other-modules:
     Spec.ShowRead
   build-depends:
-      base
+    , base
     , base-orphans >= 0.5
     , quickcheck-classes
     , QuickCheck
@@ -179,7 +179,7 @@ test-suite advanced
   main-is: Advanced.hs
   ghc-options: -O2
   build-depends:
-      QuickCheck
+    , QuickCheck
     , base >= 4.12
     , base-orphans >= 0.5
     , containers

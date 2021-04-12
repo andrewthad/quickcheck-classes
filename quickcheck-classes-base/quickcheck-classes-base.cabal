@@ -1,5 +1,6 @@
+cabal-version: 2.4
 name: quickcheck-classes-base
-version: 0.6.1.0
+version: 0.6.2.0
 synopsis: QuickCheck common typeclasses from `base`
 description:
   This libary is a minimal variant of `quickcheck-classes` that
@@ -20,14 +21,13 @@ description:
   but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
   constraints more cleanly.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
-license: BSD3
+license: BSD-3-Clause
 license-file: LICENSE
 author: Andrew Martin, chessai
 maintainer: andrew.thaddeus@gmail.com
 copyright: 2019 Andrew Martin
 category: Testing
 build-type: Simple
-cabal-version: >=1.10
 extra-source-files: changelog.md
 
 flag unary-laws
@@ -80,7 +80,7 @@ library
     Test.QuickCheck.Classes.Storable
     Test.QuickCheck.Classes.Traversable
   build-depends:
-      base >= 4.5 && < 5
+    , base >= 4.5 && < 5
     , QuickCheck >= 2.7
     , transformers >= 0.3 && < 0.6
     , containers >= 0.4.2.1
@@ -90,7 +90,7 @@ library
     build-depends: bifunctors
   if impl(ghc < 8.0)
     build-depends:
-        semigroups >= 0.17
+      , semigroups >= 0.17
       , fail
   if impl(ghc < 7.8)
     build-depends: tagged
@@ -100,12 +100,12 @@ library
     cpp-options: -DHAVE_QUANTIFIED_CONSTRAINTS
   if flag(unary-laws)
     build-depends:
-        transformers >= 0.4.0
+      , transformers >= 0.4.0
       , QuickCheck >= 2.10.0
     cpp-options: -DHAVE_UNARY_LAWS
   if flag(binary-laws)
     build-depends:
-        transformers >= 0.5.0
+      , transformers >= 0.5.0
       , QuickCheck >= 2.10.0
     cpp-options: -DHAVE_BINARY_LAWS
 
