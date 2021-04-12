@@ -8,7 +8,7 @@ Note that since `quickcheck-classes` reexports larges parts of
 `quickcheck-classes-base`, changelog entries that deal with any of the
 classes from `base` are duplicated across the two changelogs.
 
-## [0.6.5.0] - 2020-09-09
+## [0.6.5.0] - 2021-04-12
 ### Added
 - Laws for `abs` and `signum`
 - Storable Set-Set Law (resolves issue 101).

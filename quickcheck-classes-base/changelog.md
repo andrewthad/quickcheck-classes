@@ -8,6 +8,12 @@ Note that since `quickcheck-classes` reexports larges parts of
 `quickcheck-classes-base`, changelog entries that deal with any of the
 classes from `base` are duplicated across the two changelogs.
 
+## [0.6.2.0] - 2021-04-12
+
+- Storable Set-Set Law (resolves issue 101).
+- Trim unneeded dependencies (tagged, base-orphans)
+- Trim unneeded dependencies on newer GHCs (bifunctors, contravariant)
+
 ## [0.6.1.0] - 2020-09-09
 ### Added
 - Laws for `abs` and `signum`

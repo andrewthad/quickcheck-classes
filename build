@@ -10,7 +10,7 @@ set -e
 # sudo apt install ghc-7.4.2 ghc-7.6.3 ghc-7.8.4 ghc-7.10.3 ghc-8.0.2 ghc-8.2.2 ghc-8.4.4 ghc-8.6.5
 
 declare -a ghcs_old=("7.4.2" "7.6.3" "7.8.4" "7.10.3")
-declare -a ghcs_new=("8.0.2" "8.2.2" "8.4.4" "8.6.5" "8.8.4" "8.10.2")
+declare -a ghcs_new=("8.0.2" "8.2.2" "8.4.4" "8.6.5" "8.8.4" "8.10.4")
 
 ## now loop through the above arrays
 for g in "${ghcs_old[@]}"
