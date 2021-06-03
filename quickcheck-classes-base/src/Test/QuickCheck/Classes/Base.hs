@@ -14,8 +14,11 @@
 module Test.QuickCheck.Classes.Base
   ( -- * Running
     lawsCheck
+  , lawsCheckWith
   , lawsCheckMany
+  , lawsCheckWithMany
   , lawsCheckOne
+  , lawsCheckWithOne
     -- * Properties
     -- ** Ground types
 #if MIN_VERSION_base(4,7,0)
@@ -146,10 +149,13 @@ import qualified Data.Semigroup as SG
 -- have confidence that the 'Monoid' instance for 'Ordering' satisfies
 -- the monoid laws.
 lawsCheck :: Laws -> IO ()
-lawsCheck (Laws className properties) = do
+lawsCheck = lawsCheckWith stdArgs
+
+lawsCheckWith :: Args -> Laws -> IO ()
+lawsCheckWith args (Laws className properties) = do
   flip foldMapA properties $ \(name,p) -> do
     putStr (className ++ ": " ++ name ++ " ")
-    quickCheck p
+    quickCheckWith args p
 
 -- | A convenience function that allows one to check many typeclass
 -- instances of the same type.
@@ -159,7 +165,10 @@ lawsCheck (Laws className properties) = do
 -- ToJSON/FromJSON: Partial Isomorphism +++ OK, passed 100 tests.
 -- Show/Read: Partial Isomorphism +++ OK, passed 100 tests.
 lawsCheckOne :: Proxy a -> [Proxy a -> Laws] -> IO ()
-lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
+lawsCheckOne = lawsCheckWithOne stdArgs
+
+lawsCheckWithOne :: Args -> Proxy a -> [Proxy a -> Laws] -> IO ()
+lawsCheckWithOne args p ls = foldlMapM (lawsCheckWith args . ($ p)) ls
 
 -- | A convenience function for checking multiple typeclass instances
 --   of multiple types. Consider the following Haskell source file:
@@ -223,7 +232,13 @@ lawsCheckOne p ls = foldlMapM (lawsCheck . ($ p)) ls
 lawsCheckMany ::
      [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
   -> IO ()
-lawsCheckMany xs = do
+lawsCheckMany = lawsCheckWithMany stdArgs
+
+lawsCheckWithMany ::
+     Args
+  -> [(String,[Laws])] -- ^ Element is type name paired with typeclass laws
+  -> IO ()
+lawsCheckWithMany args xs = do
   putStrLn "Testing properties for common typeclasses"
   r <- flip foldMapA xs $ \(typeName,laws) -> do
     putStrLn $ List.replicate (length typeName + 6) '-'
@@ -232,7 +247,7 @@ lawsCheckMany xs = do
     flip foldMapA laws $ \(Laws typeClassName properties) -> do
       flip foldMapA properties $ \(name,p) -> do
         putStr (typeClassName ++ ": " ++ name ++ " ")
-        r <- quickCheckResult p
+        r <- quickCheckWithResult args p
         return $ case r of
           Success{} -> Good
           _ -> Bad
