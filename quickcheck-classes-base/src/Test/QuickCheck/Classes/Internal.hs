@@ -73,10 +73,10 @@ module Test.QuickCheck.Classes.Internal
   , isTrue#
 #if HAVE_UNARY_LAWS
   , eq1
+  , eq1_2
 #endif
 #if HAVE_BINARY_LAWS
   , eq2
-  , eq1_2
 #endif
   , readMaybe
   ) where
