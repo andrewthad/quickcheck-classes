@@ -1,24 +1,25 @@
 cabal-version: 2.4
 name: quickcheck-classes-base
 version: 0.6.2.0
-synopsis: QuickCheck common typeclasses from `base`
+synopsis: QuickCheck common typeclasses from @base@
 description:
-  This libary is a minimal variant of `quickcheck-classes` that
-  only provides laws for typeclasses from `base`. The main purpose
-  of splitting this out is so that `primitive` can depend on
-  `quickcheck-classes-base` in its test suite, avoiding the circular
-  dependency that arises if `quickcheck-classes` is used instead.
+  This libary is a minimal variant of [quickcheck-classes](https://hackage.haskell.org/package/quickcheck-classes) that
+  only provides laws for typeclasses from [base](https://hackage.haskell.org/package/base). The main purpose
+  of splitting this out is so that [primitive](https://hackage.haskell.org/package/primitive) can depend on
+  @quickcheck-classes-base@ in its test suite, avoiding the circular
+  dependency that arises if @quickcheck-classes@ is used instead.
   .
-  This library provides QuickCheck properties to ensure
+  This library provides @QuickCheck@ properties to ensure
   that typeclass instances adhere to the set of laws that
   they are supposed to. There are other libraries that do
-  similar things, such as `genvalidity-hspec` and `checkers`.
+  similar things, such as [genvalidity-hspec](https://hackage.haskell.org/package/genvalidity-hspec)
+  and [checkers](https://hackage.haskell.org/package/checkers).
   This library differs from other solutions by not introducing
   any new typeclasses that the user needs to learn.
   .
   /Note:/ on GHC < 8.5, this library uses the higher-kinded typeclasses
   ('Data.Functor.Classes.Show1', 'Data.Functor.Classes.Eq1', 'Data.Functor.Classes.Ord1', etc.),
-  but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
+  but on GHC >= 8.5, it uses @-XQuantifiedConstraints@ to express these
   constraints more cleanly.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
 license: BSD-3-Clause
@@ -39,7 +40,7 @@ flag unary-laws
 flag binary-laws
   description:
     Include infrastructure for testing class laws of binary type constructors.
-    Disabling `unary-laws` while keeping `binary-laws` enabled is an unsupported
+    Disabling @unary-laws@ while keeping @binary-laws@ enabled is an unsupported
     configuration.
   default: True
   manual: True

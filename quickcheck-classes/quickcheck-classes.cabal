@@ -6,13 +6,14 @@ description:
   This library provides QuickCheck properties to ensure
   that typeclass instances adhere to the set of laws that
   they are supposed to. There are other libraries that do
-  similar things, such as `genvalidity-hspec` and `checkers`.
+  similar things, such as [genvalidity-hspec](https://hackage.haskell.org/package/genvalidity-hspec)
+  and [checkers](https://hackage.haskell.org/package/checkers).
   This library differs from other solutions by not introducing
   any new typeclasses that the user needs to learn.
   .
   /Note:/ on GHC < 8.5, this library uses the higher-kinded typeclasses
   ('Data.Functor.Classes.Show1', 'Data.Functor.Classes.Eq1', 'Data.Functor.Classes.Ord1', etc.),
-  but on GHC >= 8.5, it uses `-XQuantifiedConstraints` to express these
+  but on GHC >= 8.5, it uses @-XQuantifiedConstraints@ to express these
   constraints more cleanly.
 homepage: https://github.com/andrewthad/quickcheck-classes#readme
 license: BSD-3-Clause
@@ -27,7 +28,7 @@ extra-source-files: changelog.md
 
 flag aeson
   description:
-    You can disable the use of the `aeson` package using `-f-aeson`.
+    You can disable the use of the @aeson@ package using @-f-aeson@.
     .
     This may be useful for accelerating builds in sandboxes for expert users.
   default: True
@@ -35,7 +36,7 @@ flag aeson
 
 flag semigroupoids
   description:
-    You can disable the use of the `semigroupoids` package using `-f-semigroupoids`.
+    You can disable the use of the @semigroupoids@ package using @-f-semigroupoids@.
     .
     This may be useful for accelerating builds in sandboxes for expert users.
   default: True
@@ -43,7 +44,7 @@ flag semigroupoids
 
 flag semirings
   description:
-    You can disable the use of the `semirings` package using `-f-semirings`.
+    You can disable the use of the @semirings@ package using @-f-semirings@.
     .
     This may be useful for accelerating builds in sandboxes for expert users.
   default: True
@@ -51,7 +52,7 @@ flag semirings
 
 flag vector
   description:
-    You can disable the use of the `vector` package using `-f-vector`.
+    You can disable the use of the @vector@ package using @-f-vector@.
     .
     This may be useful for accelerating builds in sandboxes for expert users.
   default: True
@@ -60,17 +61,17 @@ flag vector
 flag unary-laws
   description:
     Include infrastructure for testing class laws of unary type constructors.
-    It is required that this flag match the value that the `unary-laws` flag
-    was given when building `quickcheck-classes-base`.
+    It is required that this flag match the value that the @unary-laws@ flag
+    was given when building @quickcheck-classes-base@.
   default: True
   manual: True
 
 flag binary-laws
   description:
     Include infrastructure for testing class laws of binary type constructors.
-    It is required that this flag match the value that the `unary-laws` flag
-    was given when building `quickcheck-classes-base`. Disabling `unary-laws`
-    while keeping `binary-laws` enabled is an unsupported configuration.
+    It is required that this flag match the value that the @unary-laws@ flag
+    was given when building @quickcheck-classes-base@. Disabling @unary-laws@
+    while keeping @binary-laws@ enabled is an unsupported configuration.
   default: True
   manual: True
 
