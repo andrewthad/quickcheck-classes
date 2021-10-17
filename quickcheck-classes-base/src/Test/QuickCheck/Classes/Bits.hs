@@ -14,7 +14,6 @@ module Test.QuickCheck.Classes.Bits
 import Data.Bits
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import qualified Data.Set as S
 

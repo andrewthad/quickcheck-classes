@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -Wall #-}
 
 module Test.QuickCheck.Classes.Ring
-  ( 
+  (
 #if HAVE_SEMIRINGS
     ringLaws
 #endif
@@ -17,7 +17,6 @@ import Prelude hiding (Num(..))
 
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..), myForAllShrink)
 

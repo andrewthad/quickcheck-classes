@@ -8,14 +8,13 @@ module Test.QuickCheck.Classes.Ord
 
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..))
 
 -- | Tests the following properties:
 --
 -- [/Antisymmetry/]
---   @a ≤ b ∧ b ≤ a ⇒ a = b@ 
+--   @a ≤ b ∧ b ≤ a ⇒ a = b@
 -- [/Transitivity/]
 --   @a ≤ b ∧ b ≤ c ⇒ a ≤ c@
 -- [/Totality/]

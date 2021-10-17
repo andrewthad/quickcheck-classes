@@ -21,7 +21,6 @@ import Test.QuickCheck hiding ((.&.))
 #if HAVE_BINARY_LAWS
 import Data.Functor.Classes (Eq2,Show2)
 #endif
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 

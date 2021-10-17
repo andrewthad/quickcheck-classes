@@ -27,7 +27,6 @@ import Data.Functor.Classes
 #endif
 import Data.Proxy (Proxy(Proxy))
 import Test.QuickCheck
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..), Apply(..))
 
@@ -60,7 +59,7 @@ fromToInverse ::
   => proxy a
   -> proxy x
   -> Property
-fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a)) 
+fromToInverse _ _ = property $ \(r :: Rep a x) -> r == (from (to r :: a))
 
 #if HAVE_UNARY_LAWS
 -- | Tests the following properties:

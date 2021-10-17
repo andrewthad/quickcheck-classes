@@ -32,7 +32,6 @@ import GHC.Exts (IsList(fromList,toList,fromListN),Item,
 import GHC.Ptr (Ptr(..))
 import System.IO.Unsafe
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import qualified Data.List as L
 import qualified Data.Primitive as P

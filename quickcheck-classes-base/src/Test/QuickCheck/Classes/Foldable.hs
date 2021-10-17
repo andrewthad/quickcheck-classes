@@ -27,7 +27,6 @@ import Test.QuickCheck.Monadic (monadicIO)
 #if HAVE_UNARY_LAWS
 import Data.Functor.Classes (Eq1,Show1)
 #endif
-import Test.QuickCheck.Property (Property)
 
 import qualified Data.Foldable as F
 import qualified Data.Semigroup as SG

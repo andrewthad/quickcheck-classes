@@ -26,7 +26,6 @@ import qualified Data.Vector.Generic.Mutable as MU (basicInitialize)
 import qualified Data.Vector.Unboxed.Mutable as MU
 
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..))
 

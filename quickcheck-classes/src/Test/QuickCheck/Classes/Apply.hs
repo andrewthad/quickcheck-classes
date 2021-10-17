@@ -21,13 +21,12 @@ import qualified Data.Functor.Apply as FunctorApply
 import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Data.Functor.Classes (Eq1,Show1)
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 
 type ApplyProp proxy f =
 #if HAVE_QUANTIFIED_CONSTRAINTS
-  (FunctorApply.Apply f, forall x. Eq x => Eq (f x), forall x. Show x => Show (f x), forall x. Arbitrary x => Arbitrary (f x)) 
+  (FunctorApply.Apply f, forall x. Eq x => Eq (f x), forall x. Show x => Show (f x), forall x. Arbitrary x => Arbitrary (f x))
 #else
   (FunctorApply.Apply f, Eq1 f, Show1 f, Arbitrary1 f)
 #endif

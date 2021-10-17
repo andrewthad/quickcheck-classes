@@ -26,7 +26,6 @@ import Data.Euclidean
 import Data.Semiring (Semiring(..))
 
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..))
 
