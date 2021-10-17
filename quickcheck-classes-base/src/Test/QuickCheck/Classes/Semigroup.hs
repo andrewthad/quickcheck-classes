@@ -15,14 +15,11 @@ import Prelude hiding (foldr1)
 import Data.Semigroup (Semigroup(..))
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..), SmallList(..), myForAllShrink)
 
 import Data.Foldable (foldr1,toList)
 import Data.List.NonEmpty (NonEmpty((:|)))
-
-import qualified Data.List as L
 
 -- | Tests the following properties:
 --

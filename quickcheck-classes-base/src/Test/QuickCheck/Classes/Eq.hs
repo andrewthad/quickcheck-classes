@@ -9,7 +9,6 @@ module Test.QuickCheck.Classes.Eq
 
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 import Test.QuickCheck.Function
 
 import Test.QuickCheck.Classes.Internal (Laws(..))

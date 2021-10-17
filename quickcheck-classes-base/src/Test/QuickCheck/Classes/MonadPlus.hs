@@ -15,7 +15,6 @@ module Test.QuickCheck.Classes.MonadPlus
   ) where
 
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 import Test.QuickCheck.Classes.Internal
 import Control.Monad (MonadPlus(mzero,mplus))
 
@@ -33,7 +32,7 @@ import Data.Functor.Classes (Eq1,Show1)
 -- [/Right Identity/]
 --   @'mplus' x 'mzero' ≡ x@
 -- [/Associativity/]
---   @'mplus' a ('mplus' b c) ≡ 'mplus' ('mplus' a b) c)@ 
+--   @'mplus' a ('mplus' b c) ≡ 'mplus' ('mplus' a b) c)@
 -- [/Left Zero/]
 --   @'mzero' '>>=' f ≡ 'mzero'@
 -- [/Right Zero/]

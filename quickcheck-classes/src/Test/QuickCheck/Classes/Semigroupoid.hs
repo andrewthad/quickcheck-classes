@@ -20,7 +20,6 @@ import Prelude hiding (id, (.))
 import Data.Semigroupoid (Semigroupoid(..))
 import Test.QuickCheck hiding ((.&.))
 import Data.Functor.Classes (Eq2,Show2)
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 

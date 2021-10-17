@@ -19,7 +19,6 @@ import Test.QuickCheck hiding ((.&.))
 #if HAVE_BINARY_LAWS
 import Data.Functor.Classes (Eq2,Show2)
 #endif
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 
@@ -31,10 +30,10 @@ import Test.QuickCheck.Classes.Internal
 --   @'bimap' 'id' 'id' ≡ 'id'@
 -- [/First Identity/]
 --   @'first' 'id' ≡ 'id'@
--- [/Second Identity/] 
+-- [/Second Identity/]
 --   @'second' 'id' ≡ 'id'@
 -- [/Bifunctor Composition/]
---   @'bimap' f g ≡ 'first' f '.' 'second' g@ 
+--   @'bimap' f g ≡ 'first' f '.' 'second' g@
 --
 -- /Note/: This property test is only available when this package is built with
 -- @base-4.9+@ or @transformers-0.5+@.
@@ -79,7 +78,7 @@ bifunctorSecondIdentity :: forall proxy f.
   => proxy f -> Property
 bifunctorSecondIdentity _ = property $ \(Apply2 (x :: f Integer Integer)) -> eq2 (second id x) x
 
-bifunctorComposition :: forall proxy f. 
+bifunctorComposition :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
   (Bifunctor f, forall a b. (Eq a, Eq b) => Eq (f a b), forall a b. (Show a, Show b) => Show (f a b), forall a b. (Arbitrary a, Arbitrary b) => Arbitrary (f a b))
 #else

@@ -21,7 +21,6 @@ import Data.Functor.Compose (Compose(..))
 import Data.Functor.Identity (Identity(..))
 import Data.Functor.Classes (Eq2,Show2)
 #endif
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 
@@ -33,7 +32,7 @@ import Test.QuickCheck.Classes.Internal
 --   @'bitraverse' (t '.' f) (t '.' g) ≡ t '.' 'bitraverse' f g@ for every applicative transformation @t@
 -- [/Identity/]
 --   @'bitraverse' 'Identity' 'Identity' ≡ 'Identity'@
--- [/Composition/] 
+-- [/Composition/]
 --   @'Compose' '.' 'fmap' ('bitraverse' g1 g2) '.' 'bitraverse' f1 f2 ≡ 'bitraverse' ('Compose' '.' 'fmap' g1 g2 '.' f1) ('Compose' '.' 'fmap' g2 '.' f2)@
 --
 -- /Note/: This property test is only available when this package is built with

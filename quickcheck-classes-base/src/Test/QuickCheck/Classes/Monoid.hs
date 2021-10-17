@@ -12,7 +12,6 @@ import Data.Semigroup
 import Data.Monoid
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..), SmallList(..), myForAllShrink)
 

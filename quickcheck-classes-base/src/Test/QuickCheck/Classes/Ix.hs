@@ -9,7 +9,6 @@ module Test.QuickCheck.Classes.Ix
 import Data.Ix (Ix(..))
 import Data.Proxy (Proxy)
 import Test.QuickCheck hiding ((.&.))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal (Laws(..))
 
@@ -20,7 +19,7 @@ import Test.QuickCheck.Classes.Internal (Laws(..))
 --   @'range' (l,u) '!!' 'index' (l,u) i '==' i@, when @'inRange' (l,u) i@
 --
 --   @'map' ('index' (l,u)) ('range' (l,u)) '==' [0 .. 'rangeSize' (l,u) - 1]@
---   
+--
 --   @'rangeSize' (l,u) '==' 'length' ('range' (l,u))@
 ixLaws :: (Ix a, Arbitrary a, Show a) => Proxy a -> Laws
 ixLaws p = Laws "Ix"

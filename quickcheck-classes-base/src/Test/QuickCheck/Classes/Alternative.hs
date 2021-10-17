@@ -20,7 +20,6 @@ import Test.QuickCheck hiding ((.&.))
 import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Data.Functor.Classes (Eq1,Show1)
 #endif
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 

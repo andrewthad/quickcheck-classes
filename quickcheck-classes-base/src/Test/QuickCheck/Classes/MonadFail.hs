@@ -23,12 +23,11 @@ import Test.QuickCheck.Arbitrary (Arbitrary1(..))
 import Data.Functor.Classes (Eq1,Show1)
 import Prelude hiding (fail)
 import Control.Monad.Fail (MonadFail(..))
-import Test.QuickCheck.Property (Property)
 
 import Test.QuickCheck.Classes.Internal
 
 -- | Tests the following 'MonadFail' properties:
--- 
+--
 -- [/Left Zero/]
 -- @'fail' s '>>=' f ≡ 'fail' s@
 monadFailLaws :: forall proxy f.
@@ -41,7 +40,7 @@ monadFailLaws :: forall proxy f.
 monadFailLaws p = Laws "Monad"
   [ ("Left Zero", monadFailLeftZero p)
   ]
- 
+
 monadFailLeftZero :: forall proxy f.
 #if HAVE_QUANTIFIED_CONSTRAINTS
   (MonadFail f, forall a. Eq a => Eq (f a), forall a. Show a => Show (f a), forall a. Arbitrary a => Arbitrary (f a))
