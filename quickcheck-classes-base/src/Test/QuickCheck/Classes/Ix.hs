@@ -30,19 +30,19 @@ ixLaws p = Laws "Ix"
   ]
 
 ixInRange :: forall a. (Show a, Ix a, Arbitrary a) => Proxy a -> Property
-ixInRange _ = property $ \(l :: a) (u :: a) (i :: a) -> (l <= u) ==> do
+ixInRange _ = property $ \(l :: a) (u :: a) (i :: a) ->
   inRange (l,u) i == elem i (range (l,u))
 
 ixRangeIndex :: forall a. (Show a, Ix a, Arbitrary a) => Proxy a -> Property
-ixRangeIndex _ = property $ \(l :: a) (u :: a) (i :: a) -> ((l <= u) && (i >= l && i <= u)) ==> do
-  range (l,u) !! index (l,u) i == i
+ixRangeIndex _ = property $ \(l :: a) (u :: a) (i :: a) ->
+  inRange (l,u) i ==> range (l,u) !! index (l,u) i == i
 
 ixMapIndexRange :: forall a. (Show a, Ix a, Arbitrary a) => Proxy a -> Property
-ixMapIndexRange _ = property $ \(l :: a) (u :: a) -> (l <= u) ==> do
+ixMapIndexRange _ = property $ \(l :: a) (u :: a) ->
   map (index (l,u)) (range (l,u)) == [0 .. rangeSize (l,u) - 1]
 
 ixRangeSize :: forall a. (Show a, Ix a, Arbitrary a) => Proxy a -> Property
-ixRangeSize _ = property $ \(l :: a) (u :: a) -> (l <= u) ==> do
+ixRangeSize _ = property $ \(l :: a) (u :: a) ->
   rangeSize (l,u) == length (range (l,u))
 
 
