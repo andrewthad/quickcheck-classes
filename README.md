@@ -1,3 +1,3 @@
 # quickcheck-classes
 
-Quickcheck Properties for common typeclasses
+[QuickCheck](https://hackage.haskell.org/package/QuickCheck) properties for common typeclasses
