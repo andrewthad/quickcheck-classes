@@ -30,7 +30,7 @@ flag aeson
   description:
     You can disable the use of the @aeson@ package using @-f-aeson@.
     .
-    This may be useful for accelerating builds in sandboxes for expert users.
+    This may be useful for accelerating builds.
   default: True
   manual: True
 
@@ -38,7 +38,7 @@ flag semigroupoids
   description:
     You can disable the use of the @semigroupoids@ package using @-f-semigroupoids@.
     .
-    This may be useful for accelerating builds in sandboxes for expert users.
+    This may be useful for accelerating builds.
   default: True
   manual: True
 
@@ -46,7 +46,7 @@ flag semirings
   description:
     You can disable the use of the @semirings@ package using @-f-semirings@.
     .
-    This may be useful for accelerating builds in sandboxes for expert users.
+    This may be useful for accelerating builds.
   default: True
   manual: True
 
@@ -54,7 +54,7 @@ flag vector
   description:
     You can disable the use of the @vector@ package using @-f-vector@.
     .
-    This may be useful for accelerating builds in sandboxes for expert users.
+    This may be useful for accelerating builds.
   default: True
   manual: True
 
