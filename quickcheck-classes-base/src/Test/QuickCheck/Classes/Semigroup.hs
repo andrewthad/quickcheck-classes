@@ -110,20 +110,20 @@ semigroupConcatenation _ = myForAllShrink True (const True)
   (\(a, SmallList as) -> foldr1 (<>) (a :| as))
 
 semigroupTimes :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-semigroupTimes _ = myForAllShrink True (\(_,n) -> n > 0)
-  (\(a :: a, n :: Int) -> ["a = " ++ show a, "n = " ++ show n])
+semigroupTimes _ = myForAllShrink True (const True)
+  (\(a :: a, Positive (n :: Int)) -> ["a = " ++ show a, "n = " ++ show n])
   "stimes n a"
-  (\(a,n) -> stimes n a)
+  (\(a, Positive n) -> stimes n a)
   "foldr1 (<>) (replicate n a)"
-  (\(a,n) -> foldr1 (<>) (replicate n a))
+  (\(a, Positive n) -> foldr1 (<>) (replicate n a))
 
 semigroupExponential :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
-semigroupExponential _ = myForAllShrink True (\(_,_,n) -> n > 0)
-  (\(a :: a, b, n :: Int) -> ["a = " ++ show a, "b = " ++ show b, "n = " ++ show n])
+semigroupExponential _ = myForAllShrink True (const True)
+  (\(a :: a, b, Positive (n :: Int)) -> ["a = " ++ show a, "b = " ++ show b, "n = " ++ show n])
   "stimes n (a <> b)"
-  (\(a,b,n) -> stimes n (a <> b))
+  (\(a, b, Positive n) -> stimes n (a <> b))
   "stimes n a <> stimes n b"
-  (\(a,b,n) -> stimes n a <> stimes n b)
+  (\(a, b, Positive n) -> stimes n a <> stimes n b)
 
 semigroupIdempotent :: forall a. (Semigroup a, Eq a, Arbitrary a, Show a) => Proxy a -> Property
 semigroupIdempotent _ = myForAllShrink False (const True)
